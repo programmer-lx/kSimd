@@ -695,15 +695,15 @@ TEST(dyn_dispatch_FLOAT_T, abs)
         // +0
         FILL_ARRAY(a, +0.0);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)[idx](a, r);
-        EXPECT_TRUE(array_bit_equal(r, std::size(r), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(r, std::size(r), ksimd::zero_block<FLOAT_T>));
 
         // -0
         FILL_ARRAY(a, -0.0);
         // test sign bit is 0
         for (size_t i = 0; i < std::size(r); ++i)
         {
-            constexpr auto bit_idx = tsimd::inverse_bit_index<FLOAT_T, 0>;
-            EXPECT_FALSE(test_bit(r[i], tsimd::inverse_bit_index<FLOAT_T, bit_idx>));
+            constexpr auto bit_idx = ksimd::inverse_bit_index<FLOAT_T, 0>;
+            EXPECT_FALSE(test_bit(r[i], ksimd::inverse_bit_index<FLOAT_T, bit_idx>));
         }
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)[idx](a, r);
         EXPECT_TRUE(array_equal(r, std::size(r), 0.0));
@@ -1194,35 +1194,35 @@ TEST(dyn_dispatch_FLOAT_T, equal)
         FILL_ARRAY(b, 1);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 1
         FILL_ARRAY(a, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 3
         FILL_ARRAY(a, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(b, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 #endif
@@ -1264,35 +1264,35 @@ TEST(dyn_dispatch_FLOAT_T, not_equal)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 1);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN one test 1
         FILL_ARRAY(a, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 3
         FILL_ARRAY(a, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(b, std::numeric_limits<FLOAT_T>::quiet_NaN());
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
     }
 }
 #endif
@@ -1334,42 +1334,42 @@ TEST(dyn_dispatch_FLOAT_T, greater)
         FILL_ARRAY(b, 1);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 #endif
@@ -1411,42 +1411,42 @@ TEST(dyn_dispatch_FLOAT_T, not_greater)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 3);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN one test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
     }
 }
 #endif
@@ -1488,42 +1488,42 @@ TEST(dyn_dispatch_FLOAT_T, greater_equal)
         FILL_ARRAY(b, 1);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 1);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 #endif
@@ -1565,42 +1565,42 @@ TEST(dyn_dispatch_FLOAT_T, not_greater_equal)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 1);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 3);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN one test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
     }
 }
 #endif
@@ -1644,42 +1644,42 @@ TEST(dyn_dispatch_FLOAT_T, less)
         FILL_ARRAY(b, 5);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 3);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 #endif
@@ -1723,42 +1723,42 @@ TEST(dyn_dispatch_FLOAT_T, not_less)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN one test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
     }
 }
 #endif
@@ -1800,42 +1800,42 @@ TEST(dyn_dispatch_FLOAT_T, less_equal)
         FILL_ARRAY(b, 5);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 3);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN zero test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 #endif
@@ -1877,42 +1877,42 @@ TEST(dyn_dispatch_FLOAT_T, not_less_equal)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // NaN one test 1
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 2
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // NaN one test 3
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
     }
 }
 #endif
@@ -1954,28 +1954,28 @@ TEST(dyn_dispatch_FLOAT_T, any_NaN)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(any_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(any_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(any_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // one test
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(any_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
     }
 }
 #endif
@@ -2017,28 +2017,28 @@ TEST(dyn_dispatch_FLOAT_T, not_NaN)
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, 2);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, 1);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
 
         // zero test
         FILL_ARRAY(a, qNaN<FLOAT_T>);
         FILL_ARRAY(b, qNaN<FLOAT_T>);
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_NaN)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), tsimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 #endif
@@ -2081,7 +2081,7 @@ TEST(dyn_dispatch_FLOAT_T, bit_not)
         // expected: 01010
         for (size_t i = 0; i < std::size(test); ++i)
         {
-            auto result_bits = tsimd::detail::bitcast_to_uint(test[i]);
+            auto result_bits = ksimd::detail::bitcast_to_uint(test[i]);
 
             EXPECT_FALSE(test_bit(result_bits, 0));
             EXPECT_TRUE(test_bit(result_bits, 1));
@@ -2341,7 +2341,7 @@ TEST(dyn_dispatch_FLOAT_T, sign_bit_select)
         FILL_ARRAY(a, 0);
         for (size_t i = 0; i < TOTAL; i += 2)
         {
-            a[i] = tsimd::sign_bit_mask<FLOAT_T>; // 0和偶数变成 sign bit 1
+            a[i] = ksimd::sign_bit_mask<FLOAT_T>; // 0和偶数变成 sign bit 1
         }
         FILL_ARRAY(b, 2);
         FILL_ARRAY(c, 3);

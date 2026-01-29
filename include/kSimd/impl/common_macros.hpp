@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstdlib>
 
-#define KSIMD_NAMESPACE_NAME tsimd
+#define KSIMD_NAMESPACE_NAME ksimd
 #define KSIMD_NAMESPACE_BEGIN namespace KSIMD_NAMESPACE_NAME {
 #define KSIMD_NAMESPACE_END }
 

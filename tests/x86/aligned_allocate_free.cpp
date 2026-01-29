@@ -12,11 +12,11 @@ TEST(aligned_allocate, alignment_test)
 
     for (int i = 1; i < 20; ++i)
     {
-        float* mem = tsimd::aligned_allocate<float*>(i * sizeof(float) * 8, alignment);
+        float* mem = ksimd::aligned_allocate<float*>(i * sizeof(float) * 8, alignment);
 
         EXPECT_TRUE(reinterpret_cast<uintptr_t>(mem) % alignment == 0);
 
-        tsimd::aligned_free(mem);
+        ksimd::aligned_free(mem);
     }
 }
 
@@ -24,7 +24,7 @@ TEST(aligned_allocate, std_vector)
 {
     []() KSIMD_AVX_INTRINSIC_ATTR
     {
-        using Arr = std::vector<float, tsimd::AlignedAllocator<float>>;
+        using Arr = std::vector<float, ksimd::AlignedAllocator<float>>;
         constexpr size_t size = 88;
 
         Arr numbers;

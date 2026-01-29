@@ -4,7 +4,7 @@
 
 TEST(cpuid, support)
 {
-    const auto& result = tsimd::get_cpu_support_info();
+    const auto& result = ksimd::get_cpu_support_info();
 
     EXPECT_TRUE(result.FXSR == true);
 

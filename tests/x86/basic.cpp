@@ -31,7 +31,7 @@ TEST(dyn_dispatch, pfn_table_size)
 
 TEST(dyn_dispatch, float32)
 {
-    using namespace tsimd;
+    using namespace ksimd;
 
     // scalar
     {
@@ -121,7 +121,7 @@ TEST(dyn_dispatch, float32)
 
 TEST(dyn_dispatch, float64)
 {
-    using namespace tsimd;
+    using namespace ksimd;
 
     // scalar
     {

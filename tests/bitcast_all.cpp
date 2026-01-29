@@ -7,7 +7,7 @@
 #define KSIMD_DISPATCH_THIS_FILE "bitcast_all.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 
-using namespace tsimd;
+using namespace ksimd;
 
 // #define KSIMD_DYN_INSTRUCTION AVX
 namespace KSIMD_DYN_INSTRUCTION

@@ -37,7 +37,7 @@ static inline PFN fn_arr[] = {
 
 TEST(not_support, avx512_failed)
 {
-    const auto& result = tsimd::get_cpu_support_info();
+    const auto& result = ksimd::get_cpu_support_info();
 
     int idx = -1;
     // select in runtime
