@@ -10,6 +10,7 @@ namespace Scalar_family
     struct Batch
     {
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::ScalarArray;
+        static constexpr size_t byte_size = 16;
 
         alignas(alignment) scalar_type v[16 / sizeof(scalar_type)];
 

@@ -8,16 +8,16 @@
 
 int main()
 {
-    using trait = tsimd::SimdTraits<tsimd::SimdInstruction::SSE2, float>;
-    using op = tsimd::SimdOp<tsimd::SimdInstruction::SSE2, float>;
+    using trait = ksimd::SimdTraits<ksimd::SimdInstruction::SSE2, float>;
+    using op = ksimd::SimdOp<ksimd::SimdInstruction::SSE2, float>;
     using batch_t = trait::batch_t;
 
-    size_t alignment = tsimd::AlignedAllocator<float>::alignment();
+    size_t alignment = ksimd::AlignedAllocator<float>::alignment();
     std::cout << "alignment = " << alignment << std::endl;
 
-    std::vector<float, tsimd::AlignedAllocator<float>> a;
-    std::vector<float, tsimd::AlignedAllocator<float>> b;
-    std::vector<float, tsimd::AlignedAllocator<float>> c;
+    std::vector<float, ksimd::AlignedAllocator<float>> a;
+    std::vector<float, ksimd::AlignedAllocator<float>> b;
+    std::vector<float, ksimd::AlignedAllocator<float>> c;
 
     constexpr size_t Total = 123;
     for (size_t i = 0; i < Total; ++i)
@@ -28,7 +28,7 @@ int main()
     }
 
     // compute
-    std::vector<float, tsimd::AlignedAllocator<float>> result(Total);
+    std::vector<float, ksimd::AlignedAllocator<float>> result(Total);
     constexpr size_t Step = trait::Lanes;
     size_t i = 0;
     for (; i + Step <= Total; i += Step)

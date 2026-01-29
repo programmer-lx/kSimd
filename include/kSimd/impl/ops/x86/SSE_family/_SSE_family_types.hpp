@@ -22,6 +22,7 @@ namespace SSE_family
         struct Batch<float32>
         {
             static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128;
+            static constexpr size_t byte_size = 16;
 
             __m128 v;
         };
@@ -35,6 +36,7 @@ namespace SSE_family
             static_assert(!std::is_same_v<scalar_type, float32>, "Batch<float32> is SSE type, not SSE2_up");
 
             static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128i;
+            static constexpr size_t byte_size = 16;
 
             __m128i v; // (u)int(n) 128bits
         };
@@ -43,6 +45,7 @@ namespace SSE_family
         struct Batch<float64>
         {
             static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128d;
+            static constexpr size_t byte_size = 16;
 
             __m128d v;
         };

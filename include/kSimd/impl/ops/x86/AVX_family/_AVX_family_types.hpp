@@ -12,6 +12,7 @@ namespace AVX_family
     struct Batch
     {
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m256i;
+        static constexpr size_t byte_size = 32;
 
         __m256i v;
     };
@@ -20,6 +21,7 @@ namespace AVX_family
     struct Batch<float32>
     {
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m256;
+        static constexpr size_t byte_size = 32;
 
         __m256 v;
     };
@@ -28,6 +30,7 @@ namespace AVX_family
     struct Batch<float64>
     {
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m256d;
+        static constexpr size_t byte_size = 32;
 
         __m256d v;
     };

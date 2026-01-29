@@ -102,7 +102,7 @@ namespace detail
         using batch_t = BatchType;
         using scalar_t = S;
         static constexpr SimdInstruction CurrentInstruction = Instruction;
-        static constexpr size_t BatchSize = sizeof(batch_t);
+        static constexpr size_t BatchSize = batch_t::byte_size;
         static constexpr size_t ElementSize = sizeof(scalar_t);
         static constexpr size_t Lanes = (BatchSize / ElementSize);
         static constexpr size_t BatchAlignment = Alignment;
