@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(
+        kSimd
+        LANGUAGES CXX
+        VERSION 0.0.0.1
+)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# options
+option(KSIMD_BUILD_EXAMPLES "" OFF)
+option(KSIMD_BUILD_TESTS "" OFF)
+
+
+# kSimd library (static)
+add_library(kSimd STATIC)
+target_include_directories(kSimd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_sources(kSimd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/one_cpp.cpp)
+# msvc utf-8
+if(MSVC)
+    target_compile_options(kSimd PRIVATE /utf-8)
+    target_compile_definitions(kSimd PRIVATE UNICODE _UNICODE)
+endif()
+
+
+if(KSIMD_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
+
+if(KSIMD_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

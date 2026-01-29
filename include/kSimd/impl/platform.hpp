@@ -1,0 +1,154 @@
+#pragma once
+
+#include "common_macros.hpp"
+
+#include <limits>
+
+// compiler
+#if !defined(KSIMD_COMPILER_MSVC) && !defined(KSIMD_COMPILER_GCC) && !defined(KSIMD_COMPILER_CLANG)
+    #error "Unknown compiler, tSimd only support MSVC, GCC, clang"
+#endif
+
+
+// --- X86 系列 ---
+// ----------------------------- x86 64-bit -----------------------------
+#if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
+    #define KSIMD_ARCH_X86_64
+    #define KSIMD_ARCH_X86_ANY
+// ----------------------------- x86 32-bit -----------------------------
+#elif defined(_M_IX86) || defined(__i386__)
+    #define KSIMD_ARCH_X86_32
+    #define KSIMD_ARCH_X86_ANY
+#else
+    #error "Unknown arch, tSimd can only support x86 arch."
+#endif
+
+
+
+// SIMD support
+// AVX512 -> AVX2 -> FMA3(独立的指令开关) -> AVX -> SSE4.1(不一定有SSE4.2) -> SSE3 -> SSE2
+//                -> F16C(独立的指令开关) -> AVX
+// SSE4.2 -> SSE4.1
+// x86 64 -> SSE2
+
+
+// call conv
+#if defined(_MSC_VER) && !defined(_M_ARM) && !defined(_M_ARM64) && !defined(_M_HYBRID_X86_ARM64) && !defined(_M_ARM64EC) && (!_MANAGED) && (!_M_CEE) && (!defined(_M_IX86_FP) || (_M_IX86_FP > 1)) && !defined(KSIMD_VECTORCALL_ENABLED)
+    #define KSIMD_VECTORCALL_ENABLED
+#endif
+
+#if defined(KSIMD_VECTORCALL_ENABLED)
+    #define KSIMD_CALL_CONV __vectorcall
+#else
+    #define KSIMD_CALL_CONV
+#endif
+#define KSIMD_SCALAR_CALL_CONV // 统一接口表示方式
+
+
+// ------------------------------------------- instruction features -------------------------------------------
+// 这些宏开关，表示分发表将会分发哪些函数
+// fallback指令的值，后续可通过类似于
+// #if (KSIMD_INSTRUCTION_FEATURE_SSE == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE) 的判断，来判断这个指令是不是fallback
+#define KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE (-1) // fallback值
+#undef KSIMD_DETAIL_INST_FEATURE_FALLBACK
+
+// Scalar: x86 32bit, arm 32bit, 测试模式下提供标量分发
+#if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
+    #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE // 当一个平台需要定义标量的时候，那么他肯定就是fallback
+    #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
+#endif
+
+// --------- x86指令集 ---------
+#if defined(KSIMD_ARCH_X86_ANY)
+
+    #define KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY
+    // SSE: 只在 x86 32bit 提供SSE分发
+    #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
+        #define KSIMD_INSTRUCTION_FEATURE_SSE 1
+    #endif
+
+    // SSE2 及以上
+    #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
+        #define KSIMD_INSTRUCTION_FEATURE_SSE2 1
+        // SSE2: x86 64 fallback
+        #if !defined(KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+            #undef KSIMD_INSTRUCTION_FEATURE_SSE2
+            #define KSIMD_INSTRUCTION_FEATURE_SSE2 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE // fallback value
+            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
+        #endif
+
+        #define KSIMD_INSTRUCTION_FEATURE_SSE3 1
+        #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1
+        #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1
+        #define KSIMD_INSTRUCTION_FEATURE_SSE4_2 1
+    #endif
+
+    // AVX family
+    #define KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY
+    #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
+        #define KSIMD_INSTRUCTION_FEATURE_AVX 1
+        #define KSIMD_INSTRUCTION_FEATURE_F16C 1
+        #define KSIMD_INSTRUCTION_FEATURE_FMA3 1
+        #define KSIMD_INSTRUCTION_FEATURE_AVX2 1
+    #endif
+
+    // AVX-512 family
+    #define KSIMD_INSTRUCTION_FEATURE_AVX512_FAMILY
+    #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
+        #define KSIMD_INSTRUCTION_FEATURE_AVX512_F 1
+    #endif
+
+#endif // x86 instructions
+
+KSIMD_NAMESPACE_BEGIN
+
+namespace Alignment
+{
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t SSE_Family = 16;
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t AVX_Family = 32;
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t AVX512_Family = 64;
+}
+
+namespace detail
+{
+    // 返回内存分配所需要的对齐字节数，如果只能使用标量，则返回0
+    size_t required_alignment() noexcept;
+}
+
+struct CpuSupportInfo
+{
+    // 从低到高排序
+
+    static constexpr bool Scalar = true;
+
+    bool FXSR       = false;
+
+    // SSE family
+    bool SSE        = false;
+    bool SSE2       = false;
+    bool SSE3       = false;
+    bool SSSE3      = false;
+    bool SSE4_1     = false;
+    bool SSE4_2     = false;
+
+    // XSAVE & OS_XSAVE
+    bool XSAVE      = false;
+    bool OS_XSAVE   = false;
+
+    // AVX family
+    bool AVX        = false;
+
+    // 这两个是独立指令集，在tsimd库中，AVX的op不使用FMA3+F16C指令，AVX2的op分成两套:
+    // 1. AVX2, 2. AVX2+FMA3+F16C。一套不使用FMA3+F16C，另一套使用FMA3+F16C
+    bool F16C       = false;
+    bool FMA3       = false;
+
+    bool AVX2       = false;
+
+    // AVX-512 family
+    bool AVX512_F   = false; // AVX512F支持FMA运算，不需要单独划分FMA3支持
+};
+
+const CpuSupportInfo& get_cpu_support_info() noexcept;
+
+KSIMD_NAMESPACE_END
