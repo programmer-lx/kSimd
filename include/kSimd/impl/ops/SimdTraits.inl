@@ -106,6 +106,8 @@ namespace detail
         static constexpr size_t ElementSize = sizeof(scalar_t);
         static constexpr size_t Lanes = (BatchSize / ElementSize);
         static constexpr size_t BatchAlignment = Alignment;
+
+        static_assert(BatchSize % ElementSize == 0); // 必须能整除
     };
 }
 
