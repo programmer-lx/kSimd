@@ -10,7 +10,6 @@
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
-
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(const float* KSIMD_RESTRICT arr, const size_t N, float* KSIMD_RESTRICT out_result) noexcept

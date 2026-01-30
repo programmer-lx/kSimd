@@ -11,6 +11,7 @@ namespace AVX_family
     template<is_scalar_type scalar_type>
     struct Batch
     {
+        using scalar_t = scalar_type;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m256i;
         static constexpr size_t byte_size = 32;
 
@@ -20,6 +21,7 @@ namespace AVX_family
     template<>
     struct Batch<float32>
     {
+        using scalar_t = float32;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m256;
         static constexpr size_t byte_size = 32;
 
@@ -29,6 +31,7 @@ namespace AVX_family
     template<>
     struct Batch<float64>
     {
+        using scalar_t = float64;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m256d;
         static constexpr size_t byte_size = 32;
 

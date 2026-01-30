@@ -9,6 +9,7 @@ namespace Scalar_family
     template<is_scalar_type scalar_type, size_t alignment>
     struct Batch
     {
+        using scalar_t = scalar_type;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::ScalarArray;
         static constexpr size_t byte_size = 16;
 

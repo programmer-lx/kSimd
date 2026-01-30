@@ -166,7 +166,7 @@ int dyn_func_index() noexcept;
 
 // --------------------------------- FUNC_ATTR字符串描述 ---------------------------------
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
-#define KSIMD_DYN_FUNC_ATTR "you should include <tSimd/dispatch_this_file.hpp>"
+#define KSIMD_DYN_FUNC_ATTR "you should include your file after include <kSimd/dispatch_this_file.hpp>"
 
 KSIMD_NAMESPACE_END
 

@@ -42,7 +42,6 @@
 #else
     #define KSIMD_CALL_CONV
 #endif
-#define KSIMD_SCALAR_CALL_CONV // 统一接口表示方式
 
 
 // ------------------------------------------- instruction features -------------------------------------------

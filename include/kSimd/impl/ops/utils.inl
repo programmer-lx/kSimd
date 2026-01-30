@@ -37,31 +37,31 @@ namespace detail
     using same_bits_uint_t = uint_from_bytes_t<sizeof(S)>;
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE KSIMD_FLATTEN auto bitcast_to_uint(S n) noexcept
+    constexpr KSIMD_FORCE_INLINE auto bitcast_to_uint(S n) noexcept
     {
         return std::bit_cast<same_bits_uint_t<S>>(n);
     }
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE KSIMD_FLATTEN S min(S a, S b) noexcept
+    constexpr KSIMD_FORCE_INLINE S min(S a, S b) noexcept
     {
         return a < b ? a : b;
     }
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE KSIMD_FLATTEN S max(S a, S b) noexcept
+    constexpr KSIMD_FORCE_INLINE S max(S a, S b) noexcept
     {
         return a > b ? a : b;
     }
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE KSIMD_FLATTEN S unsafe_clamp(S v, S min, S max) noexcept
+    constexpr KSIMD_FORCE_INLINE S unsafe_clamp(S v, S min, S max) noexcept
     {
         return detail::min(detail::max(v, min), max);
     }
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE KSIMD_FLATTEN S safe_clamp(S v, S range1, S range2) noexcept
+    constexpr KSIMD_FORCE_INLINE S safe_clamp(S v, S range1, S range2) noexcept
     {
         S low = detail::min(range1, range2);
         S high = detail::max(range1, range2);

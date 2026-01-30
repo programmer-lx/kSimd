@@ -21,6 +21,7 @@ namespace SSE_family
         template<>
         struct Batch<float32>
         {
+            using scalar_t = float32;
             static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128;
             static constexpr size_t byte_size = 16;
 
@@ -35,6 +36,7 @@ namespace SSE_family
         {
             static_assert(!std::is_same_v<scalar_type, float32>, "Batch<float32> is SSE type, not SSE2_up");
 
+            using scalar_t = scalar_type;
             static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128i;
             static constexpr size_t byte_size = 16;
 
@@ -44,6 +46,7 @@ namespace SSE_family
         template<>
         struct Batch<float64>
         {
+            using scalar_t = float64;
             static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128d;
             static constexpr size_t byte_size = 16;
 

@@ -35,7 +35,6 @@
     #define KSIMD_RESTRICT __restrict
     #define KSIMD_NOINLINE __declspec(noinline)
     #define KSIMD_FORCE_INLINE __forceinline
-    #define KSIMD_FLATTEN
     #define KSIMD_LIKELY(expr) (expr)
     #define KSIMD_UNLIKELY(expr) (expr)
     #define KSIMD_PRAGMA(tokens) __pragma(tokens)
@@ -48,8 +47,7 @@
     #define KSIMD_FUNCTION __PRETTY_FUNCTION__  // function name + template args
     #define KSIMD_RESTRICT __restrict__
     #define KSIMD_NOINLINE __attribute__((noinline))
-    #define KSIMD_FORCE_INLINE inline __attribute__((always_inline))
-    #define KSIMD_FLATTEN __attribute__((flatten))
+    #define KSIMD_FORCE_INLINE inline __attribute__((always_inline, flatten))
     #define KSIMD_LIKELY(expr) __builtin_expect(!!(expr), 1)
     #define KSIMD_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
     #define KSIMD_PRAGMA(tokens) _Pragma(#tokens)
