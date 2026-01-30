@@ -5,7 +5,7 @@
 #include <pmmintrin.h> // SSE3
 #include <smmintrin.h> // SSE4.1
 
-#include "../../Scalar/Scalar_base.hpp"
+#include "../../Scalar/base.hpp"
 #include "../../dispatch.hpp"
 
 KSIMD_NAMESPACE_BEGIN
