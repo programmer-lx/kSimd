@@ -4,10 +4,11 @@
 #include <iostream>
 #include <string>
 
-#include <kSimd/simd_op.hpp>
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "simd_batch_dyn_dispatch.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
+
+#include <kSimd/simd_op.hpp>
 
 
 #pragma message("dispatch target = " KSIMD_STR("" KSIMD_DYN_FUNC_ATTR))
@@ -24,9 +25,8 @@ namespace MyNamespace
             float* out_result) noexcept
         {
             using op = KSIMD_DYN_SIMD_OP(float);
-            using trait = op::traits;
-            using batch_t = trait::batch_t;
-            constexpr size_t Step = trait::Lanes;
+            using batch_t = op::batch_t;
+            constexpr size_t Step = op::Lanes;
 
             // 测试
             std::string cur_intrinsic = KSIMD_STR("" KSIMD_DYN_FUNC_ATTR);
