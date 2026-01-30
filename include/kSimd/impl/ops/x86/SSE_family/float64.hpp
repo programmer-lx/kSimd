@@ -245,7 +245,8 @@ struct SimdOp<SimdInstruction::SSE2, float64>
 };
 
 template<SimdInstruction I>
-struct SimdOp<I, float64, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE3, SSE4_1)>
+    requires (I >= SimdInstruction::SSE3 && I <= SimdInstruction::SSE4_1)
+struct SimdOp<I, float64>
     : SimdOp<SimdInstruction::SSE2, float64>
 {
     using traits = SimdTraits<SimdInstruction::SSE3, float64>;

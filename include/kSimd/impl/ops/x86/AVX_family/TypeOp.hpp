@@ -5,7 +5,8 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<SimdInstruction Instruction>
-struct TypeOp<Instruction, std::enable_if_t<(Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)>>
+    requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
+struct TypeOp<Instruction>
 {
     // self <- self
     template<is_simd_type To, is_simd_type From>

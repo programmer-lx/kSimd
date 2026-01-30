@@ -7,7 +7,8 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<SimdInstruction I>
-struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE, SSE2)>
+    requires (I >= SimdInstruction::SSE && I <= SimdInstruction::SSE2)
+struct SimdOp<I, float32>
 {
     using traits = SimdTraits<SimdInstruction::SSE, float32>;
     using batch_t = typename traits::batch_t;
@@ -250,7 +251,8 @@ struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE, SSE2)>
 };
 
 template<SimdInstruction I>
-struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE3, SSE4_1)>
+    requires (I >= SimdInstruction::SSE3 && I <= SimdInstruction::SSE4_1)
+struct SimdOp<I, float32>
     : SimdOp<SimdInstruction::SSE2, float32>
 {
     using traits = SimdTraits<SimdInstruction::SSE3, float32>;

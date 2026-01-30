@@ -4,7 +4,7 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<SimdInstruction Instruction, is_scalar_type ScalarType, typename = void>
+template<SimdInstruction Instruction, is_scalar_type ScalarType>
 struct SimdOp;
 
 #define KSIMD_DYN_SIMD_OP(scalar_type) \

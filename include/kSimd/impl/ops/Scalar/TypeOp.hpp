@@ -8,7 +8,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct TypeOp<SimdInstruction::Scalar, void>
+struct TypeOp<SimdInstruction::Scalar>
 {
     // scalar array <- scalar array or self <- self
     template<is_simd_type To, is_simd_type From>

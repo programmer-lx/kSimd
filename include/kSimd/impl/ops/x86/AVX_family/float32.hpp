@@ -5,7 +5,8 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<SimdInstruction I>
-struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, AVX, AVX2)>
+    requires (I >= SimdInstruction::AVX && I <= SimdInstruction::AVX2)
+struct SimdOp<I, float32>
 {
     using traits = SimdTraits<SimdInstruction::AVX, float32>;
     using batch_t = typename traits::batch_t;
@@ -241,7 +242,8 @@ struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, AVX, AVX2)>
 
 // AVX2 + FMA指令特化
 template<>
-struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32> : SimdOp<SimdInstruction::AVX2, float32>
+struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32>
+    : SimdOp<SimdInstruction::AVX2, float32>
 {
     using traits = SimdTraits<SimdInstruction::AVX2_FMA3_F16C, float32>;
     using batch_t = typename traits::batch_t;

@@ -7,7 +7,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct TypeOp<SimdInstruction::SSE, void>
+struct TypeOp<SimdInstruction::SSE>
 {
     // scalar array <- scalar array (用于转换除了float32之外的类型) (a to b or self to self)
     template<is_simd_type To, is_simd_type From>
@@ -53,7 +53,8 @@ struct TypeOp<SimdInstruction::SSE, void>
 };
 
 template<SimdInstruction Instruction>
-struct TypeOp<Instruction, std::enable_if_t<(Instruction > SimdInstruction::SSE_Start && Instruction < SimdInstruction::SSE_End)>>
+    requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End)
+struct TypeOp<Instruction>
 {
     // self <- self
     template<is_simd_type To, is_simd_type From>
