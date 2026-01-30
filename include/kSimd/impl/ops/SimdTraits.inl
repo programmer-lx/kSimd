@@ -111,7 +111,4 @@ namespace detail
     };
 }
 
-#define KSIMD_DYN_SIMD_TRAITS(scalar_type) \
-    KSIMD_NAMESPACE_NAME::SimdTraits<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, scalar_type>
-
 KSIMD_NAMESPACE_END

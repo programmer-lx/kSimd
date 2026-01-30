@@ -13,7 +13,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void zero(FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
 
         constexpr size_t Step = traits::Lanes;
@@ -52,7 +52,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void set(FLOAT_T x, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -88,7 +88,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void load_store(const FLOAT_T* KSIMD_RESTRICT in, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -125,7 +125,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void loadu_storeu(const FLOAT_T* KSIMD_RESTRICT in, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -164,7 +164,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
 
 
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -210,7 +210,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
 
 
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -256,7 +256,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
 
 
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -302,7 +302,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
 
 
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -343,7 +343,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void one_div(const FLOAT_T* KSIMD_RESTRICT a, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -383,7 +383,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void reduce_sum(const FLOAT_T* KSIMD_RESTRICT in, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -430,7 +430,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT c,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -485,7 +485,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT a,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -524,7 +524,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT b,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -564,7 +564,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT a,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -611,7 +611,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT a,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -658,7 +658,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT a,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -720,7 +720,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT b,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -778,7 +778,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT b,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -837,7 +837,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT c,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -972,7 +972,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT c,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1080,7 +1080,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT t,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1166,7 +1166,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1236,7 +1236,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1306,7 +1306,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1383,7 +1383,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1460,7 +1460,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1537,7 +1537,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1616,7 +1616,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
 
 
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1695,7 +1695,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
 
 
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1772,7 +1772,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1849,7 +1849,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1926,7 +1926,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -1989,7 +1989,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2051,7 +2051,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* a,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2102,7 +2102,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2143,7 +2143,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2187,7 +2187,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2228,7 +2228,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* b,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2270,7 +2270,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* c,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2314,7 +2314,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* c,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 
@@ -2371,7 +2371,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* c,
         FLOAT_T* out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_TRAITS(FLOAT_T);
+        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = traits::Lanes;
 

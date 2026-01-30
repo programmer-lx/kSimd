@@ -14,11 +14,11 @@ namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR void kernel() noexcept
     {
-        using f32 = KSIMD_DYN_SIMD_TRAITS(float32);
         using f32_op = KSIMD_DYN_SIMD_OP(float32);
+        using f32 = f32_op::traits;
 
-        using f64 = KSIMD_DYN_SIMD_TRAITS(float64);
         using f64_op = KSIMD_DYN_SIMD_OP(float64);
+        using f64 = f64_op::traits;
 
         // using i32 = KSIMD_DYN_SIMD_TRAITS(int32_t);
         // using i32_op = KSIMD_DYN_SIMD_OP(int32_t);

@@ -23,8 +23,8 @@ namespace MyNamespace
             const size_t N,
             float* out_result) noexcept
         {
-            using trait = KSIMD_DYN_SIMD_TRAITS(float);
             using op = KSIMD_DYN_SIMD_OP(float);
+            using trait = op::traits;
             using batch_t = trait::batch_t;
             constexpr size_t Step = trait::Lanes;
 
