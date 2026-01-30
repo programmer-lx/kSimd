@@ -1,6 +1,6 @@
 #include <kSimd/simd_op.hpp>
 
-#include "../test.hpp"
+#include "test.hpp"
 
 TEST(cpuid, support)
 {

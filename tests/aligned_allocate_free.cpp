@@ -3,7 +3,7 @@
 #include <kSimd/aligned_allocate.hpp>
 #include <kSimd/simd_op.hpp>
 
-#include "../test.hpp"
+#include "test.hpp"
 
 
 TEST(aligned_allocate, alignment_test)

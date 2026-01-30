@@ -1,9 +1,9 @@
-#include "../test.hpp"
+#include "test.hpp"
 
 #include <string>
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "x86/basic.cpp" // this file
+#define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp>
 
 #include <kSimd/simd_op.hpp>

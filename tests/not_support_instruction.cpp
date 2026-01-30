@@ -2,7 +2,7 @@
 
 #include <kSimd/simd_op.hpp>
 
-#include "../test.hpp"
+#include "test.hpp"
 
 
 #if defined(KSIMD_COMPILER_GCC) || defined(KSIMD_COMPILER_CLANG)

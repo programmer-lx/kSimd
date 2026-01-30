@@ -1,10 +1,10 @@
-#include "test.hpp"
+#include "../test.hpp"
 
 #include <kSimd/simd_op.hpp>
 #include <kSimd/type_op.hpp>
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "bitcast_all.cpp" // this file
+#define KSIMD_DISPATCH_THIS_FILE "type_op/bitcast_all.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 
 using namespace ksimd;
