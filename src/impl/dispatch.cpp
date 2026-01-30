@@ -55,7 +55,7 @@ namespace detail
 }
 
 // 测试时，这段代码不会被调用
-int dyn_func_index() noexcept
+int KSIMD_CALL_CONV dyn_func_index() noexcept
 {
     static int i = detail::dyn_func_index_impl();
     return i;

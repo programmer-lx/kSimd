@@ -4,15 +4,25 @@
 #include <iostream>
 #include <random>
 
-class Timer
+class ScopeTimer
 {
 public:
     using Clock = std::chrono::high_resolution_clock;
 
-    explicit Timer(const std::string& name)
-        : m_name(name), m_start(Clock::now()) {}
+    explicit ScopeTimer(std::string name = "ScopeTimer")
+        : m_name(std::move(name)), m_start(Clock::now())
+    {
+    }
 
-    double get_time() const
+    // 析构函数：对象生命周期结束时自动触发
+    ~ScopeTimer()
+    {
+        double elapsed = time_millis();
+        std::cout << "[" << m_name << "] Elapsed time: "
+                  << elapsed << " ms" << std::endl;
+    }
+
+    double time_millis() const
     {
         auto end = Clock::now();
         std::chrono::duration<double, std::milli> elapsed = end - m_start;
@@ -30,16 +40,4 @@ F random_f(F min, F max)
     static std::mt19937_64 rng{ std::random_device{}() };
     std::uniform_real_distribution<F> dist(min, max);
     return dist(rng);
-}
-
-inline void waste_time(double microseconds)
-{
-    auto start = std::chrono::high_resolution_clock::now();
-    auto target = std::chrono::duration<double, std::micro>(microseconds);
-
-    // 强制 CPU 不断轮询时钟
-    while (std::chrono::high_resolution_clock::now() - start < target)
-    {
-        _mm_pause();
-    }
 }

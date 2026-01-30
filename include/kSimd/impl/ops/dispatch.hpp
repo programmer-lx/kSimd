@@ -143,7 +143,7 @@ namespace detail
 }
 
 // 测试时直接返回索引即可，正式版本才使用运行时CPUID判断
-int dyn_func_index() noexcept;
+int KSIMD_CALL_CONV dyn_func_index() noexcept;
 
 #define KSIMD_DETAIL_PFN_TABLE_NS K_S_I_M_D__PFN_TABLE
 #define KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) KSIMD_DETAIL_PFN_TABLE_NS::func_name
