@@ -161,19 +161,6 @@ namespace detail
         }
 
         /**
-         * @return foreach i in lanes: v[i]^2
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, square, (batch_t v))
-        {
-            constexpr auto Lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (v.v[I] * v.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
          * @return foreach i in lanes: result[i] = abx(v[i])
          */
         KSIMD_OP_SIG_SCALAR(batch_t, abs, (batch_t v))
@@ -237,19 +224,6 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (detail::unsafe_clamp(v.v[I], min.v[I], max.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: result[i] = v[i]^n
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, pow, (batch_t v, batch_t n))
-        {
-            constexpr auto Lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (std::pow(v.v[I], n.v[I]))... };
             }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion

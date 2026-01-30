@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-
 #include "../_AVX_family_types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
@@ -89,27 +87,6 @@ struct SimdOp<SimdInstruction::AVX, float64>
     KSIMD_OP_SIG_AVX(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
     {
         return { _mm256_add_pd(_mm256_mul_pd(a.v, b.v), c.v) };
-    }
-
-    KSIMD_OP_SIG_AVX(batch_t, square, (batch_t v))
-    {
-        return { _mm256_mul_pd(v.v, v.v) };
-    }
-
-    KSIMD_OP_SIG_AVX(batch_t, pow, (batch_t v, batch_t n))
-    {
-        // TODO temp
-        alignas(Alignment::AVX_Family) float64 V[traits::Lanes];
-        alignas(Alignment::AVX_Family) float64 N[traits::Lanes];
-        alignas(Alignment::AVX_Family) float64 result[traits::Lanes];
-        _mm256_store_pd(V, v.v);
-        _mm256_store_pd(N, n.v);
-        for (size_t i = 0; i < traits::Lanes; ++i)
-        {
-            result[i] = std::pow(V[i], N[i]);
-        }
-
-        return { _mm256_load_pd(result) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, sqrt, (batch_t v))
