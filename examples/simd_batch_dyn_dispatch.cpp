@@ -81,6 +81,8 @@ namespace MyNamespace
                 data = op::mul_add(data, op::set(x), op::set(x));
                 data = op::mul_add(data, op::set(x), op::set(x));
                 data = op::mul_add(data, op::set(x), op::set(x));
+                data = op::min(data, op::set(100));
+                data = op::max(data, op::set(-100));
                 op::store(out + i, data);
             }
             for (; i < size; ++i)

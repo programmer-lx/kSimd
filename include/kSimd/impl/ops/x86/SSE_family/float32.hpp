@@ -116,24 +116,6 @@ struct SimdOp<I, float32>
         return { _mm_max_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, clamp, (batch_t v, batch_t range1, batch_t range2))
-    {
-        __m128 min = _mm_min_ps(range1.v, range2.v);
-        __m128 max = _mm_max_ps(range1.v, range2.v);
-        return { _mm_min_ps(_mm_max_ps(v.v, min), max) };
-    }
-
-    KSIMD_OP_SIG_SSE(batch_t, unsafe_clamp, (batch_t v, batch_t min, batch_t max))
-    {
-        return { _mm_min_ps(_mm_max_ps(v.v, min.v), max.v) };
-    }
-
-    KSIMD_OP_SIG_SSE(batch_t, lerp, (batch_t a, batch_t b, batch_t t))
-    {
-        __m128 b_a = _mm_sub_ps(b.v, a.v);
-        return { _mm_add_ps(a.v, _mm_mul_ps(b_a, t.v)) };
-    }
-
     KSIMD_OP_SIG_SSE(batch_t, equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpeq_ps(lhs.v, rhs.v) };

@@ -54,6 +54,337 @@ TEST(dyn_dispatch_FLOAT_T, sin)
 }
 #endif
 
+// ------------------------------------------ lerp ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void lerp(
+        const FLOAT_T* KSIMD_RESTRICT a,
+        const FLOAT_T* KSIMD_RESTRICT b,
+        const FLOAT_T* KSIMD_RESTRICT t,
+        FLOAT_T* KSIMD_RESTRICT out) noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        constexpr size_t Step = op::Lanes;
+        namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
+
+        for (size_t i = 0; i < TOTAL; i += Step)
+        {
+            using batch_t = op::batch_t;
+
+            batch_t x = ext::math::lerp(op::load(a + i), op::load(b + i), op::load(t + i));
+            op::store(out + i, x);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+KSIMD_DYN_DISPATCH_FUNC(lerp);
+
+TEST(dyn_dispatch_FLOAT_T, lerp)
+{
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)); ++idx)
+    {
+        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T t[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
+
+        // in
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(t, 0.6);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
+        EXPECT_TRUE(array_approximately(r, std::size(r), 1.2, FLOAT_T_EPSILON));
+
+        // in & inv a b
+        FILL_ARRAY(a, 2);
+        FILL_ARRAY(b, 0);
+        FILL_ARRAY(t, 0.6);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
+        EXPECT_TRUE(array_approximately(r, std::size(r), 0.8, FLOAT_T_EPSILON));
+
+        // < 0
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(t, -1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
+        EXPECT_TRUE(array_approximately(r, std::size(r), -2, FLOAT_T_EPSILON));
+
+        // < 0 & inv a b
+        FILL_ARRAY(a, 2);
+        FILL_ARRAY(b, 0);
+        FILL_ARRAY(t, -1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
+        EXPECT_TRUE(array_approximately(r, std::size(r), 4, FLOAT_T_EPSILON));
+
+        // > 1
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(t, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
+        EXPECT_TRUE(array_approximately(r, std::size(r), 4, FLOAT_T_EPSILON));
+
+        // > 1 & inv a b
+        FILL_ARRAY(a, 2);
+        FILL_ARRAY(b, 0);
+        FILL_ARRAY(t, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
+        EXPECT_TRUE(array_approximately(r, std::size(r), -2, FLOAT_T_EPSILON));
+    }
+}
+#endif
+
+// ------------------------------------------ safe_clamp ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void safe_clamp(
+        const FLOAT_T* KSIMD_RESTRICT a,
+        const FLOAT_T* KSIMD_RESTRICT b,
+        const FLOAT_T* KSIMD_RESTRICT c,
+        FLOAT_T* KSIMD_RESTRICT out) noexcept
+    {
+
+        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        constexpr size_t Step = op::Lanes;
+        namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
+
+        for (size_t i = 0; i < TOTAL; i += Step)
+        {
+            using batch_t = op::batch_t;
+
+            batch_t x = ext::math::safe_clamp(op::load(a + i), op::load(b + i), op::load(c + i));
+            op::store(out + i, x);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+KSIMD_DYN_DISPATCH_FUNC(safe_clamp);
+
+TEST(dyn_dispatch_FLOAT_T, safe_clamp)
+{
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)); ++idx)
+    {
+        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T c[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
+
+        // in
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 0);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // in & min == max
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // in & unsafe
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 0);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+
+        // <
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // < & min == max
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // < & unsafe
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+
+        // <=
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // <= & unsafe
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+
+        // >
+        FILL_ARRAY(a, 3);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+        // > & min == max
+        FILL_ARRAY(a, 3);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+        // > & unsafe
+        FILL_ARRAY(a, 3);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+
+        // >=
+        FILL_ARRAY(a, 2);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+        // >= & unsafe
+        FILL_ARRAY(a, 2);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(safe_clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+    }
+}
+#endif
+
+// ------------------------------------------ clamp ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void clamp(
+        const FLOAT_T* KSIMD_RESTRICT a,
+        const FLOAT_T* KSIMD_RESTRICT b,
+        const FLOAT_T* KSIMD_RESTRICT c,
+        FLOAT_T* KSIMD_RESTRICT out) noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        constexpr size_t Step = op::Lanes;
+        namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
+
+        for (size_t i = 0; i < TOTAL; i += Step)
+        {
+            using batch_t = op::batch_t;
+
+            batch_t x = ext::math::clamp(op::load(a + i), op::load(b + i), op::load(c + i));
+            op::store(out + i, x);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+KSIMD_DYN_DISPATCH_FUNC(clamp);
+
+TEST(dyn_dispatch_FLOAT_T, clamp)
+{
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)); ++idx)
+    {
+        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T c[TOTAL];
+        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
+
+        // in
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 0);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // in & min == max
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 1);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // in & unsafe
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 0);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_FALSE(array_equal(r, std::size(r), 1));
+
+        // <
+        FILL_ARRAY(a, 0);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+        // < & min == max
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+
+        // <=
+        FILL_ARRAY(a, 1);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 1));
+
+        // >
+        FILL_ARRAY(a, 3);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+
+        // > & min == max
+        FILL_ARRAY(a, 3);
+        FILL_ARRAY(b, 2);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+
+        // >=
+        FILL_ARRAY(a, 2);
+        FILL_ARRAY(b, 1);
+        FILL_ARRAY(c, 2);
+        FILL_ARRAY(r, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(clamp)[idx](a, b, c, r);
+        EXPECT_TRUE(array_equal(r, std::size(r), 2));
+    }
+}
+#endif
+
 
 // main function
 #if KSIMD_ONCE

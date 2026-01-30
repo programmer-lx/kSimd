@@ -196,34 +196,6 @@ namespace detail
                 return { (detail::max(lhs.v[I], rhs.v[I]))... };
             }(std::make_index_sequence<Lanes>{});
         }
-
-        /**
-         * @return foreach i in lanes: result[i] = clamp v[i] to [ min(range1[i], range2[i]), max(range1[i], range2[i]) ]
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, clamp, (batch_t v, batch_t range1, batch_t range2))
-        {
-            constexpr auto Lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (detail::safe_clamp(v.v[I], range1.v[I], range2.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: result[i] = clamp v[i] to [ min[i], max[i] ]
-         * @note 必须要保证 min <= max
-         * @warning 在数据批处理的情况下，很难保证一批数据的所有分量全部小于另一批数据，所以这个函数不太建议使用，建议使用 clamp 函数
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, unsafe_clamp, (batch_t v, batch_t min, batch_t max))
-        {
-            constexpr auto Lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (detail::unsafe_clamp(v.v[I], min.v[I], max.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
         #pragma endregion
 
         #pragma region compare 比较
@@ -508,19 +480,6 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: result[i] = a + (b - a) * t
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, lerp, (batch_t a, batch_t b, batch_t t))
-        {
-            constexpr auto Lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { ( a.v[I] + (b.v[I] - a.v[I]) * t.v[I] )... };
             }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion

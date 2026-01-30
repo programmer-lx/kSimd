@@ -54,20 +54,6 @@ namespace detail
         return a > b ? a : b;
     }
 
-    template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE S unsafe_clamp(S v, S min, S max) noexcept
-    {
-        return detail::min(detail::max(v, min), max);
-    }
-
-    template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE S safe_clamp(S v, S range1, S range2) noexcept
-    {
-        S low = detail::min(range1, range2);
-        S high = detail::max(range1, range2);
-        return detail::min(detail::max(v, low), high);
-    }
-
     template<typename S, int index>
     consteval int inverse_bit_index_impl()
     {

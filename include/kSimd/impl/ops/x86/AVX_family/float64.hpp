@@ -112,24 +112,6 @@ struct SimdOp<I, float64>
     {
         return { _mm256_max_pd(lhs.v, rhs.v) };
     }
-
-    KSIMD_OP_SIG_AVX(batch_t, clamp, (batch_t v, batch_t range1, batch_t range2))
-    {
-        __m256d min = _mm256_min_pd(range1.v, range2.v);
-        __m256d max = _mm256_max_pd(range1.v, range2.v);
-        return { _mm256_min_pd(_mm256_max_pd(v.v, min), max) };
-    }
-
-    KSIMD_OP_SIG_AVX(batch_t, unsafe_clamp, (batch_t v, batch_t min, batch_t max))
-    {
-        return { _mm256_min_pd(_mm256_max_pd(v.v, min.v), max.v) };
-    }
-
-    KSIMD_OP_SIG_AVX(batch_t, lerp, (batch_t a, batch_t b, batch_t t))
-    {
-        __m256d b_a = _mm256_sub_pd(b.v, a.v);
-        return { _mm256_add_pd(a.v, _mm256_mul_pd(b_a, t.v)) };
-    }
     
     KSIMD_OP_SIG_AVX(batch_t, equal, (batch_t lhs, batch_t rhs))
     {
