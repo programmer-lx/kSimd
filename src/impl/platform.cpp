@@ -188,26 +188,6 @@ namespace detail
         // arm NEON
 #endif
     }
-
-    size_t required_alignment() noexcept
-    {
-        const auto& supports = get_cpu_support_info();
-        if (supports.AVX512_F)
-        {
-            return Alignment::AVX512_Family;
-        }
-        if (supports.AVX)
-        {
-            return Alignment::AVX_Family;
-        }
-        if (supports.SSE)
-        {
-            return Alignment::SSE_Family;
-        }
-
-        // 标量返回0
-        return 0;
-    }
 }
 
 const CpuSupportInfo& get_cpu_support_info() noexcept

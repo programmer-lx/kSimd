@@ -59,26 +59,26 @@ namespace SSE_family
 // SSE
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
-struct SimdTraits<SimdInstruction::SSE, S> : detail::SimdTraits_Base<SimdInstruction::SSE, S, SSE_family::SSE::Batch<S>, Alignment::SSE_Family>
+struct SimdTraits<SimdInstruction::SSE, S> : detail::SimdTraits_Base<SimdInstruction::SSE, S, SSE_family::SSE::Batch<S>, alignment::SSE_Family>
 {
 };
 
 template<is_scalar_type S>
     requires (!std::is_same_v<float32, S>) // NOT float32
-struct SimdTraits<SimdInstruction::SSE, S> : detail::SimdTraits_Base<SimdInstruction::SSE, S, Scalar_family::Batch<S, Alignment::SSE_Family>, Alignment::SSE_Family>
+struct SimdTraits<SimdInstruction::SSE, S> : detail::SimdTraits_Base<SimdInstruction::SSE, S, Scalar_family::Batch<S, alignment::SSE_Family>, alignment::SSE_Family>
 {
 };
 
 // SSE2+
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && std::is_same_v<float32, S>) // float32 only
-struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, SSE_family::SSE::Batch<S>, Alignment::SSE_Family>
+struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, SSE_family::SSE::Batch<S>, alignment::SSE_Family>
 {
 };
 
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && !std::is_same_v<float32, S>) // NOT float32
-struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, SSE_family::SSE2_up::Batch<S>, Alignment::SSE_Family>
+struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, SSE_family::SSE2_up::Batch<S>, alignment::SSE_Family>
 {
 };
 

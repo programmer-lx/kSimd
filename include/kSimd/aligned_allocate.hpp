@@ -56,12 +56,6 @@ struct AlignedAllocator
     using size_type       = size_t;
     using difference_type = ptrdiff_t;
 
-    static size_t alignment()
-    {
-        size_t align = detail::required_alignment();
-        return align > 0 ? align : alignof(T);
-    }
-
     AlignedAllocator() noexcept = default;
 
     AlignedAllocator(const AlignedAllocator&) noexcept = default;
@@ -75,10 +69,8 @@ struct AlignedAllocator
 
     [[nodiscard]] T* allocate(const size_t count)
     {
-        const size_t align = alignment();
-
         const size_t bytes = count * sizeof(T);
-        void* ptr = aligned_allocate(bytes, align);
+        void* ptr = aligned_allocate(bytes, alignment::AVX_Family);
 
         if (!ptr)
         {

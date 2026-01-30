@@ -227,7 +227,7 @@ struct SimdOp<I, float32>
     KSIMD_OP_SIG_SSE(batch_t, sign_bit_select, (batch_t sign_mask, batch_t a, batch_t b))
     {
         // 直接读取sign bit，然后构造mask
-        alignas(Alignment::SSE_Family) float32 tmp[traits::Lanes];
+        alignas(alignment::SSE_Family) float32 tmp[traits::Lanes];
         _mm_store_ps(tmp, sign_mask.v);
 
         constexpr uint32 sign_bit = sign_bit_mask<uint32>;

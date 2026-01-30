@@ -101,17 +101,11 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace Alignment
+namespace alignment
 {
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t SSE_Family = 16;
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t AVX_Family = 32;
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t AVX512_Family = 64;
-}
-
-namespace detail
-{
-    // 返回内存分配所需要的对齐字节数，如果只能使用标量，则返回0
-    size_t required_alignment() noexcept;
 }
 
 struct CpuSupportInfo

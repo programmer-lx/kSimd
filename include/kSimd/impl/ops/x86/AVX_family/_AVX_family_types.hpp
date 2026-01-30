@@ -42,7 +42,7 @@ namespace AVX_family
 // traits
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
-struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, AVX_family::Batch<S>, Alignment::AVX_Family>
+struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, AVX_family::Batch<S>, alignment::AVX_Family>
 {
 };
 
