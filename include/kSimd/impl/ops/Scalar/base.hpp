@@ -20,9 +20,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_type Scalar>
     struct SimdOp_Scalar_Base
     {
-        using traits = SimdTraits<Instruction, Scalar>;
-        using batch_t = typename traits::batch_t;
-        using scalar_t = typename traits::scalar_t;
+        KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, Scalar)
 
         #pragma region memory 内存操作
         /**
@@ -458,9 +456,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_floating_point FloatingPoint>
     struct SimdOp_Scalar_FloatingPoint_Base : SimdOp_Scalar_Base<Instruction, FloatingPoint>
     {
-        using traits = SimdTraits<Instruction, FloatingPoint>;
-        using batch_t = typename traits::batch_t;
-        using scalar_t = typename traits::scalar_t;
+        KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, FloatingPoint)
 
         #pragma region arithmetic 算术
         /**

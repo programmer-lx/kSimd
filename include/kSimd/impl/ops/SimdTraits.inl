@@ -111,4 +111,14 @@ namespace detail
     };
 }
 
+#define KSIMD_DETAIL_SIMD_OP_TRAITS(instruction, scalar_type) \
+    using traits = SimdTraits<instruction, scalar_type>; \
+    using batch_t = typename traits::batch_t; \
+    using scalar_t = typename traits::scalar_t; \
+    static constexpr SimdInstruction CurrentInstruction = traits::CurrentInstruction; \
+    static constexpr size_t BatchSize = traits::BatchSize; \
+    static constexpr size_t ElementSize = traits::ElementSize; \
+    static constexpr size_t Lanes = traits::Lanes; \
+    static constexpr size_t BatchAlignment = traits::BatchAlignment;
+
 KSIMD_NAMESPACE_END

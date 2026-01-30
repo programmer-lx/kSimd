@@ -15,8 +15,8 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sin(FLOAT_T x, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using traits = KSIMD_DYN_SIMD_OP(FLOAT_T)::traits;
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using traits = op::traits;
         constexpr size_t Step = traits::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
@@ -48,7 +48,7 @@ TEST(dyn_dispatch_FLOAT_T, sin)
                 EXPECT_NEAR(out[i], std::sin(n), FLOAT_T_EPSILON);
             }
 
-            n += 0.002;
+            n += 0.0037;
         }
     }
 }

@@ -14,9 +14,8 @@ namespace ksimd::ext::KSIMD_DYN_INSTRUCTION::math
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_SIMD_OP(scalar_t);
-        using traits = typename op::traits;
-        constexpr SimdInstruction Instruction = traits::CurrentInstruction;
-        constexpr size_t Lanes = traits::Lanes;
+        constexpr SimdInstruction Instruction = op::CurrentInstruction;
+        constexpr size_t Lanes = op::Lanes;
 
         if constexpr (Instruction == SimdInstruction::Scalar)
         {
@@ -28,7 +27,7 @@ namespace ksimd::ext::KSIMD_DYN_INSTRUCTION::math
         else
         {
             // TODO
-            alignas(traits::BatchAlignment) scalar_t V[Lanes]{};
+            alignas(op::BatchAlignment) scalar_t V[Lanes]{};
             op::store(V, v);
             for (size_t i = 0; i < Lanes; ++i)
             {

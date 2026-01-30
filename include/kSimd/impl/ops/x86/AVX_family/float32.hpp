@@ -8,9 +8,7 @@ template<SimdInstruction I>
     requires (I >= SimdInstruction::AVX && I <= SimdInstruction::AVX2)
 struct SimdOp<I, float32>
 {
-    using traits = SimdTraits<SimdInstruction::AVX, float32>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float32)
 
     KSIMD_OP_SIG_AVX(batch_t, load, (const float32* mem))
     {
@@ -245,9 +243,7 @@ template<>
 struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32>
     : SimdOp<SimdInstruction::AVX2, float32>
 {
-    using traits = SimdTraits<SimdInstruction::AVX2_FMA3_F16C, float32>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2_FMA3_F16C, float32)
 
     KSIMD_OP_SIG_AVX2_FMA3_F16C(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
     {

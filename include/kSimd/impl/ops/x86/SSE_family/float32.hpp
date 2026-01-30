@@ -10,9 +10,7 @@ template<SimdInstruction I>
     requires (I >= SimdInstruction::SSE && I <= SimdInstruction::SSE2)
 struct SimdOp<I, float32>
 {
-    using traits = SimdTraits<SimdInstruction::SSE, float32>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float32)
 
     KSIMD_OP_SIG_SSE(batch_t, load, (const float32* mem))
     {
@@ -255,9 +253,7 @@ template<SimdInstruction I>
 struct SimdOp<I, float32>
     : SimdOp<SimdInstruction::SSE2, float32>
 {
-    using traits = SimdTraits<SimdInstruction::SSE3, float32>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float32)
 
     KSIMD_OP_SIG_SSE3(float32, reduce_sum, (batch_t v))
     {

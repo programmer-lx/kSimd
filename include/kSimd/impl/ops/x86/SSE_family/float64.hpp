@@ -8,17 +8,13 @@ template<>
 struct SimdOp<SimdInstruction::SSE, float64>
     : detail::SimdOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
 {
-    using traits = SimdTraits<SimdInstruction::SSE, float64>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float64)
 };
 
 template<>
 struct SimdOp<SimdInstruction::SSE2, float64>
 {
-    using traits = SimdTraits<SimdInstruction::SSE2, float64>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE2, float64)
 
     KSIMD_OP_SIG_SSE2(batch_t, load, (const float64* mem))
     {
@@ -249,9 +245,7 @@ template<SimdInstruction I>
 struct SimdOp<I, float64>
     : SimdOp<SimdInstruction::SSE2, float64>
 {
-    using traits = SimdTraits<SimdInstruction::SSE3, float64>;
-    using batch_t = typename traits::batch_t;
-    using scalar_t = typename traits::scalar_t;
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float64)
 
     KSIMD_OP_SIG_SSE3(float64, reduce_sum, (batch_t v))
     {
