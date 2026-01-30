@@ -4,7 +4,7 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<SimdInstruction Instruction>
+template<SimdInstruction Instruction, typename = void>
 struct TypeOp;
 
 #define KSIMD_DYN_TYPE_OP() \

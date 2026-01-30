@@ -32,13 +32,13 @@ namespace KSIMD_DYN_INSTRUCTION
         // f32 -> f32
         {
             f32::batch_t a = f32_op::set(5);
-            f32::batch_t b = type_op::bitcast<f32::batch_t>(a);
+            f32::batch_t b = type_op::bit_cast<f32::batch_t>(a);
             EXPECT_TRUE(simd_type_bit_equal(a, b));
         }
         // f64 -> f64
         // {
         //     f64::batch_t a = f64_op::set(5);
-        //     f64::batch_t b = type_op::bitcast<f64::batch_t>(a);
+        //     f64::batch_t b = type_op::bit_cast<f64::batch_t>(a);
         //     EXPECT_TRUE(simd_type_bit_equal(a, b));
         // }
 
@@ -46,7 +46,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // f32 -> f64
         {
             f32::batch_t a = f32_op::set(6);
-            f64::batch_t b = type_op::bitcast<f64::batch_t>(a);
+            f64::batch_t b = type_op::bit_cast<f64::batch_t>(a);
             EXPECT_TRUE(simd_type_bit_equal(a, b));
         }
 
@@ -54,7 +54,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // f64 -> f32
         {
             f64::batch_t a = f64_op::set(5);
-            f32::batch_t b = type_op::bitcast<f32::batch_t>(a);
+            f32::batch_t b = type_op::bit_cast<f32::batch_t>(a);
             EXPECT_TRUE(simd_type_bit_equal(a, b));
         }
 
@@ -66,7 +66,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
 #if KSIMD_ONCE
 KSIMD_DYN_DISPATCH_FUNC(kernel);
-TEST(bitcast, all)
+TEST(bit_cast, all)
 {
     for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel)); ++idx)
     {
@@ -79,7 +79,7 @@ struct doublex1
     alignas(16) double v[1];
 };
 
-TEST(bitcast, check_alignment)
+TEST(bit_cast, check_alignment)
 {
     constexpr auto align = alignof(doublex1) - offsetof(doublex1, v);
     EXPECT_TRUE(align == 16);

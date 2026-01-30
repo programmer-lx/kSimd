@@ -4,13 +4,13 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<>
-struct TypeOp<SimdInstruction::AVX>
+template<SimdInstruction Instruction>
+struct TypeOp<Instruction, std::enable_if_t<(Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)>>
 {
     // self <- self
     template<is_simd_type To, is_simd_type From>
         requires (std::is_same_v<To, From> && From::underlying_simd_type != detail::UnderlyingSimdType::ScalarArray)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
@@ -20,7 +20,7 @@ struct TypeOp<SimdInstruction::AVX>
     // m256d <- m256
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m256d && From::underlying_simd_type == detail::UnderlyingSimdType::m256)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
@@ -30,7 +30,7 @@ struct TypeOp<SimdInstruction::AVX>
     // m256i <- m256
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m256i && From::underlying_simd_type == detail::UnderlyingSimdType::m256)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
@@ -40,7 +40,7 @@ struct TypeOp<SimdInstruction::AVX>
     // m256 <- m256d
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m256 && From::underlying_simd_type == detail::UnderlyingSimdType::m256d)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
@@ -50,7 +50,7 @@ struct TypeOp<SimdInstruction::AVX>
     // m256i <- m256d
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m256i && From::underlying_simd_type == detail::UnderlyingSimdType::m256d)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
@@ -60,7 +60,7 @@ struct TypeOp<SimdInstruction::AVX>
     // m256 <- m256i
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m256 && From::underlying_simd_type == detail::UnderlyingSimdType::m256i)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
@@ -70,18 +70,12 @@ struct TypeOp<SimdInstruction::AVX>
     // m256d <- m256i
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m256d && From::underlying_simd_type == detail::UnderlyingSimdType::m256i)
-    KSIMD_OP_SIG_AVX(To, bitcast, (From from))
+    KSIMD_OP_SIG_AVX(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::AVX_Family)
 
         return { _mm256_castsi256_pd(from.v) };
     }
 };
-
-template<>
-struct TypeOp<SimdInstruction::AVX2> : TypeOp<SimdInstruction::AVX> {};
-
-template<>
-struct TypeOp<SimdInstruction::AVX2_FMA3_F16C> : TypeOp<SimdInstruction::AVX2> {};
 
 KSIMD_NAMESPACE_END

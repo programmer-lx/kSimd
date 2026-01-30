@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../_AVX_family_types.hpp"
+#include "_AVX_family_types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
-template<>
-struct SimdOp<SimdInstruction::AVX, float64>
+template<SimdInstruction I>
+struct SimdOp<I, float64, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, AVX, AVX2)>
 {
     using traits = SimdTraits<SimdInstruction::AVX, float64>;
     using batch_t = typename traits::batch_t;
@@ -231,6 +231,19 @@ struct SimdOp<SimdInstruction::AVX, float64>
     {
         __m256d mask = _mm256_cmp_pd(lane_mask.v, _mm256_setzero_pd(), _CMP_NEQ_UQ); // UQ: NaN -> one_block, select a
         return { _mm256_or_pd(_mm256_and_pd(mask, a.v), _mm256_andnot_pd(mask, b.v)) };
+    }
+};
+
+template<>
+struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float64> : SimdOp<SimdInstruction::AVX2, float64>
+{
+    using traits = SimdTraits<SimdInstruction::AVX2_FMA3_F16C, float64>;
+    using batch_t = typename traits::batch_t;
+    using scalar_t = typename traits::scalar_t;
+
+    KSIMD_OP_SIG_AVX2_FMA3_F16C(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
+    {
+        return { _mm256_fmadd_pd(a.v, b.v, c.v) };
     }
 };
 

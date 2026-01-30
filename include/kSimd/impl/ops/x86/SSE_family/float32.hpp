@@ -2,12 +2,12 @@
 
 #include <bit>
 
-#include "../_SSE_family_types.hpp"
+#include "_SSE_family_types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
-template<>
-struct SimdOp<SimdInstruction::SSE, float32>
+template<SimdInstruction I>
+struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE, SSE2)>
 {
     using traits = SimdTraits<SimdInstruction::SSE, float32>;
     using batch_t = typename traits::batch_t;
@@ -246,6 +246,27 @@ struct SimdOp<SimdInstruction::SSE, float32>
         // 使用 bit_select 方案，但是需要使用 cmp_neq 来构造 mask
         __m128 mask = _mm_cmpneq_ps(lane_mask.v, _mm_setzero_ps());
         return { _mm_or_ps(_mm_and_ps(mask, a.v), _mm_andnot_ps(mask, b.v)) };
+    }
+};
+
+template<SimdInstruction I>
+struct SimdOp<I, float32, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE3, SSE4_1)>
+    : SimdOp<SimdInstruction::SSE2, float32>
+{
+    using traits = SimdTraits<SimdInstruction::SSE3, float32>;
+    using batch_t = typename traits::batch_t;
+    using scalar_t = typename traits::scalar_t;
+
+    KSIMD_OP_SIG_SSE3(float32, reduce_sum, (batch_t v))
+    {
+        // input: [d, c, b, a]
+        // hadd: [c+d, a+b, c+d, a+b]
+        // hadd: [a+b+c+d, .........]
+        // get lane[0]
+
+        __m128 result = _mm_hadd_ps(v.v, v.v);
+        result = _mm_hadd_ps(result, result);
+        return _mm_cvtss_f32(result);
     }
 };
 

@@ -83,6 +83,9 @@ enum class SimdInstruction : int
     AVX_End
 };
 
+#define KSIMD_DETAIL_OP_RANGE_INCLUDE(instruction, min, max) \
+    std::enable_if_t<(instruction >= SimdInstruction::min && instruction <= SimdInstruction::max)>
+
 template<typename T>
 concept is_simd_type = requires(T v)
 {

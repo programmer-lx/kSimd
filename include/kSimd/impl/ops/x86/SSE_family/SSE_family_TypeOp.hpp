@@ -7,12 +7,12 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct TypeOp<SimdInstruction::SSE>
+struct TypeOp<SimdInstruction::SSE, void>
 {
     // scalar array <- scalar array (用于转换除了float32之外的类型) (a to b or self to self)
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray && From::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray)
-    KSIMD_OP_SIG_SCALAR(To, bitcast, (From from))
+    KSIMD_OP_SIG_SCALAR(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -22,7 +22,7 @@ struct TypeOp<SimdInstruction::SSE>
     // m128 <- m128 (self to self)
     template<is_simd_type To, is_simd_type From>
         requires (std::is_same_v<To, From> && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
-    KSIMD_OP_SIG_SSE(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -32,7 +32,7 @@ struct TypeOp<SimdInstruction::SSE>
     // scalar array <- m128
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
-    KSIMD_OP_SIG_SSE(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -44,7 +44,7 @@ struct TypeOp<SimdInstruction::SSE>
     // m128 <- scalar array
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128 && From::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray)
-    KSIMD_OP_SIG_SSE(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -52,13 +52,13 @@ struct TypeOp<SimdInstruction::SSE>
     }
 };
 
-template<>
-struct TypeOp<SimdInstruction::SSE2>
+template<SimdInstruction Instruction>
+struct TypeOp<Instruction, std::enable_if_t<(Instruction > SimdInstruction::SSE_Start && Instruction < SimdInstruction::SSE_End)>>
 {
     // self <- self
     template<is_simd_type To, is_simd_type From>
         requires (std::is_same_v<To, From> && From::underlying_simd_type != detail::UnderlyingSimdType::ScalarArray)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -68,7 +68,7 @@ struct TypeOp<SimdInstruction::SSE2>
     // m128d <- m128
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128d && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -78,7 +78,7 @@ struct TypeOp<SimdInstruction::SSE2>
     // m128i <- m128
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128i && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -88,7 +88,7 @@ struct TypeOp<SimdInstruction::SSE2>
     // m128 <- m128d
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128 && From::underlying_simd_type == detail::UnderlyingSimdType::m128d)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -98,7 +98,7 @@ struct TypeOp<SimdInstruction::SSE2>
     // m128i <- m128d
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128i && From::underlying_simd_type == detail::UnderlyingSimdType::m128d)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -108,7 +108,7 @@ struct TypeOp<SimdInstruction::SSE2>
     // m128 <- m128i
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128 && From::underlying_simd_type == detail::UnderlyingSimdType::m128i)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
@@ -118,18 +118,12 @@ struct TypeOp<SimdInstruction::SSE2>
     // m128d <- m128i
     template<is_simd_type To, is_simd_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128d && From::underlying_simd_type == detail::UnderlyingSimdType::m128i)
-    KSIMD_OP_SIG_SSE2(To, bitcast, (From from))
+    KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, Alignment::SSE_Family)
 
         return { _mm_castsi128_pd(from.v) };
     }
 };
-
-template<>
-struct TypeOp<SimdInstruction::SSE3> : TypeOp<SimdInstruction::SSE2> {};
-
-template<>
-struct TypeOp<SimdInstruction::SSE4_1> : TypeOp<SimdInstruction::SSE3> {};
 
 KSIMD_NAMESPACE_END

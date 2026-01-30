@@ -1,8 +1,17 @@
 #pragma once
 
-#include "../_SSE_family_types.hpp"
+#include "_SSE_family_types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
+
+template<>
+struct SimdOp<SimdInstruction::SSE, float64>
+    : detail::SimdOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
+{
+    using traits = SimdTraits<SimdInstruction::SSE, float64>;
+    using batch_t = typename traits::batch_t;
+    using scalar_t = typename traits::scalar_t;
+};
 
 template<>
 struct SimdOp<SimdInstruction::SSE2, float64>
@@ -127,7 +136,7 @@ struct SimdOp<SimdInstruction::SSE2, float64>
         __m128d b_a = _mm_sub_pd(b.v, a.v);
         return { _mm_add_pd(a.v, _mm_mul_pd(b_a, t.v)) };
     }
-    
+
     KSIMD_OP_SIG_SSE2(batch_t, equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpeq_pd(lhs.v, rhs.v) };
@@ -187,7 +196,7 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     {
         return { _mm_cmpord_pd(lhs.v, rhs.v) };
     }
-    
+
     KSIMD_OP_SIG_SSE2(batch_t, bit_not, (batch_t v))
     {
         return { _mm_xor_pd(v.v, _mm_set1_pd(one_block<double>)) };
@@ -232,6 +241,24 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     {
         __m128d mask = _mm_cmpneq_pd(lane_mask.v, _mm_setzero_pd());
         return { _mm_or_pd(_mm_and_pd(mask, a.v), _mm_andnot_pd(mask, b.v)) };
+    }
+};
+
+template<SimdInstruction I>
+struct SimdOp<I, float64, KSIMD_DETAIL_OP_RANGE_INCLUDE(I, SSE3, SSE4_1)>
+    : SimdOp<SimdInstruction::SSE2, float64>
+{
+    using traits = SimdTraits<SimdInstruction::SSE3, float64>;
+    using batch_t = typename traits::batch_t;
+    using scalar_t = typename traits::scalar_t;
+
+    KSIMD_OP_SIG_SSE3(float64, reduce_sum, (batch_t v))
+    {
+        // input: [b, a]
+        // hadd: [a+b]
+        // get lane[0]
+        __m128d result = _mm_hadd_pd(v.v, v.v);
+        return _mm_cvtsd_f64(result);
     }
 };
 
