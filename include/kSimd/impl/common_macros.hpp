@@ -18,6 +18,13 @@
     #define KSIMD_COMPILER_CLANG
 #endif
 
+#ifndef __cplusplus
+    #error "requires C++."
+#endif
+#if !defined(KSIMD_COMPILER_MSVC) && !defined(KSIMD_COMPILER_GCC) && !defined(KSIMD_COMPILER_CLANG)
+    #error "Unknown compiler, only support msvc, g++, clang++."
+#endif
+
 #define KSIMD_STR_IMPL(x) #x
 #define KSIMD_STR(x) KSIMD_STR_IMPL(x)
 
