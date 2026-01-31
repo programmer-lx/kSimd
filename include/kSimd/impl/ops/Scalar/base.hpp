@@ -8,7 +8,7 @@
 #include <bit> // std::bit_cast
 #include <utility> // std::index_sequence
 
-#include "_Scalar_types.hpp"
+#include "types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

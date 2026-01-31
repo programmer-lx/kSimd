@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../dispatch.hpp"
+#include "types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

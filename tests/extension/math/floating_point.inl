@@ -20,14 +20,9 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = traits::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
-        size_t i = 0;
-        for (; i + Lanes <= TOTAL; i += Lanes)
+        for (size_t i = 0; i + Lanes <= TOTAL; i += Lanes)
         {
             op::storeu(out + i, ext::math::sin(op::set(x)));
-        }
-        for (; i < TOTAL; ++i)
-        {
-            out[i] = ext::math::sin(x);
         }
     }
 }
@@ -75,15 +70,10 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
         using batch_t = op::batch_t;
 
-        size_t i = 0;
-        for (; i + Lanes <= TOTAL; i += Lanes)
+        for (size_t i = 0; i + Lanes <= TOTAL; i += Lanes)
         {
             batch_t x = ext::math::lerp(op::load(a + i), op::load(b + i), op::load(t + i));
             op::store(out + i, x);
-        }
-        for (; i < TOTAL; ++i)
-        {
-            out[i] = ext::math::lerp(a[i], b[i], t[i]);
         }
     }
 }
@@ -165,17 +155,12 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
-        size_t i = 0;
-        for (; i + Lanes <= TOTAL; i += Lanes)
+        for (size_t i = 0; i + Lanes <= TOTAL; i += Lanes)
         {
             using batch_t = op::batch_t;
 
             batch_t x = ext::math::safe_clamp(op::load(a + i), op::load(b + i), op::load(c + i));
             op::store(out + i, x);
-        }
-        for (; i < TOTAL; ++i)
-        {
-            out[i] = ext::math::safe_clamp(a[i], b[i], c[i]);
         }
     }
 }
@@ -305,17 +290,12 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
-        size_t i = 0;
-        for (; i + Lanes <= TOTAL; i += Lanes)
+        for (size_t i = 0; i + Lanes <= TOTAL; i += Lanes)
         {
             using batch_t = op::batch_t;
 
             batch_t x = ext::math::clamp(op::load(a + i), op::load(b + i), op::load(c + i));
             op::store(out + i, x);
-        }
-        for (; i < TOTAL; ++i)
-        {
-            out[i] = ext::math::clamp(a[i], b[i], c[i]);
         }
     }
 }

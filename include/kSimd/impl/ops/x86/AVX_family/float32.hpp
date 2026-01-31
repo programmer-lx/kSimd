@@ -1,6 +1,6 @@
 #pragma once
 
-#include "_AVX_family_types.hpp"
+#include "types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
