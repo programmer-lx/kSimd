@@ -11,7 +11,7 @@ template<>
 struct TypeOp<SimdInstruction::Scalar>
 {
     // scalar array <- scalar array or self <- self
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray && From::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray)
     KSIMD_OP_SIG_SCALAR(To, bit_cast, (From from))
     {

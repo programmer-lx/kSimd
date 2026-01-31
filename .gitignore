@@ -2,3 +2,7 @@ cmake-build-*/
 .idea/
 build*/
 doc_autogen/
+
+# asm
+tests_asm/*.s
+tests_asm/*.asm

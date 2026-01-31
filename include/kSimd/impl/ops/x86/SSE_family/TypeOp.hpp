@@ -10,7 +10,7 @@ template<>
 struct TypeOp<SimdInstruction::SSE>
 {
     // scalar array <- scalar array (用于转换除了float32之外的类型) (a to b or self to self)
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray && From::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray)
     KSIMD_OP_SIG_SCALAR(To, bit_cast, (From from))
     {
@@ -20,7 +20,7 @@ struct TypeOp<SimdInstruction::SSE>
     }
 
     // m128 <- m128 (self to self)
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (std::is_same_v<To, From> && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
     KSIMD_OP_SIG_SSE(To, bit_cast, (From from))
     {
@@ -30,7 +30,7 @@ struct TypeOp<SimdInstruction::SSE>
     }
 
     // scalar array <- m128
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
     KSIMD_OP_SIG_SSE(To, bit_cast, (From from))
     {
@@ -42,7 +42,7 @@ struct TypeOp<SimdInstruction::SSE>
     }
 
     // m128 <- scalar array
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128 && From::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray)
     KSIMD_OP_SIG_SSE(To, bit_cast, (From from))
     {
@@ -57,7 +57,7 @@ template<SimdInstruction Instruction>
 struct TypeOp<Instruction>
 {
     // self <- self
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (std::is_same_v<To, From> && From::underlying_simd_type != detail::UnderlyingSimdType::ScalarArray)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
@@ -67,7 +67,7 @@ struct TypeOp<Instruction>
     }
 
     // m128d <- m128
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128d && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
@@ -77,7 +77,7 @@ struct TypeOp<Instruction>
     }
 
     // m128i <- m128
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128i && From::underlying_simd_type == detail::UnderlyingSimdType::m128)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
@@ -87,7 +87,7 @@ struct TypeOp<Instruction>
     }
 
     // m128 <- m128d
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128 && From::underlying_simd_type == detail::UnderlyingSimdType::m128d)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
@@ -97,7 +97,7 @@ struct TypeOp<Instruction>
     }
 
     // m128i <- m128d
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128i && From::underlying_simd_type == detail::UnderlyingSimdType::m128d)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
@@ -107,7 +107,7 @@ struct TypeOp<Instruction>
     }
 
     // m128 <- m128i
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128 && From::underlying_simd_type == detail::UnderlyingSimdType::m128i)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {
@@ -117,7 +117,7 @@ struct TypeOp<Instruction>
     }
 
     // m128d <- m128i
-    template<is_simd_type To, is_simd_type From>
+    template<is_batch_type To, is_batch_type From>
         requires (To::underlying_simd_type == detail::UnderlyingSimdType::m128d && From::underlying_simd_type == detail::UnderlyingSimdType::m128i)
     KSIMD_OP_SIG_SSE2(To, bit_cast, (From from))
     {

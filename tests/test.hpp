@@ -175,6 +175,3 @@ bool test_bit(S bits, int index)
 
 template<typename F>
 F qNaN = std::numeric_limits<F>::quiet_NaN();
-
-constexpr size_t TOTAL = 16;
-constexpr size_t ALIGNMENT = 32;

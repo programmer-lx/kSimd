@@ -1,4 +1,5 @@
-// #pragma once // do not use this, let it dispatch
+// do not use this, let it dispatch
+// #pragma once
 
 // Elementary Math Functions
 
@@ -7,19 +8,12 @@
 
 #include "kSimd/simd_op.hpp"
 
-namespace ksimd::ext::KSIMD_DYN_INSTRUCTION::math
+namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
 {
-    template<typename batch_t>
-    KSIMD_EXT_SIG_DYN(batch_t, lerp, (batch_t a, batch_t b, batch_t t))
-    {
-        using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_SIMD_OP(scalar_t);
+#pragma region ------------- any types -------------------------
 
-        // result = a + (b - a) * t
-        return op::add(a, op::mul(op::sub(b, a), t));
-    }
-
-    template<typename batch_t>
+    #pragma region ------------- clamp -------------------------
+    template<is_batch_type batch_t>
     KSIMD_EXT_SIG_DYN(batch_t, clamp, (batch_t v, batch_t min, batch_t max))
     {
         using scalar_t = typename batch_t::scalar_t;
@@ -29,7 +23,15 @@ namespace ksimd::ext::KSIMD_DYN_INSTRUCTION::math
         return op::max(min, op::min(v, max));
     }
 
-    template<typename batch_t>
+    template<is_scalar_type scalar_t>
+    KSIMD_EXT_SIG_DYN(scalar_t, clamp, (scalar_t v, scalar_t min, scalar_t max))
+    {
+        return detail::max(min, detail::min(v, max));
+    }
+    #pragma endregion ------------- clamp -------------------------
+
+    #pragma region ------------- safe_clamp -------------------------
+    template<is_batch_type batch_t>
     KSIMD_EXT_SIG_DYN(batch_t, safe_clamp, (batch_t v, batch_t edge1, batch_t edge2))
     {
         using scalar_t = typename batch_t::scalar_t;
@@ -41,7 +43,40 @@ namespace ksimd::ext::KSIMD_DYN_INSTRUCTION::math
         return op::max(min, op::min(v, max));
     }
 
-    template<typename batch_t>
+    template<is_scalar_type scalar_t>
+    KSIMD_EXT_SIG_DYN(scalar_t, safe_clamp, (scalar_t v, scalar_t edge1, scalar_t edge2))
+    {
+        scalar_t min = detail::min(edge1, edge2);
+        scalar_t max = detail::max(edge1, edge2);
+        return detail::max(min, detail::min(v, max));
+    }
+    #pragma endregion ------------- safe_clamp -------------------------
+
+#pragma endregion ------------- any types -------------------------
+
+
+#pragma region ------------- floating point -------------------------
+
+    #pragma region ------------- lerp -------------------------
+    template<is_batch_type_includes<float32, float64> batch_t>
+    KSIMD_EXT_SIG_DYN(batch_t, lerp, (batch_t a, batch_t b, batch_t t))
+    {
+        using scalar_t = typename batch_t::scalar_t;
+        using op = KSIMD_DYN_SIMD_OP(scalar_t);
+
+        // result = a + (b - a) * t
+        return op::add(a, op::mul(op::sub(b, a), t));
+    }
+
+    template<is_scalar_type_includes<float32, float64> scalar_t>
+    KSIMD_EXT_SIG_DYN(scalar_t, lerp, (scalar_t a, scalar_t b, scalar_t t))
+    {
+        return a + (b - a) * t;
+    }
+    #pragma endregion ------------- lerp -------------------------
+
+    #pragma region ------------- sin -------------------------
+    template<is_batch_type_includes<float32, float64> batch_t>
     KSIMD_EXT_SIG_DYN(batch_t, sin, (batch_t v))
     {
         using scalar_t = typename batch_t::scalar_t;
@@ -68,4 +103,13 @@ namespace ksimd::ext::KSIMD_DYN_INSTRUCTION::math
             return op::load(V);
         }
     }
+
+    template<is_scalar_type_includes<float32, float64> scalar_t>
+    KSIMD_EXT_SIG_DYN(scalar_t, sin, (scalar_t v))
+    {
+        return std::sin(v);
+    }
+    #pragma endregion ------------- sin -------------------------
+
+#pragma endregion ------------- floating point -------------------------
 } // namespace ksimd::math

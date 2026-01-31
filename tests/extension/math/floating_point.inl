@@ -17,12 +17,17 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         using traits = op::traits;
-        constexpr size_t Step = traits::Lanes;
+        constexpr size_t Lanes = traits::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
+        size_t i = 0;
+        for (; i + Lanes <= TOTAL; i += Lanes)
         {
             op::storeu(out + i, ext::math::sin(op::set(x)));
+        }
+        for (; i < TOTAL; ++i)
+        {
+            out[i] = ext::math::sin(x);
         }
     }
 }
@@ -62,18 +67,23 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT a,
         const FLOAT_T* KSIMD_RESTRICT b,
         const FLOAT_T* KSIMD_RESTRICT t,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
+              FLOAT_T* KSIMD_RESTRICT out
+    ) noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
+        using batch_t = op::batch_t;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
+        size_t i = 0;
+        for (; i + Lanes <= TOTAL; i += Lanes)
         {
-            using batch_t = op::batch_t;
-
             batch_t x = ext::math::lerp(op::load(a + i), op::load(b + i), op::load(t + i));
             op::store(out + i, x);
+        }
+        for (; i < TOTAL; ++i)
+        {
+            out[i] = ext::math::lerp(a[i], b[i], t[i]);
         }
     }
 }
@@ -151,17 +161,21 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT c,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
+        size_t i = 0;
+        for (; i + Lanes <= TOTAL; i += Lanes)
         {
             using batch_t = op::batch_t;
 
             batch_t x = ext::math::safe_clamp(op::load(a + i), op::load(b + i), op::load(c + i));
             op::store(out + i, x);
+        }
+        for (; i < TOTAL; ++i)
+        {
+            out[i] = ext::math::safe_clamp(a[i], b[i], c[i]);
         }
     }
 }
@@ -288,15 +302,20 @@ namespace KSIMD_DYN_INSTRUCTION
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
+        size_t i = 0;
+        for (; i + Lanes <= TOTAL; i += Lanes)
         {
             using batch_t = op::batch_t;
 
             batch_t x = ext::math::clamp(op::load(a + i), op::load(b + i), op::load(c + i));
             op::store(out + i, x);
+        }
+        for (; i < TOTAL; ++i)
+        {
+            out[i] = ext::math::clamp(a[i], b[i], c[i]);
         }
     }
 }
