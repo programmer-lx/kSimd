@@ -7,163 +7,12 @@
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 #include <kSimd/simd_op.hpp>
 
-// ------------------------------------------ zero ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void zero(FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::zero());
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(zero);
-
-TEST(dyn_dispatch_FLOAT_T, zero)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(zero)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T out[TOTAL];
-
-        // 先填充非零值
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = -1.0f;
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(zero)[idx](out);
-
-        // 检查结果是否全为 0
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == FLOAT_C(0.0));
-    }
-}
-#endif
-
-// ------------------------------------------ set ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void set(FLOAT_T x, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::set(x));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(set);
-
-TEST(dyn_dispatch_FLOAT_T, set)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(set)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = -1.0f;
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(set)[idx](3.5f, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == FLOAT_C(3.5));
-    }
-}
-#endif
-
-// ------------------------------------------ load + store ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void load_store(const FLOAT_T* KSIMD_RESTRICT in, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::store(out + i, op::load(in + i));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(load_store);
-
-TEST(dyn_dispatch_FLOAT_T, load_store)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_store)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T in[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i) in[i] = FLOAT_T(i + 1);
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = -1.0f;
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_store)[idx](in, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == in[i]);
-    }
-}
-#endif
-
-// ------------------------------------------ loadu + storeu ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void loadu_storeu(const FLOAT_T* KSIMD_RESTRICT in, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::loadu(in + i));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(loadu_storeu);
-
-TEST(dyn_dispatch_FLOAT_T, loadu_storeu)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(loadu_storeu)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T in[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i) in[i] = FLOAT_T(i * 2 + 1);
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = -1.0f;
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(loadu_storeu)[idx](in, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == in[i]);
-    }
-}
-#endif
-
 // ------------------------------------------ add ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
     void add(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-
-
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = op::Lanes;
 
@@ -179,9 +28,6 @@ KSIMD_DYN_DISPATCH_FUNC(add);
 
 TEST(dyn_dispatch_FLOAT_T, add)
 {
-
-
-
     for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(add)); ++idx)
     {
         alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
@@ -207,9 +53,6 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sub(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-
-
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = op::Lanes;
 
@@ -225,9 +68,6 @@ KSIMD_DYN_DISPATCH_FUNC(sub);
 
 TEST(dyn_dispatch_FLOAT_T, sub)
 {
-
-
-
     for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(sub)); ++idx)
     {
         alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
@@ -253,9 +93,6 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void mul(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-
-
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = op::Lanes;
 
@@ -271,9 +108,6 @@ KSIMD_DYN_DISPATCH_FUNC(mul);
 
 TEST(dyn_dispatch_FLOAT_T, mul)
 {
-
-
-
     for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mul)); ++idx)
     {
         alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
@@ -299,9 +133,6 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void div(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-
-
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = op::Lanes;
 
@@ -344,7 +175,6 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void one_div(const FLOAT_T* KSIMD_RESTRICT a, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Step = op::Lanes;
 
