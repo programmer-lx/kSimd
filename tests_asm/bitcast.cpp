@@ -67,7 +67,7 @@ To bitcast(From from) noexcept
 }
 
 NOINLINE
-void no_inline(void* mem)
+void ksimd_test_no_inline(void* mem)
 {
     std::cout << reinterpret_cast<uintptr_t>(mem);
 }
@@ -82,7 +82,7 @@ void test()
     double result[2] = {};
     storeu(result, f64);
 
-    no_inline(result);
+    ksimd_test_no_inline(result);
 }
 
 void test_self_to_self()
@@ -94,5 +94,5 @@ void test_self_to_self()
     float result[4] = {};
     storeu(result, f32_1);
 
-    no_inline(result);
+    ksimd_test_no_inline(result);
 }

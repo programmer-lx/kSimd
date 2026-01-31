@@ -27,3 +27,9 @@ jobs:
       - name: Run All Tests
         # 使用 max 模式进行全量测试
         run: python scripts/run_all_test.py --test_mode=max
+
+      - name: Generate GNU Asm Files
+        run: python scripts/generate_all_gnu_asm.py
+
+      - name: Run GNU Asm Inlining Tests
+        run: python scripts/test_all_gnu_asm.py
