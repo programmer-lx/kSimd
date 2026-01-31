@@ -53,7 +53,7 @@ TEST(dyn_dispatch_FLOAT_T, sin)
                 EXPECT_NEAR(out[i], std::sin(n), FLOAT_T_EPSILON);
             }
 
-            n += 0.0037;
+            n += FLOAT_C(0.0037);
         }
     }
 }
@@ -103,7 +103,7 @@ TEST(dyn_dispatch_FLOAT_T, lerp)
         // in
         FILL_ARRAY(a, 0);
         FILL_ARRAY(b, 2);
-        FILL_ARRAY(t, 0.6);
+        FILL_ARRAY(t, FLOAT_C(0.6));
         FILL_ARRAY(r, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
         EXPECT_TRUE(array_approximately(r, std::size(r), 1.2, FLOAT_T_EPSILON));
@@ -111,7 +111,7 @@ TEST(dyn_dispatch_FLOAT_T, lerp)
         // in & inv a b
         FILL_ARRAY(a, 2);
         FILL_ARRAY(b, 0);
-        FILL_ARRAY(t, 0.6);
+        FILL_ARRAY(t, FLOAT_C(0.6));
         FILL_ARRAY(r, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(lerp)[idx](a, b, t, r);
         EXPECT_TRUE(array_approximately(r, std::size(r), 0.8, FLOAT_T_EPSILON));

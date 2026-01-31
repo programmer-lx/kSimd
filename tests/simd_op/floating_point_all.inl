@@ -40,7 +40,7 @@ TEST(dyn_dispatch_FLOAT_T, zero)
 
         // 检查结果是否全为 0
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], 0.0f);
+            EXPECT_TRUE(out[i] == FLOAT_C(0.0));
     }
 }
 #endif
@@ -76,7 +76,7 @@ TEST(dyn_dispatch_FLOAT_T, set)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(set)[idx](3.5f, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], 3.5f);
+            EXPECT_TRUE(out[i] == FLOAT_C(3.5));
     }
 }
 #endif
@@ -113,7 +113,7 @@ TEST(dyn_dispatch_FLOAT_T, load_store)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_store)[idx](in, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], in[i]);
+            EXPECT_TRUE(out[i] == in[i]);
     }
 }
 #endif
@@ -150,7 +150,7 @@ TEST(dyn_dispatch_FLOAT_T, loadu_storeu)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(loadu_storeu)[idx](in, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], in[i]);
+            EXPECT_TRUE(out[i] == in[i]);
     }
 }
 #endif
@@ -196,7 +196,7 @@ TEST(dyn_dispatch_FLOAT_T, add)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(add)[idx](a, b, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], a[i] + b[i]);
+            EXPECT_TRUE(out[i] == a[i] + b[i]);
     }
 }
 #endif
@@ -242,7 +242,7 @@ TEST(dyn_dispatch_FLOAT_T, sub)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(sub)[idx](a, b, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], a[i] - b[i]);
+            EXPECT_TRUE(out[i] == a[i] - b[i]);
     }
 }
 #endif
@@ -288,7 +288,7 @@ TEST(dyn_dispatch_FLOAT_T, mul)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mul)[idx](a, b, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], a[i] * b[i]);
+            EXPECT_TRUE(out[i] == a[i] * b[i]);
     }
 }
 #endif
@@ -331,7 +331,9 @@ TEST(dyn_dispatch_FLOAT_T, div)
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(div)[idx](a, b, out);
 
         for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_FLOAT_EQ(out[i], a[i] / b[i]);
+        {
+            EXPECT_NEAR(out[i], a[i] / b[i], FLOAT_T_EPSILON);
+        }
     }
 }
 #endif
@@ -414,7 +416,7 @@ TEST(dyn_dispatch_FLOAT_T, reduce_sum)
         for (size_t i = 0; i < TOTAL; ++i)
             expected += in[i];
 
-        EXPECT_FLOAT_EQ(out, expected);
+        EXPECT_TRUE(out == expected);
     }
 }
 #endif
@@ -471,7 +473,7 @@ TEST(dyn_dispatch_FLOAT_T, mul_add)
         for (size_t i = 0; i < TOTAL; ++i)
             expected += a[i] * b[i] + c[i];
 
-        EXPECT_FLOAT_EQ(r, expected);
+        EXPECT_TRUE(r == expected);
     }
 }
 #endif

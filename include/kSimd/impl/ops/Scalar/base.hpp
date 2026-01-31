@@ -83,12 +83,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, set, (scalar_t x))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ((void)I, x)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
 
@@ -98,12 +98,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, add, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] + rhs.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -111,12 +111,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, sub, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] - rhs.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -124,12 +124,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, mul, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] * rhs.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -137,12 +137,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(scalar_t, reduce_sum, (batch_t v))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> scalar_t
             {
                 return (v.v[I] + ...);
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -150,12 +150,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (a.v[I] * b.v[I] + c.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -163,12 +163,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, abs, (batch_t v))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (std::abs(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -176,12 +176,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, min, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (detail::min(lhs.v[I], rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -189,12 +189,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, max, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (detail::max(lhs.v[I], rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
 
@@ -205,12 +205,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] == rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -219,12 +219,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, not_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] != rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -233,12 +233,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, greater, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] > rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -247,12 +247,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, greater_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] >= rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -261,12 +261,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, less, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] < rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -275,12 +275,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, less_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] <= rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
 
@@ -292,12 +292,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(v.v[0]))) == sizeof(v.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { std::bit_cast<scalar_t>(~detail::bitcast_to_uint(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -307,12 +307,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { std::bit_cast<scalar_t>(detail::bitcast_to_uint(lhs.v[I]) & detail::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -322,12 +322,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { std::bit_cast<scalar_t>( ~detail::bitcast_to_uint(lhs.v[I]) & detail::bitcast_to_uint(rhs.v[I]) )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -337,12 +337,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { std::bit_cast<scalar_t>( detail::bitcast_to_uint(lhs.v[I]) | detail::bitcast_to_uint(rhs.v[I]) )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -352,12 +352,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { std::bit_cast<scalar_t>( detail::bitcast_to_uint(lhs.v[I]) ^ detail::bitcast_to_uint(rhs.v[I]) )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -367,7 +367,7 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.v[0]))) == sizeof(mask.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
@@ -386,7 +386,7 @@ namespace detail
                             (~detail::bitcast_to_uint(mask.v[I]) & detail::bitcast_to_uint(b.v[I])))
                     )...
                 };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -396,12 +396,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(sign_mask.v[0]))) == sizeof(sign_mask.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( (detail::bitcast_to_uint(sign_mask.v[I]) & sign_bit_mask<detail::same_bits_uint_t<scalar_t>>) ? a.v[I] : b.v[I] )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -412,12 +412,12 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lane_mask.v[0]))) == sizeof(lane_mask.v[0]), "byte size should be equals.");
 
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( (lane_mask.v[I] != static_cast<scalar_t>(0)) ? a.v[I] : b.v[I] )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
     };
@@ -436,12 +436,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, div, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] / rhs.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -449,12 +449,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, one_div, (batch_t v))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / v.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -462,12 +462,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, sqrt, (batch_t v))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -475,12 +475,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, rsqrt, (batch_t v))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
 
@@ -491,12 +491,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, not_greater, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( !(lhs.v[I] > rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -505,12 +505,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, not_greater_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( !(lhs.v[I] >= rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -519,12 +519,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, not_less, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( !(lhs.v[I] < rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -533,12 +533,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, not_less_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( !(lhs.v[I] <= rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -546,12 +546,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, any_NaN, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( std::isnan(lhs.v[I]) || std::isnan(rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
 
         /**
@@ -559,12 +559,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, not_NaN, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto Lanes = traits::Lanes;
+            constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ( !(std::isnan(lhs.v[I]) || std::isnan(rhs.v[I])) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
     };

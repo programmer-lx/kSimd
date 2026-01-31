@@ -17,12 +17,16 @@ option(KSIMD_BUILD_TESTS "" OFF)
 add_library(kSimd STATIC)
 target_include_directories(kSimd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_sources(kSimd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/one_cpp.cpp)
-# msvc utf-8
 if(MSVC)
     target_compile_options(kSimd PRIVATE /utf-8)
     target_compile_definitions(kSimd PRIVATE UNICODE _UNICODE)
-endif()
 
+    target_compile_options(kSimd PRIVATE /W4 /WX /EHs-c-) # 禁用异常
+    target_link_options(kSimd PRIVATE /WX)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(kSimd PRIVATE -Werror -Wall -fno-exceptions) # 禁用异常
+endif()
 
 if(KSIMD_BUILD_EXAMPLES)
     add_subdirectory(examples)
