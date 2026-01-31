@@ -1,4 +1,5 @@
 #include <cfloat>
+#include <cstddef>
 
 using FLOAT_T = double;
 #define FLOAT_C(x) x

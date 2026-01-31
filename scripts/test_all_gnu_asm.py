@@ -14,6 +14,7 @@ if not asm_dir.is_dir():
 # 允许出现的 call 符号子串（部分匹配即可）
 ALLOWED_CALLS = [
     "ksimd_test_no_inline", # 自定义的非内联函数
+    "stack_chk_fail",       # linux g++-13
     "dyn_func_index",       # 动态 dispatch index
     "sinf",                 # std::sin
 ]
