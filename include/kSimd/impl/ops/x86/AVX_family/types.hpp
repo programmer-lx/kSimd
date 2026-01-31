@@ -37,12 +37,40 @@ namespace AVX_family
 
         __m256d v;
     };
+
+    template<is_scalar_type scalar_type>
+    struct Mask
+    {
+        using scalar_t = scalar_type;
+        static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m256i;
+
+        __m256i m;
+    };
+
+    template<>
+    struct Mask<float32>
+    {
+        using scalar_t = float32;
+        static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m256;
+
+        __m256 m;
+    };
+
+    template<>
+    struct Mask<float64>
+    {
+        using scalar_t = float64;
+        static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m256d;
+
+        __m256d m;
+    };
 }
 
 // traits
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
-struct SimdTraits<Instruction, S> : detail::SimdTraits_Base<Instruction, S, AVX_family::Batch<S>, alignment::AVX_Family>
+struct SimdTraits<Instruction, S>
+    : detail::SimdTraits_Base<Instruction, S, AVX_family::Batch<S>, AVX_family::Mask<S>, alignment::AVX_Family>
 {
 };
 

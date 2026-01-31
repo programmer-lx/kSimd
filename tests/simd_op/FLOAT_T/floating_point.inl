@@ -1,9 +1,9 @@
 // using FLOAT_T = float;
 
-#include "../test.hpp"
+#include "../../test.hpp"
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "simd_op/floating_point_all.inl" // this file
+#define KSIMD_DISPATCH_THIS_FILE "simd_op/FLOAT_T/floating_point.inl" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 #include <kSimd/simd_op.hpp>
 

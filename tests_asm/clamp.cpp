@@ -20,14 +20,9 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace math = ksimd::ext::KSIMD_DYN_INSTRUCTION::math;
         constexpr size_t Lanes = op::Lanes;
 
-        size_t i = 0;
-        for (; i + Lanes <= size; i += Lanes)
+        for (size_t i = 0; i + Lanes <= size; i += Lanes)
         {
             op::store(out + i, math::clamp(op::load(v + i), op::load(min + i), op::load(max + i)));
-        }
-        for (; i < size; ++i)
-        {
-            out[i] = math::clamp(v[i], min[i], max[i]);
         }
     }
 }

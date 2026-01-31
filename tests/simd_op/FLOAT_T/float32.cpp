@@ -9,4 +9,4 @@ using FLOAT_T = float;
 constexpr size_t TOTAL = 16;
 constexpr size_t ALIGNMENT = 32;
 
-#include "floating_point_all.inl"
+#include "floating_point.inl"

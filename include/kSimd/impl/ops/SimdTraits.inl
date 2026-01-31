@@ -8,25 +8,6 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace detail
-{
-    enum class UnderlyingSimdType
-    {
-        // Scalar
-        ScalarArray, // SSE只支持float32的SIMD指令和数据类型，所以标量数组是SSE的专属
-
-        // SSE
-        m128,
-        m128d,
-        m128i,
-
-        // AVX
-        m256,
-        m256d,
-        m256i
-    };
-}
-
 // 这个枚举用于SimdOp的模板参数
 enum class SimdInstruction : int
 {
@@ -46,8 +27,10 @@ enum class SimdInstruction : int
     AVX_End
 };
 
+
 // clang-format off
-// scalar type alias
+
+// ----------------- scalar type -----------------
 
 // (u)int(n)
 using int8   = int8_t   ;
@@ -85,28 +68,91 @@ concept is_scalar_type =
 template<typename T, typename... Ts>
 concept is_scalar_type_includes = is_scalar_type<T> && (std::is_same_v<T, Ts> || ...);
 
+// ----------------- batch type -----------------
+namespace detail
+{
+    enum class UnderlyingSimdType
+    {
+        // Scalar
+        ScalarArray, // SSE只支持float32的SIMD指令和数据类型，所以标量数组是SSE的专属
+
+        // SSE
+        m128,
+        m128d,
+        m128i,
+
+        // AVX
+        m256,
+        m256d,
+        m256i
+    };
+}
+
 template<typename T>
 concept is_batch_type = requires(T v)
 {
     typename T::scalar_t;
+
     T::underlying_simd_type;
     requires std::is_same_v<std::remove_cvref_t<decltype(T::underlying_simd_type)>, detail::UnderlyingSimdType>;
+
     v.v;
 };
 
 template<typename T, typename... Ts>
 concept is_batch_type_includes = is_batch_type<T> && (std::is_same_v<typename T::scalar_t, Ts> || ...);
 
+
+// ----------------- mask type -----------------
+// mask用于控制哪个lane能够被操作，比如 mask = 0b0011'1111，就代表[5:0]lanes能被操作，其他lanes就使用默认值进行填充
+// 所以mask类型只能通过sizeof(scalar_t)来区分，不能通过scalar_t区分
+namespace detail
+{
+    enum class UnderlyingMaskType
+    {
+        // Scalar
+        ScalarArray,
+
+        // SSE
+        m128,
+        m128d,
+        m128i,
+
+        // AVX
+        m256,
+        m256d,
+        m256i,
+
+        // after AVX-512
+        mmask8,
+        mmask16,
+        mmask32,
+        mmask64
+    };
+}
+
+template<typename T>
+concept is_mask_type = requires(T v)
+{
+    typename T::scalar_t;
+
+    T::underlying_mask_type;
+    requires std::is_same_v<std::remove_cvref_t<decltype(T::underlying_mask_type)>, detail::UnderlyingMaskType>;
+
+    v.m;
+};
+
 template<SimdInstruction Instruction, is_scalar_type ScalarType>
 struct SimdTraits;
 
 namespace detail
 {
-    template<SimdInstruction Instruction, is_scalar_type S, typename BatchType, size_t Alignment>
+    template<SimdInstruction Instruction, is_scalar_type S, typename BatchType, typename MaskType, size_t Alignment>
     struct SimdTraits_Base
     {
         using batch_t = BatchType;
         using scalar_t = S;
+        using mask_t = MaskType;
         static constexpr SimdInstruction CurrentInstruction = Instruction;
         static constexpr size_t BatchSize = batch_t::byte_size;
         static constexpr size_t ElementSize = sizeof(scalar_t);
@@ -121,6 +167,7 @@ namespace detail
     using traits = SimdTraits<instruction, scalar_type>; \
     using batch_t = typename traits::batch_t; \
     using scalar_t = typename traits::scalar_t; \
+    using mask_t = typename traits::mask_t; \
     static constexpr SimdInstruction CurrentInstruction = traits::CurrentInstruction; \
     static constexpr size_t BatchSize = traits::BatchSize; \
     static constexpr size_t ElementSize = traits::ElementSize; \
