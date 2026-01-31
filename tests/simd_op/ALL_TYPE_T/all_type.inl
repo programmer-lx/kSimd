@@ -7,6 +7,7 @@
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 #include <kSimd/simd_op.hpp>
 
+using namespace ksimd;
 
 // ------------------------------------------ zero ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
@@ -149,6 +150,45 @@ TEST(dyn_dispatch_TYPE_T, loadu_storeu)
 
         for (size_t i = 0; i < TOTAL; ++i)
             EXPECT_TRUE(out[i] == in[i]);
+    }
+}
+#endif
+
+// ------------------------------------------ mask_from_lanes ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mask_from_lanes() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        using mask_t = op::mask_t;
+        constexpr size_t lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T arr[lanes] = {};
+
+        mask_t mask = op::mask_from_lanes(lanes - 1);
+        FILL_ARRAY(arr, one_block<TYPE_T>);
+        arr[lanes - 1] = TYPE_T(0);
+        EXPECT_TRUE(simd_type_bit_equal(mask, arr));
+
+        mask = op::mask_from_lanes(1000);
+        FILL_ARRAY(arr, one_block<TYPE_T>);
+        EXPECT_TRUE(simd_type_bit_equal(mask, arr));
+
+        mask = op::mask_from_lanes(0);
+        FILL_ARRAY(arr, zero_block<TYPE_T>);
+        EXPECT_TRUE(simd_type_bit_equal(mask, arr));
+    }
+}
+
+#if KSIMD_ONCE
+KSIMD_DYN_DISPATCH_FUNC(mask_from_lanes);
+
+TEST(dyn_dispatch_TYPE_T, mask_from_lanes)
+{
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mask_from_lanes)); ++idx)
+    {
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mask_from_lanes)[idx]();
     }
 }
 #endif

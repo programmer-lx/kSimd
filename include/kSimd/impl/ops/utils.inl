@@ -37,19 +37,19 @@ namespace detail
     using same_bits_uint_t = uint_from_bytes_t<sizeof(S)>;
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE auto bitcast_to_uint(S n) noexcept
+    KSIMD_FORCE_INLINE constexpr auto bitcast_to_uint(S n) noexcept
     {
         return std::bit_cast<same_bits_uint_t<S>>(n);
     }
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE S min(S a, S b) noexcept
+    KSIMD_FORCE_INLINE constexpr S min(S a, S b) noexcept
     {
         return a < b ? a : b;
     }
 
     template<is_scalar_type S>
-    constexpr KSIMD_FORCE_INLINE S max(S a, S b) noexcept
+    KSIMD_FORCE_INLINE constexpr S max(S a, S b) noexcept
     {
         return a > b ? a : b;
     }

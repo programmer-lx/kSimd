@@ -22,6 +22,24 @@ namespace detail
     {
         KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, Scalar)
 
+        #pragma region lane mask 通道掩码
+        /**
+         * @return for lane in mask, mask[0, count-1] = 1, mask[count, rest) = 0
+         * @example if count == 6, mask = [1, 1, 1, 1, 1, 1, 0, 0, ...]
+         */
+        KSIMD_OP_SIG_SCALAR(mask_t, mask_from_lanes, (unsigned int count))
+        {
+            constexpr auto lanes = traits::Lanes;
+
+            count = count > lanes ? lanes : count;
+
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            {
+                return { (I < count ? one_block<scalar_t> : zero_block<scalar_t>)... };
+            }(std::make_index_sequence<lanes>{});
+        }
+        #pragma endregion
+
         #pragma region memory 内存操作
         /**
          * @return foreach i in lanes: mem[i] = v[i]
@@ -63,6 +81,16 @@ namespace detail
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             memcpy(mem, v.v, size);
+        }
+
+        KSIMD_OP_SIG_SCALAR(batch_t, load_masked, (const scalar_t* mem, mask_t mask))
+        {
+            return {};// TODO
+        }
+
+        KSIMD_OP_SIG_SCALAR(batch_t, load_masked, (const scalar_t* mem, mask_t mask, batch_t default_value))
+        {
+            return {};// TODO
         }
         #pragma endregion
 

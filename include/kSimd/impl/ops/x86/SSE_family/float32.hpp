@@ -12,6 +12,13 @@ struct SimdOp<I, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float32)
 
+    KSIMD_OP_SIG_SSE(mask_t, mask_from_lanes, (unsigned int count))
+    {
+        __m128 idx = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
+        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
+        return { _mm_cmplt_ps(idx, cnt) };
+    }
+
     KSIMD_OP_SIG_SSE(batch_t, load, (const float32* mem))
     {
         return { _mm_load_ps(mem) };

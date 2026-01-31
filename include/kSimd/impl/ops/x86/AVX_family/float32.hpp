@@ -10,6 +10,13 @@ struct SimdOp<I, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float32)
 
+    KSIMD_OP_SIG_AVX(mask_t, mask_from_lanes, (unsigned int count))
+    {
+        __m256 idx = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+        __m256 cnt = _mm256_set1_ps(static_cast<float>(count));
+        return { _mm256_cmp_ps(idx, cnt, _CMP_LT_OQ) };
+    }
+
     KSIMD_OP_SIG_AVX(batch_t, load, (const float32* mem))
     {
         return { _mm256_load_ps(mem) };

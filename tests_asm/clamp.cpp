@@ -1,4 +1,3 @@
-
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "clamp.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp>
