@@ -1,11 +1,11 @@
 #pragma once
 
 #define KSIMD_ENABLE_OPERATORS() \
-    using ::ksimd::operator+;  using ::ksimd::operator+=; \
-    using ::ksimd::operator-;  using ::ksimd::operator-=; \
-    using ::ksimd::operator*;  using ::ksimd::operator*=; \
-    using ::ksimd::operator/;  using ::ksimd::operator/=; \
-    using ::ksimd::operator&;  using ::ksimd::operator&=; \
-    using ::ksimd::operator|;  using ::ksimd::operator|=; \
-    using ::ksimd::operator^;  using ::ksimd::operator^=; \
-    using ::ksimd::operator~
+    using ::KSIMD_NAMESPACE_NAME::operator+;  using ::KSIMD_NAMESPACE_NAME::operator+=; \
+    using ::KSIMD_NAMESPACE_NAME::operator-;  using ::KSIMD_NAMESPACE_NAME::operator-=; \
+    using ::KSIMD_NAMESPACE_NAME::operator*;  using ::KSIMD_NAMESPACE_NAME::operator*=; \
+    using ::KSIMD_NAMESPACE_NAME::operator/;  using ::KSIMD_NAMESPACE_NAME::operator/=; \
+    using ::KSIMD_NAMESPACE_NAME::operator&;  using ::KSIMD_NAMESPACE_NAME::operator&=; \
+    using ::KSIMD_NAMESPACE_NAME::operator|;  using ::KSIMD_NAMESPACE_NAME::operator|=; \
+    using ::KSIMD_NAMESPACE_NAME::operator^;  using ::KSIMD_NAMESPACE_NAME::operator^=; \
+    using ::KSIMD_NAMESPACE_NAME::operator~

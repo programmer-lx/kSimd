@@ -16,7 +16,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
 #pragma region ------------- any types -------------------------
 
     template<is_batch_type batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) clamp(batch_t v, batch_t min, batch_t max)
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) clamp(batch_t v, batch_t min, batch_t max) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_OP(scalar_t);
@@ -26,7 +26,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     }
 
     template<is_batch_type batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) safe_clamp(batch_t v, batch_t edge1, batch_t edge2)
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) safe_clamp(batch_t v, batch_t edge1, batch_t edge2) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_OP(scalar_t);
@@ -43,7 +43,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
 #pragma region ------------- floating point -------------------------
 
     template<is_batch_type_includes<float32, float64> batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) lerp(batch_t a, batch_t b, batch_t t)
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) lerp(batch_t a, batch_t b, batch_t t) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_OP(scalar_t);
@@ -54,7 +54,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     }
 
     template<is_batch_type_includes<float32, float64> batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) sin(batch_t v)
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) sin(batch_t v) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_OP(scalar_t);
