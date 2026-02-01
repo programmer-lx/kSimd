@@ -4,9 +4,8 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<SimdInstruction I>
-    requires (I >= SimdInstruction::AVX && I <= SimdInstruction::AVX2)
-struct SimdOp<I, float64>
+template<>
+struct SimdOp<SimdInstruction::AVX, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float64)
 
@@ -244,6 +243,12 @@ struct SimdOp<I, float64>
     {
         return { _mm256_blendv_pd(b.v, a.v, mask.m) };
     }
+};
+
+template<>
+struct SimdOp<SimdInstruction::AVX2, float64> : SimdOp<SimdInstruction::AVX, float64>
+{
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2, float64)
 };
 
 template<>

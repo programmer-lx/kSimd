@@ -248,10 +248,8 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     }
 };
 
-template<SimdInstruction I>
-    requires (I >= SimdInstruction::SSE3 && I <= SimdInstruction::SSE4_1)
-struct SimdOp<I, float64>
-    : SimdOp<SimdInstruction::SSE2, float64>
+template<>
+struct SimdOp<SimdInstruction::SSE3, float64> : SimdOp<SimdInstruction::SSE2, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float64)
 
@@ -262,6 +260,17 @@ struct SimdOp<I, float64>
         // get lane[0]
         __m128d result = _mm_hadd_pd(v.v, v.v);
         return _mm_cvtsd_f64(result);
+    }
+};
+
+template<>
+struct SimdOp<SimdInstruction::SSE4_1, float64> : SimdOp<SimdInstruction::SSE3, float64>
+{
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE4_1, float64)
+
+    KSIMD_OP_SIG_SSE4_1(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+    {
+        return { _mm_blendv_pd(b.v, a.v, mask.m) };
     }
 };
 

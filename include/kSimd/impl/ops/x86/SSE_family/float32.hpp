@@ -6,9 +6,8 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<SimdInstruction I>
-    requires (I >= SimdInstruction::SSE && I <= SimdInstruction::SSE2)
-struct SimdOp<I, float32>
+template<>
+struct SimdOp<SimdInstruction::SSE, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float32)
 
@@ -249,10 +248,14 @@ struct SimdOp<I, float32>
     }
 };
 
-template<SimdInstruction I>
-    requires (I >= SimdInstruction::SSE3 && I <= SimdInstruction::SSE4_1)
-struct SimdOp<I, float32>
-    : SimdOp<SimdInstruction::SSE2, float32>
+template<>
+struct SimdOp<SimdInstruction::SSE2, float32> : SimdOp<SimdInstruction::SSE, float32>
+{
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE2, float32)
+};
+
+template<>
+struct SimdOp<SimdInstruction::SSE3, float32> : SimdOp<SimdInstruction::SSE2, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float32)
 
@@ -266,6 +269,17 @@ struct SimdOp<I, float32>
         __m128 result = _mm_hadd_ps(v.v, v.v);
         result = _mm_hadd_ps(result, result);
         return _mm_cvtss_f32(result);
+    }
+};
+
+template<>
+struct SimdOp<SimdInstruction::SSE4_1, float32> : SimdOp<SimdInstruction::SSE3, float32>
+{
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE4_1, float32)
+
+    KSIMD_OP_SIG_SSE4_1(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+    {
+        return { _mm_blendv_ps(b.v, a.v, mask.m) };
     }
 };
 

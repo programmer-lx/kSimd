@@ -4,9 +4,8 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<SimdInstruction I>
-    requires (I >= SimdInstruction::AVX && I <= SimdInstruction::AVX2)
-struct SimdOp<I, float32>
+template<>
+struct SimdOp<SimdInstruction::AVX, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float32)
 
@@ -251,10 +250,15 @@ struct SimdOp<I, float32>
     }
 };
 
+template<>
+struct SimdOp<SimdInstruction::AVX2, float32> : SimdOp<SimdInstruction::AVX, float32>
+{
+    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2, float32)
+};
+
 // AVX2 + FMA指令特化
 template<>
-struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32>
-    : SimdOp<SimdInstruction::AVX2, float32>
+struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32> : SimdOp<SimdInstruction::AVX2, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2_FMA3_F16C, float32)
 
