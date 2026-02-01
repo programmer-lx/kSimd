@@ -23,9 +23,3 @@ add_executable(example_simd_batch_dyn_dispatch simd_batch_dyn_dispatch.cpp)
 target_link_libraries(example_simd_batch_dyn_dispatch PRIVATE kSimd)
 target_include_directories(example_simd_batch_dyn_dispatch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 example_target_actions(example_simd_batch_dyn_dispatch)
-
-# static dispatch
-add_executable(example_simd_batch_static_dispatch simd_batch_static_dispatch.cpp)
-target_link_libraries(example_simd_batch_static_dispatch PRIVATE kSimd)
-target_include_directories(example_simd_batch_static_dispatch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-example_target_actions(example_simd_batch_static_dispatch)

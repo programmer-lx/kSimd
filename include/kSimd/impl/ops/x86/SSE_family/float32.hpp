@@ -63,6 +63,21 @@ struct SimdOp<SimdInstruction::SSE, float32>
         return { _mm_load_ps(tmp) };
     }
 
+    KSIMD_OP_SIG_SSE(void, mask_store, (float32* mem, batch_t v, mask_t mask))
+    {
+        alignas(BatchAlignment) float32 tmp[Lanes]{};
+        _mm_store_ps(tmp, v.v);
+
+        const uint32_t m = _mm_movemask_ps(mask.m); // [3:0]有效
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            if (m & (1 << i))
+            {
+                mem[i] = tmp[i];
+            }
+        }
+    }
+
     KSIMD_OP_SIG_SSE(batch_t, undefined, ())
     {
         return { _mm_undefined_ps() };

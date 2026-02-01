@@ -11,6 +11,8 @@
 
 #include <kSimd/aligned_allocate.hpp>
 #include <kSimd/simd_op.hpp>
+#include <kSimd_extension/math.hpp>
+
 #include "utils.hpp"
 
 
@@ -20,103 +22,55 @@ namespace MyNamespace
 {
     namespace KSIMD_DYN_INSTRUCTION
     {
-        KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(
-            const float* arr,
-            const float* arr2,
-            const float* arr3,
-            const size_t N,
-            float* out_result) noexcept
-        {
-            using op = KSIMD_DYN_SIMD_OP(float);
-            using batch_t = op::batch_t;
-            constexpr size_t Step = op::Lanes;
-
-            // 测试
-            [[maybe_unused]] std::string cur_intrinsic = KSIMD_STR("" KSIMD_DYN_FUNC_ATTR);
-#if defined(KSIMD_COMPILER_MSVC)
-            assert(cur_intrinsic == "\"\"");
-#elif defined(KSIMD_COMPILER_GCC) || defined(KSIMD_COMPILER_CLANG)
-            assert(cur_intrinsic.contains("__attribute__((target("));
-#else
-    #error "Unknown compiler."
-#endif
-
-            size_t i = 0;
-            for (; i + Step <= N; i += Step)
-            {
-                batch_t a = op::loadu(arr + i);
-                batch_t b = op::loadu(arr2 + i);
-                batch_t c = op::loadu(arr3 + i);
-
-                batch_t tmp = op::mul_add(a, b, c);
-                op::storeu(out_result + i, tmp);
-            }
-            for (; i < N; ++i)
-            {
-                out_result[i] = arr[i] * arr2[i] + arr3[i];
-            }
-        }
-
-        KSIMD_DYN_FUNC_ATTR void speed_test_impl(
-            const float* KSIMD_RESTRICT a,
-            const float* KSIMD_RESTRICT b,
+        KSIMD_DYN_FUNC_ATTR
+        void add_and_clamp(
+            const float* KSIMD_RESTRICT arr,
+            const float                 min,
+            const float                 max,
                   float* KSIMD_RESTRICT out,
             const size_t                size
         ) noexcept
         {
-            ScopeTimer timer("div: " KSIMD_STR(KSIMD_DYN_INSTRUCTION));
+            namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
+            using f32 = KSIMD_DYN_SIMD_OP(float);
 
-            using op = KSIMD_DYN_SIMD_OP(float);
-            constexpr auto Lanes = op::Lanes;
-            using batch_t = op::batch_t;
+            f32::batch_t min_val = f32::set(min);
+            f32::batch_t max_val = f32::set(max);
 
             size_t i = 0;
-            float x = random_f(-100.0f, 100.0f);
-            for (; i + Lanes <= size; i += Lanes)
+            for (; i + f32::Lanes <= size; i += f32::Lanes)
             {
-                batch_t data = op::div(op::load(a + i), op::load(b + i));
-                data = op::mul_add(data, op::set(x), op::set(x));
-                data = op::mul_add(data, op::set(x), op::set(x));
-                data = op::mul_add(data, op::set(x), op::set(x));
-                data = op::mul_add(data, op::set(x), op::set(x));
-                data = op::mul_add(data, op::set(x), op::set(x));
-                data = op::mul_add(data, op::set(x), op::set(x));
-                data = op::min(data, op::set(100));
-                data = op::max(data, op::set(-100));
-                op::store(out + i, data);
+                f32::batch_t data = f32::load(arr + i);
+                data = f32::add(data, f32::set(1000));
+                data = ext::math::clamp(data, min_val, max_val);
+                f32::store(out + i, data);
             }
-            for (; i < size; ++i)
-            {
-                out[i] = a[i] / b[i];
-            }
+
+            // 尾处理，处理剩余的长度不足Lanes的元素
+            // 使用 mask_load | mask_store 加载和存储部分元素，而非全量加载和存储
+            const size_t tail = size % i;
+            const f32::mask_t mask = f32::mask_from_lanes(static_cast<unsigned int>(tail));
+            f32::batch_t tail_data = f32::mask_load(arr + i, mask);
+            tail_data = f32::add(tail_data, f32::set(1000));
+            tail_data = ext::math::clamp(tail_data, min_val, max_val);
+            f32::store(out + i, tail_data);
         }
     }
 }
 
-
 #if KSIMD_ONCE
-// declare a function table
 namespace MyNamespace
 {
-    KSIMD_DYN_DISPATCH_FUNC(kernel_dyn_impl);
-    void kernel(const float* arr, const float* arr2, const float* arr3, const size_t N, float* out_result) noexcept
+    KSIMD_DYN_DISPATCH_FUNC(add_and_clamp)
+    void add_and_clamp(
+        const float* KSIMD_RESTRICT arr,
+        const float                 min,
+        const float                 max,
+              float* KSIMD_RESTRICT out,
+        const size_t                size
+    ) noexcept
     {
-        KSIMD_DYN_CALL(kernel_dyn_impl)(arr, arr2, arr3, N, out_result);
-    }
-
-    KSIMD_DYN_DISPATCH_FUNC(speed_test_impl);
-    void speed_test(
-            const float* KSIMD_RESTRICT a,
-            const float* KSIMD_RESTRICT b,
-                  float* KSIMD_RESTRICT out,
-            const size_t                size
-        ) noexcept
-    {
-        // KSIMD_DYN_CALL(speed_test_div_impl)(a, b, out, size);
-        for (size_t i = 0; i < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(speed_test_impl)); ++i)
-        {
-            KSIMD_DETAIL_PFN_TABLE_FULL_NAME(speed_test_impl)[i](a, b, out, size);
-        }
+        KSIMD_DYN_CALL(add_and_clamp)(arr, min, max, out, size);
     }
 }
 #endif
@@ -124,33 +78,32 @@ namespace MyNamespace
 #if KSIMD_ONCE
 int main()
 {
-    float numbers[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    float numbers2[] = { -1, -2, -3, -4, -5, -6, -7, -8, -9 };
-    float numbers3[] = { 11, 12, 13, 14, 15, 16, 17, 18, 19 };
+    constexpr size_t NUM = 3211;
 
-    float result[8] = {};
-    MyNamespace::kernel(numbers, numbers2, numbers3, 8, result);
-
-    for (int i = 0; i < 8; ++i)
+    std::vector<float, ksimd::AlignedAllocator<float>> arr(NUM);
+    for (size_t i = 0; i < NUM; ++i)
     {
-        [[maybe_unused]] float expected = numbers[i] * numbers2[i] + numbers3[i];
-        assert(std::abs(expected - result[i]) <= 1e-5f);
+        arr[i] = random_f(-100.0f, 100.0f);
     }
 
-    // div test
-    std::vector<float, ksimd::AlignedAllocator<float>> a;
-    std::vector<float, ksimd::AlignedAllocator<float>> b;
-    std::vector<float, ksimd::AlignedAllocator<float>> c;
-    for (unsigned long long i = 0; i < 2048ull * 2048ull * 12ull; ++i)
-    {
-        a.push_back(random_f(-100.0f, 100.0f));
-        b.push_back(random_f(-100.0f, 100.0f));
-        c.push_back(-1.0f);
-    }
-    MyNamespace::speed_test(a.data(), b.data(), c.data(), c.size());
-    [[maybe_unused]] volatile void* ptr = &c;
+    std::vector<float, ksimd::AlignedAllocator<float>> result(NUM);
+    MyNamespace::add_and_clamp(arr.data(), -10000, 10000, result.data(), NUM);
 
-    std::cout << "SUCCEED" << std::endl;
+    bool succeed = true;
+    for (size_t i = 0; i < NUM; ++i)
+    {
+        const auto& r = result[i];
+
+        if (!( (r >= -10000 && r <= 10000) || (r != arr[i] + 1000) ))
+        {
+            succeed = false;
+        }
+    }
+
+    if (succeed)
+        std::cout << "SUCCEED" << std::endl;
+    else
+        std::cout << "FAILED" << std::endl;
 
     return 0;
 }

@@ -61,6 +61,21 @@ struct SimdOp<SimdInstruction::AVX, float64>
         return { _mm256_load_pd(tmp) };
     }
 
+    KSIMD_OP_SIG_AVX(void, mask_store, (float64* mem, batch_t v, mask_t mask))
+    {
+        alignas(BatchAlignment) float64 tmp[Lanes]{};
+        _mm256_store_pd(tmp, v.v);
+
+        const uint32_t m = _mm256_movemask_pd(mask.m); // [3:0]有效
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            if (m & (1 << i))
+            {
+                mem[i] = tmp[i];
+            }
+        }
+    }
+
     KSIMD_OP_SIG_AVX(batch_t, undefined, ())
     {
         return { _mm256_undefined_pd() };

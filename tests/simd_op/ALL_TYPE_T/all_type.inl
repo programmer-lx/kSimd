@@ -152,34 +152,98 @@ TEST(dyn_dispatch_TYPE_T, loadu_storeu)
 }
 #endif
 
-// ------------------------------------------ mask_load mask_store ------------------------------------------
+// ------------------------------------------ mask_load_mask_store ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
     void mask_load_mask_store() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
-        using mask_t = op::mask_t;
-        using batch_t = op::batch_t;
-        constexpr size_t lanes = op::Lanes;
+        using mask_t = typename op::mask_t;
+        using batch_t = typename op::batch_t;
+        constexpr size_t Lanes = op::Lanes;
 
-        alignas(ALIGNMENT) TYPE_T arr[lanes] = {};
-        FILL_ARRAY(arr, TYPE_T(99));
+        // 准备源数据和测试缓冲区
+        alignas(ALIGNMENT) TYPE_T src[Lanes];
+        alignas(ALIGNMENT) TYPE_T dst[Lanes];
+        for (size_t i = 0; i < Lanes; ++i) src[i] = TYPE_T(i + 1); // 1, 2, 3...
 
+        // 1. 全掩码测试 (Full Mask)
         {
-            mask_t mask = op::mask_from_lanes(lanes - 1);
-            batch_t data = op::mask_load(arr, mask);
-            alignas(ALIGNMENT) TYPE_T result[lanes]{};
-            op::store(result, data);
-            for (size_t i = 0; i < lanes; ++i)
+            FILL_ARRAY(dst, TYPE_T(-1));
+            mask_t mask = op::mask_from_lanes(Lanes);
+            batch_t data = op::mask_load(src, mask);
+            op::mask_store(dst, data, mask);
+
+            for (size_t i = 0; i < Lanes; ++i)
             {
-                if (i < lanes - 1)
-                {
-                    EXPECT_TRUE(result[i] == TYPE_T(99));
+                EXPECT_TRUE(dst[i] == src[i]);
+            }
+        }
+
+        // 2. 零掩码测试 (Zero Mask)
+        {
+            FILL_ARRAY(dst, TYPE_T(77));
+            mask_t mask = op::mask_from_lanes(0);
+            batch_t data = op::mask_load(src, mask);
+
+            // 验证 load 结果是否为 0 (Zeroing 语义)
+            alignas(ALIGNMENT) TYPE_T load_res[Lanes];
+            op::store(load_res, data);
+            EXPECT_TRUE(array_bit_equal(load_res, Lanes, ksimd::zero_block<TYPE_T>));
+
+            // 验证 store 是否不写入任何内容
+            op::mask_store(dst, data, mask);
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(dst[i], TYPE_T(77));
+        }
+
+        // 3. 边界测试：加载前 N-1 个元素 (Partial Tail)
+        {
+            FILL_ARRAY(dst, TYPE_T(0));
+            mask_t mask = op::mask_from_lanes(Lanes - 1);
+            batch_t data = op::mask_load(src, mask);
+            op::mask_store(dst, data, mask);
+
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                if (i < Lanes - 1) {
+                    EXPECT_EQ(dst[i], src[i]);
+                } else {
+                    EXPECT_EQ(dst[i], TYPE_T(0));
                 }
-                else
-                {
-                    EXPECT_TRUE(result[i] == TYPE_T(0));
+            }
+        }
+
+        // 4. 任意位置掩码测试 (Arbitrary Mask)
+        // 只有偶数下标被激活
+        {
+            FILL_ARRAY(dst, TYPE_T(88));
+            // 假设你有通过比较产生 mask 的通用方式
+            // 或者通过 bit 构造（取决于你的 mask_t 实现）
+            // 这里使用通用的 greater 来产生间隔掩码作为示例
+            alignas(ALIGNMENT) TYPE_T pattern[Lanes];
+            alignas(ALIGNMENT) TYPE_T threshold[Lanes];
+            for(size_t i=0; i<Lanes; ++i) {
+                pattern[i] = TYPE_T(i);
+                threshold[i] = TYPE_T(Lanes / 2); // 只是为了产生一种混合状态
+            }
+            mask_t mask = op::greater(op::load(pattern), op::load(threshold));
+
+            batch_t data = op::mask_load(src, mask);
+            op::mask_store(dst, data, mask);
+
+            alignas(ALIGNMENT) TYPE_T src_loaded[Lanes];
+            op::store(src_loaded, data);
+
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                // 手动模拟逻辑
+                if (i > (Lanes / 2)) {
+                    EXPECT_EQ(dst[i], src[i]);
+                    EXPECT_EQ(src_loaded[i], src[i]);
+                } else {
+                    EXPECT_EQ(dst[i], TYPE_T(88)); // store 没发生
+                    EXPECT_EQ(src_loaded[i], TYPE_T(0)); // load 填了 0
                 }
             }
         }
@@ -187,15 +251,7 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(mask_load_mask_store);
-
-TEST(dyn_dispatch_TYPE_T, mask_load_mask_store)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mask_load_mask_store)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mask_load_mask_store)[idx]();
-    }
-}
+TEST_ONCE_DYN(mask_load_mask_store)
 #endif
 
 // ------------------------------------------ mask_from_lanes ------------------------------------------

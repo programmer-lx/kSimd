@@ -91,22 +91,45 @@ namespace detail
         }
 
         /**
-         * @brief foreach i in lanes, j in mask: if (mask[j] != 0): mem[i] = v[i], else: mem[i] = 0
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
          */
         KSIMD_OP_SIG_SCALAR(batch_t, mask_load, (const scalar_t* mem, mask_t mask))
         {
+            using uint = same_bits_uint_t<scalar_t>;
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { (mask.m[I] != zero_block<scalar_t> ? mem[I] : zero_block<scalar_t>)... };
+                return {
+                    (
+                        ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0)
+                        ? mem[I]
+                        : zero_block<scalar_t>
+                    )...
+                };
             }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @brief foreach i in lanes, j in mask: if (mask[j] != 0): mem[i] = v[i], else: mem[i] = default_value
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
          */
         KSIMD_OP_SIG_SCALAR(batch_t, mask_load, (const scalar_t* mem, mask_t mask, batch_t default_value))
         {
             return {};// TODO
+        }
+
+        /**
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
+         */
+        KSIMD_OP_SIG_SCALAR(void, mask_store, (scalar_t* mem, batch_t v, mask_t mask))
+        {
+            using uint = same_bits_uint_t<scalar_t>;
+
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                if ((std::bit_cast<uint>(mask.m[i]) & one_block<uint>) != 0)
+                {
+                    mem[i] = v.v[i];
+                }
+            }
         }
         #pragma endregion
 
