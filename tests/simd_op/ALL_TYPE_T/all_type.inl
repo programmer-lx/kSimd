@@ -254,6 +254,105 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(mask_load_mask_store)
 #endif
 
+// ------------------------------------------ mask_loadu_mask_storeu ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mask_loadu_mask_storeu() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        using mask_t = typename op::mask_t;
+        using batch_t = typename op::batch_t;
+        constexpr size_t Lanes = op::Lanes;
+
+        // 为了测试真正的非对齐（Unaligned），我们分配比 Lanes 大的空间
+        // 并从 offset=1 的地方开始读写
+        constexpr size_t BufferSize = Lanes + 1;
+        alignas(ALIGNMENT) TYPE_T src_raw[BufferSize];
+        alignas(ALIGNMENT) TYPE_T dst_raw[BufferSize];
+
+        for (size_t i = 0; i < BufferSize; ++i) {
+            src_raw[i] = TYPE_T(i + 1);
+            dst_raw[i] = TYPE_T(0);
+        }
+
+        // 强制获取非对齐指针
+        const TYPE_T* unaligned_src = src_raw + 1;
+        TYPE_T* unaligned_dst = dst_raw + 1;
+
+        // 1. 全掩码非对齐测试 (Full Mask, Unaligned)
+        {
+            FILL_ARRAY(dst_raw, TYPE_T(0));
+            mask_t mask = op::mask_from_lanes(Lanes);
+
+            // 执行非对齐加载
+            batch_t data = op::mask_loadu(unaligned_src, mask);
+            // 执行非对齐存储
+            op::mask_storeu(unaligned_dst, data, mask);
+
+            // 验证：dst_raw[0] 应该是 0（未被触碰），dst_raw[1...Lanes] 应该是 src_raw[1...Lanes]
+            EXPECT_EQ(dst_raw[0], TYPE_T(0));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_EQ(unaligned_dst[i], unaligned_src[i]);
+            }
+        }
+
+        // 2. 尾部部分加载测试 (Partial Tail, Unaligned)
+        // 模拟处理数组最后几个元素的情况
+        {
+            FILL_ARRAY(dst_raw, TYPE_T(77));
+            constexpr size_t PartialCount = Lanes / 2;
+            mask_t mask = op::mask_from_lanes(PartialCount);
+
+            batch_t data = op::mask_loadu(unaligned_src, mask);
+            op::mask_storeu(unaligned_dst, data, mask);
+
+            // 验证 Zeroing 语义：Load 进来的数据，掩码外应该是 0
+            alignas(ALIGNMENT) TYPE_T internal[Lanes];
+            op::store(internal, data);
+
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                if (i < PartialCount) {
+                    EXPECT_EQ(internal[i], unaligned_src[i]);
+                    EXPECT_EQ(unaligned_dst[i], unaligned_src[i]);
+                } else {
+                    EXPECT_EQ(internal[i], TYPE_T(0));
+                    EXPECT_EQ(unaligned_dst[i], TYPE_T(77)); // Store 应该受保护，不覆盖原有的 77
+                }
+            }
+        }
+
+        // 3. 跨页/非对齐安全性验证 (Arbitrary Mask)
+        {
+            // 构造一个只有首尾被激活的掩码
+            alignas(ALIGNMENT) TYPE_T mask_arr[Lanes];
+            memset(mask_arr, 0x00, sizeof(mask_arr));
+            mask_arr[0] = one_block<TYPE_T>;
+            mask_arr[Lanes - 1] = one_block<TYPE_T>;
+            mask_t mask = op::test_load_mask(mask_arr);
+
+            FILL_ARRAY(dst_raw, TYPE_T(99));
+            batch_t data = op::mask_loadu(unaligned_src, mask);
+            op::mask_storeu(unaligned_dst, data, mask);
+
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                if (i == 0 || i == (Lanes - 1)) {
+                    EXPECT_EQ(unaligned_dst[i], unaligned_src[i]);
+                } else {
+                    EXPECT_EQ(unaligned_dst[i], TYPE_T(99)); // 保持不变
+                }
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(mask_loadu_mask_storeu)
+#endif
+
 // ------------------------------------------ mask_from_lanes ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
@@ -265,19 +364,32 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t lanes = op::Lanes;
 
         alignas(ALIGNMENT) TYPE_T arr[lanes] = {};
+        alignas(ALIGNMENT) TYPE_T dst[lanes]{};
 
+        // [0, lane - 1] == 1
         mask_t mask = op::mask_from_lanes(lanes - 1);
         FILL_ARRAY(arr, one_block<TYPE_T>);
         arr[lanes - 1] = TYPE_T(0);
-        EXPECT_TRUE(simd_type_bit_equal(mask, arr));
+        FILL_ARRAY(dst, TYPE_T(100));
+        op::test_store_mask(dst, mask);
+        for (size_t i = 0; i< lanes; ++i)
+            EXPECT_TRUE(bit_equal(dst, arr));
 
+        // [all] == 1
         mask = op::mask_from_lanes(1000);
         FILL_ARRAY(arr, one_block<TYPE_T>);
-        EXPECT_TRUE(simd_type_bit_equal(mask, arr));
+        FILL_ARRAY(dst, TYPE_T(100));
+        op::test_store_mask(dst, mask);
+        for (size_t i = 0; i< lanes; ++i)
+            EXPECT_TRUE(bit_equal(dst, arr));
 
+        // [all] == 0
         mask = op::mask_from_lanes(0);
         FILL_ARRAY(arr, zero_block<TYPE_T>);
-        EXPECT_TRUE(simd_type_bit_equal(mask, arr));
+        FILL_ARRAY(dst, TYPE_T(100));
+        op::test_store_mask(dst, mask);
+        for (size_t i = 0; i< lanes; ++i)
+            EXPECT_TRUE(bit_equal(dst, arr));
     }
 }
 

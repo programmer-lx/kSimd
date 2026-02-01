@@ -32,13 +32,13 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             f32::batch_t a = f32_op::set(5);
             f32::batch_t b = type_op::bit_cast<f32::batch_t>(a);
-            EXPECT_TRUE(simd_type_bit_equal(a, b));
+            EXPECT_TRUE(bit_equal(a, b));
         }
         // f64 -> f64
         {
             f64::batch_t a = f64_op::set(5);
             f64::batch_t b = type_op::bit_cast<f64::batch_t>(a);
-            EXPECT_TRUE(simd_type_bit_equal(a, b));
+            EXPECT_TRUE(bit_equal(a, b));
         }
 
         // -------------------- f32 -> ? --------------------
@@ -46,7 +46,7 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             f32::batch_t a = f32_op::set(6);
             f64::batch_t b = type_op::bit_cast<f64::batch_t>(a);
-            EXPECT_TRUE(simd_type_bit_equal(a, b));
+            EXPECT_TRUE(bit_equal(a, b));
         }
 
         // -------------------- f64 -> ? --------------------
@@ -54,7 +54,7 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             f64::batch_t a = f64_op::set(5);
             f32::batch_t b = type_op::bit_cast<f32::batch_t>(a);
-            EXPECT_TRUE(simd_type_bit_equal(a, b));
+            EXPECT_TRUE(bit_equal(a, b));
         }
 
         // -------------------- i32 -> ? --------------------

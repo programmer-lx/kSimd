@@ -16,6 +16,10 @@ struct SimdOp<SimdInstruction::AVX, float32>
     {
         _mm256_store_ps(mem, mask.m);
     }
+    KSIMD_OP_SIG_AVX(mask_t, test_load_mask, (const float32* mem))
+    {
+        return { _mm256_load_ps(mem) };
+    }
     #endif
 
     KSIMD_OP_SIG_AVX(mask_t, mask_from_lanes, (unsigned int count))
@@ -58,7 +62,32 @@ struct SimdOp<SimdInstruction::AVX, float32>
         return { _mm256_load_ps(tmp) };
     }
 
+    KSIMD_OP_SIG_AVX(batch_t, mask_loadu, (const float32* mem, mask_t mask))
+    {
+        uint32 m = _mm256_movemask_ps(mask.m); // 仅 [7:0] 有效
+        alignas(BatchAlignment) float32 tmp[Lanes]{};
+
+        [&]<size_t... I>(std::index_sequence<I...>)
+        {
+            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0f), ...);
+        }(std::make_index_sequence<Lanes>{});
+
+        return { _mm256_load_ps(tmp) };
+    }
+
     KSIMD_OP_SIG_AVX(void, mask_store, (float32* mem, batch_t v, mask_t mask))
+    {
+        alignas(BatchAlignment) float32 tmp[Lanes]{};
+        _mm256_store_ps(tmp, v.v);
+
+        const uint32_t m = _mm256_movemask_ps(mask.m); // [7:0]有效
+        [&]<size_t... I>(std::index_sequence<I...>)
+        {
+            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
+        }(std::make_index_sequence<Lanes>{});
+    }
+
+    KSIMD_OP_SIG_AVX(void, mask_storeu, (float32* mem, batch_t v, mask_t mask))
     {
         alignas(BatchAlignment) float32 tmp[Lanes]{};
         _mm256_store_ps(tmp, v.v);

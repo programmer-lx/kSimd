@@ -58,7 +58,7 @@ private:
     Clock::time_point m_start;
 };
 
-bool simd_type_bit_equal(const auto& a, const auto& b)
+bool bit_equal(const auto& a, const auto& b)
 {
     using Ta = std::remove_cvref_t<decltype(a)>;
     using Tb = std::remove_cvref_t<decltype(b)>;
@@ -80,7 +80,7 @@ bool array_bit_equal(T* arr, size_t len, const T2& val)
 {
     for (size_t i = 0; i < len; ++i)
     {
-        if (!simd_type_bit_equal(arr[i], val))
+        if (!bit_equal(arr[i], val))
         {
             return false;
         }

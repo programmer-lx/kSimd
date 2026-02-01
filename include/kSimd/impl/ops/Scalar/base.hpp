@@ -28,6 +28,13 @@ namespace detail
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             memcpy(mem, mask.m, size);
         }
+        KSIMD_OP_SIG_SCALAR(mask_t, test_load_mask, (const scalar_t* mem))
+        {
+            constexpr size_t size = Lanes * sizeof(scalar_t);
+            mask_t result{};
+            memcpy(result.m, mem, size);
+            return result;
+        }
         #endif
 
         #pragma region lane mask 通道掩码
@@ -109,6 +116,24 @@ namespace detail
         }
 
         /**
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
+         */
+        KSIMD_OP_SIG_SCALAR(batch_t, mask_loadu, (const scalar_t* mem, mask_t mask))
+        {
+            using uint = same_bits_uint_t<scalar_t>;
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return {
+                    (
+                        ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0)
+                        ? mem[I]
+                        : zero_block<scalar_t>
+                    )...
+                };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
          */
         KSIMD_OP_SIG_SCALAR(batch_t, mask_load, (const scalar_t* mem, mask_t mask, batch_t default_value))
@@ -117,9 +142,34 @@ namespace detail
         }
 
         /**
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
+         */
+        KSIMD_OP_SIG_SCALAR(batch_t, mask_loadu, (const scalar_t* mem, mask_t mask, batch_t default_value))
+        {
+            return {};// TODO
+        }
+
+        /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
          */
         KSIMD_OP_SIG_SCALAR(void, mask_store, (scalar_t* mem, batch_t v, mask_t mask))
+        {
+            using uint = same_bits_uint_t<scalar_t>;
+
+            [&]<size_t... I>(std::index_sequence<I...>)
+            {
+                (
+                    ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0
+                    ? (mem[I] = v.v[I], void())
+                    : void())
+                , ... );
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
+         */
+        KSIMD_OP_SIG_SCALAR(void, mask_storeu, (scalar_t* mem, batch_t v, mask_t mask))
         {
             using uint = same_bits_uint_t<scalar_t>;
 
