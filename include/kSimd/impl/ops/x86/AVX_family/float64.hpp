@@ -136,52 +136,22 @@ struct SimdOp<SimdInstruction::AVX, float64>
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, mask_load, (const float64* mem, mask_t mask))
     {
-        uint32 m = _mm256_movemask_pd(mask.m); // [3:0]有效
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
-
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0), ...);
-        }(std::make_index_sequence<Lanes>{});
-
-        return { _mm256_load_pd(tmp) };
+        return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m)) };
     }
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, mask_loadu, (const float64* mem, mask_t mask))
     {
-        uint32 m = _mm256_movemask_pd(mask.m); // [3:0]有效
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
-
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0), ...);
-        }(std::make_index_sequence<Lanes>{});
-
-        return { _mm256_load_pd(tmp) };
+        return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m)) };
     }
 
     KSIMD_OP_SIG_AVX_STATIC(void, mask_store, (float64* mem, batch_t v, mask_t mask))
     {
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
-        _mm256_store_pd(tmp, v.v);
-
-        const uint32_t m = _mm256_movemask_pd(mask.m); // [3:0]有效
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
-        }(std::make_index_sequence<Lanes>{});
+        _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m), v.v);
     }
 
     KSIMD_OP_SIG_AVX_STATIC(void, mask_storeu, (float64* mem, batch_t v, mask_t mask))
     {
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
-        _mm256_store_pd(tmp, v.v);
-
-        const uint32_t m = _mm256_movemask_pd(mask.m); // [3:0]有效
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
-        }(std::make_index_sequence<Lanes>{});
+        _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m), v.v);
     }
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, undefined, ())
@@ -226,20 +196,16 @@ struct SimdOp<SimdInstruction::AVX, float64>
 
     KSIMD_OP_SIG_AVX_STATIC(float64, reduce_sum, (batch_t v))
     {
-        // [4, 3, 2, 1]
-        // hadd
-        // [3+4, 3+4, 1+2, 1+2]
-        __m256d t1 = _mm256_hadd_pd(v.v, v.v);
+        // [4,3] + [2,1] = [2+4, 1+3]
+        __m128d low = _mm256_castpd256_pd128(v.v);
+        __m128d high = _mm256_extractf128_pd(v.v, 0b1);
+        __m128d sum128 = _mm_add_pd(low, high);
 
-        // [1+2, 1+2] low
-        //     +
-        // [3+4, 3+4] high
-        __m128d low = _mm256_castpd256_pd128(t1);
-        __m128d high = _mm256_extractf128_pd(t1, 0b1);
-        high = _mm_add_pd(low, high);
+        // [2+4, 1+3] + [?, 2+4] = [1+2+3+4]
+        __m128d sum64 = _mm_add_pd(sum128, _mm_unpackhi_pd(sum128, sum128));
 
         // get lane[0]
-        return _mm_cvtsd_f64(high);
+        return _mm_cvtsd_f64(sum64);
     }
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
