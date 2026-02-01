@@ -44,7 +44,7 @@ struct SimdOp<I, float32>
         _mm256_storeu_ps(mem, v.v);
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, load_masked, (const float32* mem, mask_t mask))
+    KSIMD_OP_SIG_AVX(batch_t, mask_load, (const float32* mem, mask_t mask))
     {
         uint32 m = _mm256_movemask_ps(mask.m); // 仅 [7:0] 有效
         alignas(BatchAlignment) float32 tmp[Lanes]{};

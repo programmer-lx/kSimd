@@ -154,11 +154,11 @@ TEST(dyn_dispatch_TYPE_T, loadu_storeu)
 }
 #endif
 
-// ------------------------------------------ load_masked ------------------------------------------
+// ------------------------------------------ mask_load mask_store ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void load_masked() noexcept
+    void mask_load_mask_store() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
         using mask_t = op::mask_t;
@@ -170,7 +170,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         {
             mask_t mask = op::mask_from_lanes(lanes - 1);
-            batch_t data = op::load_masked(arr, mask);
+            batch_t data = op::mask_load(arr, mask);
             alignas(ALIGNMENT) TYPE_T result[lanes]{};
             op::store(result, data);
             for (size_t i = 0; i < lanes; ++i)
@@ -189,13 +189,13 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(load_masked);
+KSIMD_DYN_DISPATCH_FUNC(mask_load_mask_store);
 
-TEST(dyn_dispatch_TYPE_T, load_masked)
+TEST(dyn_dispatch_TYPE_T, mask_load_mask_store)
 {
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_masked)); ++idx)
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mask_load_mask_store)); ++idx)
     {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_masked)[idx]();
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mask_load_mask_store)[idx]();
     }
 }
 #endif
