@@ -6,6 +6,91 @@
 
 KSIMD_NAMESPACE_BEGIN
 
+// -------------------------------- operators --------------------------------
+#define KSIMD_BATCH_T AVX_family::Batch<float64>
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator+, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_add_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_sub_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator*, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_mul_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator/, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_div_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T v))
+{
+    return { _mm256_sub_pd(_mm256_setzero_pd(), v.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator&, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_and_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator|, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_or_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator^, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm256_xor_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
+{
+    return { _mm256_xor_pd(v.v, _mm256_set1_pd(one_block<float64>)) };
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs + rhs;
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator-=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs - rhs;
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator*=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs * rhs;
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator/=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs / rhs;
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator&=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs & rhs;
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator|=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs | rhs;
+}
+
+KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator^=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs ^ rhs;
+}
+
+#undef KSIMD_BATCH_T
+
 template<>
 struct SimdOp<SimdInstruction::AVX, float64>
 {
@@ -186,7 +271,7 @@ struct SimdOp<SimdInstruction::AVX, float64>
     {
         return { _mm256_max_pd(lhs.v, rhs.v) };
     }
-    
+
     KSIMD_OP_SIG_AVX_STATIC(mask_t, equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_EQ_OQ) };
@@ -246,7 +331,7 @@ struct SimdOp<SimdInstruction::AVX, float64>
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_ORD_Q) };
     }
-    
+
     KSIMD_OP_SIG_AVX_STATIC(batch_t, bit_not, (batch_t v))
     {
         return { _mm256_xor_pd(v.v, _mm256_set1_pd(one_block<float64>)) };

@@ -6,6 +6,91 @@
 
 KSIMD_NAMESPACE_BEGIN
 
+// -------------------------------- operators --------------------------------
+#define KSIMD_BATCH_T SSE_family::SSE::Batch<float32>
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator+, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_add_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_sub_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator*, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_mul_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator/, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_div_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T v))
+{
+    return { _mm_sub_ps(_mm_setzero_ps(), v.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator&, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_and_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator|, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_or_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator^, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_xor_ps(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
+{
+    return { _mm_xor_ps(v.v, _mm_set1_ps(one_block<float32>)) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs + rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator-=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs - rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator*=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs * rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator/=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs / rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator&=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs & rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator|=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs | rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator^=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs ^ rhs;
+}
+
+#undef KSIMD_BATCH_T
+
 template<>
 struct SimdOp<SimdInstruction::SSE, float32>
 {
@@ -252,7 +337,7 @@ struct SimdOp<SimdInstruction::SSE, float32>
     {
         return { _mm_xor_ps(v.v, _mm_set1_ps(one_block<float32>)) };
     }
-    
+
     KSIMD_OP_SIG_SSE_STATIC(batch_t, bit_and, (batch_t lhs, batch_t rhs))
     {
         return { _mm_and_ps(lhs.v, rhs.v) };
@@ -262,12 +347,12 @@ struct SimdOp<SimdInstruction::SSE, float32>
     {
         return { _mm_andnot_ps(lhs.v, rhs.v) };
     }
-    
+
     KSIMD_OP_SIG_SSE_STATIC(batch_t, bit_or, (batch_t lhs, batch_t rhs))
     {
         return { _mm_or_ps(lhs.v, rhs.v) };
     }
-    
+
     KSIMD_OP_SIG_SSE_STATIC(batch_t, bit_xor, (batch_t lhs, batch_t rhs))
     {
         return { _mm_xor_ps(lhs.v, rhs.v) };

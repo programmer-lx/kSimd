@@ -846,90 +846,90 @@ TEST_ONCE_DYN(div)
 #endif
 
 // ------------------------------------------ all_operators ------------------------------------------
-// namespace KSIMD_DYN_INSTRUCTION
-// {
-//     KSIMD_DYN_FUNC_ATTR
-//     void all_operators() noexcept
-//     {
-//         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
-//         using batch_t = typename op::batch_t;
-//         using int_t = bits_t<TYPE_T>;
-//         constexpr size_t Lanes = op::Lanes;
-//
-//         auto check_batch = [&](batch_t res, batch_t expected, const char* msg) {
-//             alignas(ALIGNMENT) TYPE_T r_buf[Lanes];
-//             alignas(ALIGNMENT) TYPE_T e_buf[Lanes];
-//             op::store(r_buf, res);
-//             op::store(e_buf, expected);
-//             for (size_t i = 0; i < Lanes; ++i) {
-//                 // 对于 NaN，EXPECT_EQ 会失败，所以使用位模式比较
-//                 EXPECT_TRUE(ksimd::array_bit_equal(&r_buf[i], 1, std::bit_cast<int_t>(e_buf[i])))
-//                     << "Operator " << msg << " failed at lane " << i;
-//             }
-//         };
-//
-//         // 准备基础数据
-//         batch_t a = op::set(TYPE_T(40));
-//         batch_t b = op::set(TYPE_T(2));
-//         batch_t zero = op::set(TYPE_T(0));
-//
-//         // 1. 算术运算符测试 (Binary Arithmetic)
-//         check_batch(a + b,  op::add(a, b), "+");
-//         check_batch(a - b,  op::sub(a, b), "-");
-//         check_batch(a * b,  op::mul(a, b), "*");
-//         check_batch(a / b,  op::div(a, b), "/");
-//
-//         // 2. 复合赋值测试 (Compound Assignment)
-//         batch_t c = a;
-//         c += b; check_batch(c, op::add(a, b), "+=");
-//         c = a;
-//         c -= b; check_batch(c, op::sub(a, b), "-=");
-//         c = a;
-//         c *= b; check_batch(c, op::mul(a, b), "*=");
-//         c = a;
-//         c /= b; check_batch(c, op::div(a, b), "/=");
-//
-//         // 3. 位运算测试 (Bitwise)
-//         // 使用 0b10101 (0x15) 和 0b11000 (0x18)
-//         batch_t b1 = make_var_from_bits<TYPE_T>(static_cast<int_t>(0x15));
-//         batch_t b2 = make_var_from_bits<TYPE_T>(static_cast<int_t>(0x18));
-//
-//         check_batch(b1 & b2, op::bit_and(b1, b2), "&");
-//         check_batch(b1 | b2, op::bit_or(b1, b2), "|");
-//         check_batch(b1 ^ b2, op::bit_xor(b1, b2), "^");
-//         check_batch(~b1,     op::bit_not(b1), "~");
-//
-//         // 4. 浮点边界值逻辑一致性测试
-//         if constexpr (std::is_floating_point_v<TYPE_T>)
-//         {
-//             batch_t pinf = op::set(inf<TYPE_T>);
-//             batch_t ninf = op::set(-inf<TYPE_T>);
-//             batch_t nan  = op::set(qNaN<TYPE_T>);
-//             batch_t one  = op::set(TYPE_T(1));
-//
-//             // Inf + 1 应该依然是 Inf (位模式应一致)
-//             check_batch(pinf + one, pinf, "Inf+1");
-//
-//             // Inf - Inf 应该产生 NaN
-//             // 注意：不同指令集生成的 NaN 位模式可能不同，但 op::sub 和 operator- 结果必须相同
-//             check_batch(pinf - pinf, op::sub(pinf, pinf), "Inf-Inf");
-//
-//             // 0 / 0 产生 NaN
-//             check_batch(zero / zero, op::div(zero, zero), "0/0");
-//
-//             // 1 / 0 产生 Inf
-//             check_batch(one / zero, op::div(one, zero), "1/0");
-//
-//             // 验证位运算在浮点边界上的行为（例如反转符号位）
-//             // ~0.0f 并不是简单意义上的数学操作，但对于位掩码很重要
-//             check_batch(~zero, op::bit_not(zero), "~ZeroBits");
-//         }
-//     }
-// }
-//
-// #if KSIMD_ONCE
-// TEST_ONCE_DYN(all_operators)
-// #endif
+#define EXPECT_BATCH_BIT_EQ(actual, expected, op_name)                     \
+{                                                                          \
+    alignas(ALIGNMENT) TYPE_T act_buf[Lanes];                              \
+    alignas(ALIGNMENT) TYPE_T exp_buf[Lanes];                              \
+    op::store(act_buf, actual);                                            \
+    op::store(exp_buf, expected);                                          \
+    for (size_t i = 0; i < Lanes; ++i) {                                   \
+        EXPECT_TRUE(bit_equal(act_buf[i], std::bit_cast<int_t>(exp_buf[i])))\
+            << "Operator [" << op_name << "] failed at lane " << i;        \
+    }                                                                      \
+}
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void all_operators() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        using batch_t = typename op::batch_t;
+        using int_t = same_bits_uint_t<TYPE_T>; // 对应浮点大小的整数类型
+        constexpr size_t Lanes = op::Lanes;
+
+        // 准备基础数据
+        batch_t a = op::set(TYPE_T(100));
+        batch_t b = op::set(TYPE_T(2));
+        batch_t zero = op::set(TYPE_T(0));
+
+        // 1. 二元算术运算符测试 (Binary Arithmetic)
+        EXPECT_BATCH_BIT_EQ(a + b, op::add(a, b), "+");
+        EXPECT_BATCH_BIT_EQ(a - b, op::sub(a, b), "-");
+        EXPECT_BATCH_BIT_EQ(a * b, op::mul(a, b), "*");
+        EXPECT_BATCH_BIT_EQ(a / b, op::div(a, b), "/");
+
+        // 2. 一元运算符测试 (Unary)
+        EXPECT_BATCH_BIT_EQ(-a, op::sub(zero, a), "unary -");
+
+        // 3. 位逻辑运算符测试 (Bitwise)
+        // 使用特殊的位模式：0x55 (0101) 和 0xAA (1010)
+        batch_t m1 = op::set(make_var_from_bits<TYPE_T>(static_cast<int_t>(0x5555555555555555ULL)));
+        batch_t m2 = op::set(make_var_from_bits<TYPE_T>(static_cast<int_t>(0xAAAAAAAAAAAAAAAAULL)));
+
+        EXPECT_BATCH_BIT_EQ(m1 & m2, op::bit_and(m1, m2), "&");
+        EXPECT_BATCH_BIT_EQ(m1 | m2, op::bit_or(m1, m2), "|");
+        EXPECT_BATCH_BIT_EQ(m1 ^ m2, op::bit_xor(m1, m2), "^");
+        EXPECT_BATCH_BIT_EQ(~m1,     op::bit_not(m1), "~");
+
+        // 4. 复合赋值运算符测试 (Compound Assignment)
+        batch_t c = a;
+        c += b; EXPECT_BATCH_BIT_EQ(c, op::add(a, b), "+=");
+        c = a;
+        c -= b; EXPECT_BATCH_BIT_EQ(c, op::sub(a, b), "-=");
+        c = a;
+        c *= b; EXPECT_BATCH_BIT_EQ(c, op::mul(a, b), "*=");
+        c = a;
+        c /= b; EXPECT_BATCH_BIT_EQ(c, op::div(a, b), "/=");
+
+        c = m1;
+        c &= m2; EXPECT_BATCH_BIT_EQ(c, op::bit_and(m1, m2), "&=");
+        c = m1;
+        c |= m2; EXPECT_BATCH_BIT_EQ(c, op::bit_or(m1, m2), "|=");
+        c = m1;
+        c ^= m2; EXPECT_BATCH_BIT_EQ(c, op::bit_xor(m1, m2), "^=");
+
+        // 5. 浮点极端边界测试 (IEEE 754 Consistency)
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            batch_t pinf = op::set(inf<TYPE_T>);
+            batch_t nan  = op::set(qNaN<TYPE_T>);
+
+            // Inf * 2.0 = Inf
+            EXPECT_BATCH_BIT_EQ(pinf * op::set(TYPE_T(2)), pinf, "inf * 2");
+            // Inf - Inf = NaN (验证运算符产生 NaN 的行为与指令一致)
+            EXPECT_BATCH_BIT_EQ(pinf - pinf, op::sub(pinf, pinf), "inf - inf");
+            // NaN 逻辑传播
+            EXPECT_BATCH_BIT_EQ(nan + a, op::add(nan, a), "nan + a");
+            // 位操作：~0.0f
+            EXPECT_BATCH_BIT_EQ(~zero, op::bit_not(zero), "~zero");
+        }
+    }
+}
+
+#undef EXPECT_BATCH_BIT_EQ
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(all_operators)
+#endif
 
 // ------------------------------------------ reduce_sum ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION

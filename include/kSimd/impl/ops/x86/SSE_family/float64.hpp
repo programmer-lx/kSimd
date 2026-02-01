@@ -4,6 +4,91 @@
 
 KSIMD_NAMESPACE_BEGIN
 
+// -------------------------------- operators --------------------------------
+#define KSIMD_BATCH_T SSE_family::SSE2_up::Batch<float64>
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator+, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_add_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_sub_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator*, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_mul_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator/, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_div_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T v))
+{
+    return { _mm_sub_pd(_mm_setzero_pd(), v.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator&, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_and_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator|, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_or_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator^, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    return { _mm_xor_pd(lhs.v, rhs.v) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
+{
+    return { _mm_xor_pd(v.v, _mm_set1_pd(one_block<float64>)) };
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs + rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator-=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs - rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator*=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs * rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator/=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs / rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator&=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs & rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator|=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs | rhs;
+}
+
+KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator^=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs ^ rhs;
+}
+
+#undef KSIMD_BATCH_T
+
 template<>
 struct SimdOp<SimdInstruction::SSE, float64>
     : detail::SimdOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>

@@ -8,12 +8,15 @@
 
 #include "kSimd/simd_op.hpp"
 
+#define KSIMD_EXT_MATH_INLINE_API(ret)   KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE ret KSIMD_CALL_CONV
+#define KSIMD_EXT_MATH_FLATTEN_API(ret)  KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN ret KSIMD_CALL_CONV
+
 namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
 {
 #pragma region ------------- any types -------------------------
 
     template<is_batch_type batch_t>
-    KSIMD_EXT_SIG_DYN(batch_t, clamp, (batch_t v, batch_t min, batch_t max))
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) clamp(batch_t v, batch_t min, batch_t max)
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_SIMD_OP(scalar_t);
@@ -23,7 +26,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     }
 
     template<is_batch_type batch_t>
-    KSIMD_EXT_SIG_DYN(batch_t, safe_clamp, (batch_t v, batch_t edge1, batch_t edge2))
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) safe_clamp(batch_t v, batch_t edge1, batch_t edge2)
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_SIMD_OP(scalar_t);
@@ -40,7 +43,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
 #pragma region ------------- floating point -------------------------
 
     template<is_batch_type_includes<float32, float64> batch_t>
-    KSIMD_EXT_SIG_DYN(batch_t, lerp, (batch_t a, batch_t b, batch_t t))
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) lerp(batch_t a, batch_t b, batch_t t)
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_SIMD_OP(scalar_t);
@@ -51,7 +54,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     }
 
     template<is_batch_type_includes<float32, float64> batch_t>
-    KSIMD_EXT_SIG_DYN(batch_t, sin, (batch_t v))
+    KSIMD_EXT_MATH_FLATTEN_API(batch_t) sin(batch_t v)
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_SIMD_OP(scalar_t);
@@ -80,3 +83,6 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
 
 #pragma endregion ------------- floating point -------------------------
 } // namespace ksimd::math
+
+#undef KSIMD_EXT_MATH_INLINE_API
+#undef KSIMD_EXT_MATH_FLATTEN_API

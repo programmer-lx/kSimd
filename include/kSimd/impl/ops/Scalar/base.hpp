@@ -13,8 +13,154 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-// template<is_scalar_type S, size_t A>
-// Scalar_family::Batch<S, A>
+#define KSIMD_BATCH_T Scalar_family::Batch<S, A>
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator+, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { (lhs.v[I] + rhs.v[I])... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { (lhs.v[I] - rhs.v[I])... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator*, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { (lhs.v[I] * rhs.v[I])... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator/, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { (lhs.v[I] / rhs.v[I])... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T v))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { (-v.v[I])... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator&, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { std::bit_cast<S>(detail::bitcast_to_uint(lhs.v[I]) & detail::bitcast_to_uint(rhs.v[I]))... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator|, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { std::bit_cast<S>(detail::bitcast_to_uint(lhs.v[I]) | detail::bitcast_to_uint(rhs.v[I]))... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator^, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { std::bit_cast<S>(detail::bitcast_to_uint(lhs.v[I]) ^ detail::bitcast_to_uint(rhs.v[I]))... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
+{
+    using traits = SimdTraits<SimdInstruction::Scalar, S>;
+    constexpr auto Lanes = traits::Lanes;
+    return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+    {
+        return { std::bit_cast<S>(~detail::bitcast_to_uint(v.v[I]))... };
+    }(std::make_index_sequence<Lanes>{});
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs + rhs;
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator-=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs - rhs;
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator*=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs * rhs;
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator/=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs / rhs;
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator&=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs & rhs;
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator|=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs | rhs;
+}
+
+template<is_scalar_type S, size_t A>
+KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator^=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
+{
+    return lhs = lhs ^ rhs;
+}
+
+#undef KSIMD_BATCH_T
 
 namespace detail
 {
@@ -47,14 +193,12 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(mask_t, mask_from_lanes, (unsigned int count))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            count = count > lanes ? lanes : count;
+            count = count > Lanes ? Lanes : count;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (I < count ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
 
@@ -538,12 +682,17 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, div, (batch_t lhs, batch_t rhs))
         {
+            KSIMD_WARNING_PUSH
+            KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
+
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (lhs.v[I] / rhs.v[I])... };
             }(std::make_index_sequence<lanes>{});
+
+            KSIMD_WARNING_POP
         }
 
         /**
@@ -551,12 +700,17 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, one_div, (batch_t v))
         {
+            KSIMD_WARNING_PUSH
+            KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
+
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / v.v[I])... };
             }(std::make_index_sequence<lanes>{});
+
+            KSIMD_WARNING_POP
         }
 
         /**
