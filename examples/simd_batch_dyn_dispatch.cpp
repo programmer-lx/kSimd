@@ -1,6 +1,3 @@
-#include <cassert>
-#include <cmath>
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -48,7 +45,7 @@ namespace MyNamespace
 
             // 尾处理，处理剩余的长度不足Lanes的元素
             // 使用 mask_load | mask_store 加载和存储部分元素，而非全量加载和存储
-            const size_t tail = size % i;
+            const size_t tail = size - i;
             const f32::mask_t mask = f32::mask_from_lanes(static_cast<unsigned int>(tail));
             f32::batch_t tail_data = f32::mask_load(arr + i, mask);
             tail_data = f32::add(tail_data, f32::set(1000));
