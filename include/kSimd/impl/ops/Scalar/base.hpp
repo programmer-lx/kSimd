@@ -123,13 +123,14 @@ namespace detail
         {
             using uint = same_bits_uint_t<scalar_t>;
 
-            for (size_t i = 0; i < Lanes; ++i)
+            [&]<size_t... I>(std::index_sequence<I...>)
             {
-                if ((std::bit_cast<uint>(mask.m[i]) & one_block<uint>) != 0)
-                {
-                    mem[i] = v.v[i];
-                }
-            }
+                (
+                    ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0
+                    ? (mem[I] = v.v[I], void())
+                    : void())
+                , ... );
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
 

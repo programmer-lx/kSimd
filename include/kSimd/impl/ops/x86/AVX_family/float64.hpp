@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility> // std::index_sequence
+
 #include "types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
@@ -47,17 +49,12 @@ struct SimdOp<SimdInstruction::AVX, float64>
     {
         uint32 m = _mm256_movemask_pd(mask.m); // [3:0]有效
         alignas(BatchAlignment) float64 tmp[Lanes]{};
-        for (size_t i = 0; i < Lanes; ++i)
+
+        [&]<size_t... I>(std::index_sequence<I...>)
         {
-            if (m & (1 << i))
-            {
-                tmp[i] = mem[i];
-            }
-            else
-            {
-                tmp[i] = 0.0;
-            }
-        }
+            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0), ...);
+        }(std::make_index_sequence<Lanes>{});
+
         return { _mm256_load_pd(tmp) };
     }
 
@@ -67,13 +64,10 @@ struct SimdOp<SimdInstruction::AVX, float64>
         _mm256_store_pd(tmp, v.v);
 
         const uint32_t m = _mm256_movemask_pd(mask.m); // [3:0]有效
-        for (size_t i = 0; i < Lanes; ++i)
+        [&]<size_t... I>(std::index_sequence<I...>)
         {
-            if (m & (1 << i))
-            {
-                mem[i] = tmp[i];
-            }
-        }
+            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
+        }(std::make_index_sequence<Lanes>{});
     }
 
     KSIMD_OP_SIG_AVX(batch_t, undefined, ())

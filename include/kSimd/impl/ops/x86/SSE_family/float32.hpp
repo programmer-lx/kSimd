@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bit>
+#include <utility> // std::index_sequence
 
 #include "types.hpp"
 
@@ -49,17 +49,12 @@ struct SimdOp<SimdInstruction::SSE, float32>
     {
         uint32 m = _mm_movemask_ps(mask.m); // 仅 [3:0] 有效
         alignas(BatchAlignment) float32 tmp[Lanes]{};
-        for (size_t i = 0; i < Lanes; ++i)
+
+        [&]<size_t... I>(std::index_sequence<I...>)
         {
-            if (m & (1 << i))
-            {
-                tmp[i] = mem[i];
-            }
-            else
-            {
-                tmp[i] = 0.0f;
-            }
-        }
+            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0f), ...);
+        }(std::make_index_sequence<Lanes>{});
+
         return { _mm_load_ps(tmp) };
     }
 
@@ -69,13 +64,10 @@ struct SimdOp<SimdInstruction::SSE, float32>
         _mm_store_ps(tmp, v.v);
 
         const uint32_t m = _mm_movemask_ps(mask.m); // [3:0]有效
-        for (size_t i = 0; i < Lanes; ++i)
+        [&]<size_t... I>(std::index_sequence<I...>)
         {
-            if (m & (1 << i))
-            {
-                mem[i] = tmp[i];
-            }
-        }
+            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
+        }(std::make_index_sequence<Lanes>{});
     }
 
     KSIMD_OP_SIG_SSE(batch_t, undefined, ())
