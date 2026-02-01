@@ -45,8 +45,9 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_SIMD_OP(scalar_t);
 
-        // result = a + (b - a) * t
-        return op::add(a, op::mul(op::sub(b, a), t));
+        // result = (b - a) * t + a
+        // mul_add
+        return op::mul_add(op::sub(b, a), t, a);
     }
 
     template<is_batch_type_includes<float32, float64> batch_t>
