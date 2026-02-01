@@ -13,7 +13,7 @@ struct SimdOp<I, float32>
     KSIMD_OP_SIG_AVX(mask_t, mask_from_lanes, (unsigned int count))
     {
         __m256 idx = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
-        __m256 cnt = _mm256_set1_ps(static_cast<float>(count));
+        __m256 cnt = _mm256_set1_ps(static_cast<float32>(count));
         return { _mm256_cmp_ps(idx, cnt, _CMP_LT_OQ) };
     }
 
@@ -35,6 +35,24 @@ struct SimdOp<I, float32>
     KSIMD_OP_SIG_AVX(void, storeu, (float32* mem, batch_t v))
     {
         _mm256_storeu_ps(mem, v.v);
+    }
+
+    KSIMD_OP_SIG_AVX(batch_t, load_masked, (const float32* mem, mask_t mask))
+    {
+        uint32 m = _mm256_movemask_ps(mask.m); // 仅 [7:0] 有效
+        alignas(BatchAlignment) float32 tmp[Lanes]{};
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            if (m & (1 << i))
+            {
+                tmp[i] = mem[i];
+            }
+            else
+            {
+                tmp[i] = 0.0f;
+            }
+        }
+        return { _mm256_load_ps(tmp) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, zero, ())
@@ -112,7 +130,7 @@ struct SimdOp<I, float32>
     KSIMD_OP_SIG_AVX(batch_t, abs, (batch_t v))
     {
         // 将 sign bit 反转即可
-        return { _mm256_and_ps(v.v, _mm256_set1_ps(sign_bit_clear_mask<float>)) };
+        return { _mm256_and_ps(v.v, _mm256_set1_ps(sign_bit_clear_mask<float32>)) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, min, (batch_t lhs, batch_t rhs))
@@ -187,7 +205,7 @@ struct SimdOp<I, float32>
 
     KSIMD_OP_SIG_AVX(batch_t, bit_not, (batch_t v))
     {
-        return { _mm256_xor_ps(v.v, _mm256_set1_ps(one_block<float>)) };
+        return { _mm256_xor_ps(v.v, _mm256_set1_ps(one_block<float32>)) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, bit_and, (batch_t lhs, batch_t rhs))

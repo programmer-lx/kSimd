@@ -83,11 +83,20 @@ namespace detail
             memcpy(mem, v.v, size);
         }
 
+        /**
+         * @brief foreach i in lanes, j in mask: if (mask[j] != 0): mem[i] = v[i], else: mem[i] = 0
+         */
         KSIMD_OP_SIG_SCALAR(batch_t, load_masked, (const scalar_t* mem, mask_t mask))
         {
-            return {};// TODO
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (mask.m[I] != zero_block<scalar_t> ? mem[I] : zero_block<scalar_t>)... };
+            }(std::make_index_sequence<Lanes>{});
         }
 
+        /**
+         * @brief foreach i in lanes, j in mask: if (mask[j] != 0): mem[i] = v[i], else: mem[i] = default_value
+         */
         KSIMD_OP_SIG_SCALAR(batch_t, load_masked, (const scalar_t* mem, mask_t mask, batch_t default_value))
         {
             return {};// TODO

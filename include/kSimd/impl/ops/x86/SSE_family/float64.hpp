@@ -19,7 +19,7 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     KSIMD_OP_SIG_SSE(mask_t, mask_from_lanes, (unsigned int count))
     {
         __m128d idx = _mm_set_pd(1.0, 0.0);
-        __m128d cnt = _mm_set1_pd(static_cast<double>(count));
+        __m128d cnt = _mm_set1_pd(static_cast<float64>(count));
         return { _mm_cmplt_pd(idx, cnt) };
     }
 
@@ -41,6 +41,24 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     KSIMD_OP_SIG_SSE2(void, storeu, (float64* mem, batch_t v))
     {
         _mm_storeu_pd(mem, v.v);
+    }
+
+    KSIMD_OP_SIG_SSE2(batch_t, load_masked, (const float64* mem, mask_t mask))
+    {
+        uint32 m = _mm_movemask_pd(mask.m); // 仅 [3:0] 有效
+        alignas(BatchAlignment) float64 tmp[Lanes]{};
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            if (m & (1 << i))
+            {
+                tmp[i] = mem[i];
+            }
+            else
+            {
+                tmp[i] = 0.0f;
+            }
+        }
+        return { _mm_load_pd(tmp) };
     }
 
    KSIMD_OP_SIG_SSE2(batch_t, zero, ())
@@ -109,7 +127,7 @@ struct SimdOp<SimdInstruction::SSE2, float64>
 
     KSIMD_OP_SIG_SSE2(batch_t, abs, (batch_t v))
     {
-        return { _mm_and_pd(v.v, _mm_set1_pd(sign_bit_clear_mask<double>)) };
+        return { _mm_and_pd(v.v, _mm_set1_pd(sign_bit_clear_mask<float64>)) };
     }
 
     KSIMD_OP_SIG_SSE2(batch_t, min, (batch_t lhs, batch_t rhs))
@@ -184,7 +202,7 @@ struct SimdOp<SimdInstruction::SSE2, float64>
 
     KSIMD_OP_SIG_SSE2(batch_t, bit_not, (batch_t v))
     {
-        return { _mm_xor_pd(v.v, _mm_set1_pd(one_block<double>)) };
+        return { _mm_xor_pd(v.v, _mm_set1_pd(one_block<float64>)) };
     }
 
     KSIMD_OP_SIG_SSE2(batch_t, bit_and, (batch_t lhs, batch_t rhs))

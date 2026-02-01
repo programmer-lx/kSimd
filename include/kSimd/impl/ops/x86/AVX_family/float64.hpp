@@ -13,7 +13,7 @@ struct SimdOp<I, float64>
     KSIMD_OP_SIG_AVX(mask_t, mask_from_lanes, (unsigned int count))
     {
         __m256d idx = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
-        __m256d cnt = _mm256_set1_pd(static_cast<double>(count));
+        __m256d cnt = _mm256_set1_pd(static_cast<float64>(count));
         return { _mm256_cmp_pd(idx, cnt, _CMP_LT_OQ) };
     }
 
@@ -35,6 +35,24 @@ struct SimdOp<I, float64>
     KSIMD_OP_SIG_AVX(void, storeu, (float64* mem, batch_t v))
     {
         _mm256_storeu_pd(mem, v.v);
+    }
+
+    KSIMD_OP_SIG_AVX(batch_t, load_masked, (const float64* mem, mask_t mask))
+    {
+        uint32 m = _mm256_movemask_pd(mask.m); // [3:0]有效
+        alignas(BatchAlignment) float64 tmp[Lanes]{};
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            if (m & (1 << i))
+            {
+                tmp[i] = mem[i];
+            }
+            else
+            {
+                tmp[i] = 0.0;
+            }
+        }
+        return { _mm256_load_pd(tmp) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, zero, ())
@@ -107,7 +125,7 @@ struct SimdOp<I, float64>
 
     KSIMD_OP_SIG_AVX(batch_t, abs, (batch_t v))
     {
-        return { _mm256_and_pd(v.v, _mm256_set1_pd(sign_bit_clear_mask<double>)) };
+        return { _mm256_and_pd(v.v, _mm256_set1_pd(sign_bit_clear_mask<float64>)) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, min, (batch_t lhs, batch_t rhs))
@@ -182,7 +200,7 @@ struct SimdOp<I, float64>
     
     KSIMD_OP_SIG_AVX(batch_t, bit_not, (batch_t v))
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(one_block<double>)) };
+        return { _mm256_xor_pd(v.v, _mm256_set1_pd(one_block<float64>)) };
     }
 
     KSIMD_OP_SIG_AVX(batch_t, bit_and, (batch_t lhs, batch_t rhs))

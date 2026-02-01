@@ -154,6 +154,52 @@ TEST(dyn_dispatch_TYPE_T, loadu_storeu)
 }
 #endif
 
+// ------------------------------------------ load_masked ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void load_masked() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        using mask_t = op::mask_t;
+        using batch_t = op::batch_t;
+        constexpr size_t lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T arr[lanes] = {};
+        FILL_ARRAY(arr, TYPE_T(99));
+
+        {
+            mask_t mask = op::mask_from_lanes(lanes - 1);
+            batch_t data = op::load_masked(arr, mask);
+            alignas(ALIGNMENT) TYPE_T result[lanes]{};
+            op::store(result, data);
+            for (size_t i = 0; i < lanes; ++i)
+            {
+                if (i < lanes - 1)
+                {
+                    EXPECT_TRUE(result[i] == TYPE_T(99));
+                }
+                else
+                {
+                    EXPECT_TRUE(result[i] == TYPE_T(0));
+                }
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+KSIMD_DYN_DISPATCH_FUNC(load_masked);
+
+TEST(dyn_dispatch_TYPE_T, load_masked)
+{
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_masked)); ++idx)
+    {
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_masked)[idx]();
+    }
+}
+#endif
+
 // ------------------------------------------ mask_from_lanes ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
