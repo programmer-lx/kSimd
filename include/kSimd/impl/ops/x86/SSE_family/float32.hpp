@@ -242,29 +242,6 @@ struct SimdOp<I, float32>
     {
         return { _mm_or_ps(_mm_and_ps(mask.v, a.v), _mm_andnot_ps(mask.v, b.v)) };
     }
-
-    KSIMD_OP_SIG_SSE(batch_t, sign_bit_select, (batch_t sign_mask, batch_t a, batch_t b))
-    {
-        // 直接读取sign bit，然后构造mask
-        alignas(BatchAlignment) float32 tmp[traits::Lanes];
-        _mm_store_ps(tmp, sign_mask.v);
-
-        constexpr uint32 sign_bit = sign_bit_mask<uint32>;
-        for (size_t i = 0; i < traits::Lanes; ++i)
-        {
-            tmp[i] = (std::bit_cast<uint32>(tmp[i]) & sign_bit) ? one_block<float32> : zero_block<float32>;
-        }
-
-        __m128 mask = _mm_load_ps(tmp);
-        return { _mm_or_ps(_mm_and_ps(mask, a.v), _mm_andnot_ps(mask, b.v)) };
-    }
-
-    KSIMD_OP_SIG_SSE(batch_t, lane_select, (batch_t lane_mask, batch_t a, batch_t b))
-    {
-        // 使用 bit_select 方案，但是需要使用 cmp_neq 来构造 mask
-        __m128 mask = _mm_cmpneq_ps(lane_mask.v, _mm_setzero_ps());
-        return { _mm_or_ps(_mm_and_ps(mask, a.v), _mm_andnot_ps(mask, b.v)) };
-    }
 };
 
 template<SimdInstruction I>

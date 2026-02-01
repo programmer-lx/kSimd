@@ -241,22 +241,6 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     {
         return { _mm_or_pd(_mm_and_pd(mask.v, a.v), _mm_andnot_pd(mask.v, b.v)) };
     }
-
-    KSIMD_OP_SIG_SSE2(batch_t, sign_bit_select, (batch_t sign_mask, batch_t a, batch_t b))
-    {
-        // 直接读取sign bit，构造mask，然后select
-        __m128i sign_mask_i64 = _mm_castpd_si128(sign_mask.v);
-        __m128i mask_i = _mm_srai_epi32(sign_mask_i64, 31);
-        __m128d mask = _mm_castsi128_pd(mask_i);
-
-        return { _mm_or_pd(_mm_and_pd(mask, a.v), _mm_andnot_pd(mask, b.v)) };
-    }
-
-    KSIMD_OP_SIG_SSE2(batch_t, lane_select, (batch_t lane_mask, batch_t a, batch_t b))
-    {
-        __m128d mask = _mm_cmpneq_pd(lane_mask.v, _mm_setzero_pd());
-        return { _mm_or_pd(_mm_and_pd(mask, a.v), _mm_andnot_pd(mask, b.v)) };
-    }
 };
 
 template<SimdInstruction I>

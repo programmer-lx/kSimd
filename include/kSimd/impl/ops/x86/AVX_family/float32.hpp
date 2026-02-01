@@ -244,17 +244,6 @@ struct SimdOp<I, float32>
     {
         return { _mm256_or_ps(_mm256_and_ps(mask.v, a.v), _mm256_andnot_ps(mask.v, b.v)) };
     }
-
-    KSIMD_OP_SIG_AVX(batch_t, sign_bit_select, (batch_t sign_mask, batch_t a, batch_t b))
-    {
-        return { _mm256_blendv_ps(b.v, a.v, sign_mask.v) };
-    }
-
-    KSIMD_OP_SIG_AVX(batch_t, lane_select, (batch_t lane_mask, batch_t a, batch_t b))
-    {
-        __m256 mask = _mm256_cmp_ps(lane_mask.v, _mm256_setzero_ps(), _CMP_NEQ_UQ); // UQ: NaN -> one_block, select a
-        return { _mm256_or_ps(_mm256_and_ps(mask, a.v), _mm256_andnot_ps(mask, b.v)) };
-    }
 };
 
 // AVX2 + FMA指令特化

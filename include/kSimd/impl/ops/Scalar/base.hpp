@@ -426,37 +426,6 @@ namespace detail
                 };
             }(std::make_index_sequence<lanes>{});
         }
-
-        /**
-         * @return foreach i in lanes: result[i] = (mask[i].sign_bit == 1) ? a[i] : b[i]
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, sign_bit_select, (batch_t sign_mask, batch_t a, batch_t b))
-        {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(sign_mask.v[0]))) == sizeof(sign_mask.v[0]), "byte size should be equals.");
-
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { ( (detail::bitcast_to_uint(sign_mask.v[I]) & sign_bit_mask<detail::same_bits_uint_t<scalar_t>>) ? a.v[I] : b.v[I] )... };
-            }(std::make_index_sequence<lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: result[i] = (lane_mask[i] != 0) ? a[i] : b[i]
-         * @note NaN != 0, so (lane_mask[i] == NaN) ? a[i] : b[i]
-         */
-        KSIMD_OP_SIG_SCALAR(batch_t, lane_select, (batch_t lane_mask, batch_t a, batch_t b))
-        {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(lane_mask.v[0]))) == sizeof(lane_mask.v[0]), "byte size should be equals.");
-
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { ( (lane_mask.v[I] != static_cast<scalar_t>(0)) ? a.v[I] : b.v[I] )... };
-            }(std::make_index_sequence<lanes>{});
-        }
         #pragma endregion
     };
 
