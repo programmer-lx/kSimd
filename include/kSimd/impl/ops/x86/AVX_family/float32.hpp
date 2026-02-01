@@ -244,6 +244,11 @@ struct SimdOp<I, float32>
     {
         return { _mm256_or_ps(_mm256_and_ps(mask.v, a.v), _mm256_andnot_ps(mask.v, b.v)) };
     }
+
+    KSIMD_OP_SIG_AVX(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+    {
+        return { _mm256_blendv_ps(b.v, a.v, mask.m) };
+    }
 };
 
 // AVX2 + FMA指令特化

@@ -237,6 +237,112 @@ TEST(dyn_dispatch_TYPE_T, mask_from_lanes)
 }
 #endif
 
+// ------------------------------------------ bit_select ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void bit_select(
+        const TYPE_T* a,
+        const TYPE_T* b,
+        const TYPE_T* c,
+        TYPE_T* out) noexcept
+    {
+        
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Step = op::Lanes;
+
+        for (size_t i = 0; i < TOTAL; i += Step)
+        {
+            auto result = op::bit_select(op::load(a + i), op::load(b + i), op::load(c + i));
+            op::store(out + i, result);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+KSIMD_DYN_DISPATCH_FUNC(bit_select);
+
+TEST(dyn_dispatch_TYPE_T, bit_select)
+{
+    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)); ++idx)
+    {
+        alignas(ALIGNMENT) TYPE_T a[TOTAL];
+        alignas(ALIGNMENT) TYPE_T b[TOTAL];
+        alignas(ALIGNMENT) TYPE_T c[TOTAL];
+        alignas(ALIGNMENT) TYPE_T test[TOTAL];
+
+        FILL_ARRAY(a, make_float_from_bits<TYPE_T>(0b10101));
+        FILL_ARRAY(b, make_float_from_bits<TYPE_T>(0b11111));
+        FILL_ARRAY(c, make_float_from_bits<TYPE_T>(0b00010));
+        FILL_ARRAY(test, -1);
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)[idx](a, b, c, test);
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), make_float_from_bits<TYPE_T>(0b10111)));
+    }
+}
+#endif
+
+// ------------------------------------------ mask_select ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mask_select() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 构造两个基础向量
+        auto vec_a = op::set(TYPE_T(10));
+        auto vec_b = op::set(TYPE_T(20));
+
+        // Case 1: 全 1 掩码 (应该全部选 a)
+        {
+            FILL_ARRAY(test, -1);
+            auto mask = op::equal(op::set(1), op::set(1)); // 产生全 1 掩码
+            op::store(test, op::mask_select(mask, vec_a, vec_b));
+
+            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(10)));
+        }
+
+        // Case 2: 全 0 掩码 (应该全部选 b)
+        {
+            FILL_ARRAY(test, -1);
+            auto mask = op::equal(op::set(1), op::set(2)); // 产生全 0 掩码
+            op::store(test, op::mask_select(mask, vec_a, vec_b));
+
+            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(20)));
+        }
+
+        // Case 3: 混合掩码 (交叉选择)
+        // 注意：这里假设你有 op::load 或类似方式构造非齐次向量进行测试
+        // 如果为了简单，可以直接利用比较指令产生交叉掩码
+        {
+            alignas(ALIGNMENT) TYPE_T data_i[Lanes];
+            alignas(ALIGNMENT) TYPE_T data_threshold[Lanes];
+            for(size_t i = 0; i < Lanes; ++i) {
+                data_i[i] = (TYPE_T)i;
+                data_threshold[i] = TYPE_T(1);
+            }
+
+            FILL_ARRAY(test, TYPE_T(-1));
+            auto mask = op::greater(op::load(data_i), op::load(data_threshold)); 
+            // mask 为 [F, F, T, T, ...] (取决于 Lanes 长度)
+            
+            op::store(test, op::mask_select(mask, vec_a, vec_b));
+
+            for(size_t i = 0; i < Lanes; ++i) {
+                TYPE_T expected_val = (i > 1) ? TYPE_T(10) : TYPE_T(20);
+                EXPECT_EQ(test[i], expected_val);
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(mask_select)
+#endif
+
 
 #if KSIMD_ONCE
 int main(int argc, char **argv)

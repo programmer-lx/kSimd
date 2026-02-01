@@ -405,8 +405,6 @@ namespace detail
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.v[0]))) == sizeof(mask.v[0]), "byte size should be equals.");
 
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 // 1 & any = any
@@ -424,7 +422,26 @@ namespace detail
                             (~detail::bitcast_to_uint(mask.v[I]) & detail::bitcast_to_uint(b.v[I])))
                     )...
                 };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in bits: result[i] = (mask[i] == 1) ? a[i] : b[i]
+         */
+        KSIMD_OP_SIG_SCALAR(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+        {
+            static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.m[0]))) == sizeof(mask.m[0]), "byte size should be equals.");
+
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return {
+                    (
+                        std::bit_cast<scalar_t>(
+                            (detail::bitcast_to_uint(mask.m[I]) & detail::bitcast_to_uint(a.v[I])) |
+                            (~detail::bitcast_to_uint(mask.m[I]) & detail::bitcast_to_uint(b.v[I])))
+                    )...
+                };
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
     };

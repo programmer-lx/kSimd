@@ -241,6 +241,11 @@ struct SimdOp<SimdInstruction::SSE2, float64>
     {
         return { _mm_or_pd(_mm_and_pd(mask.v, a.v), _mm_andnot_pd(mask.v, b.v)) };
     }
+
+    KSIMD_OP_SIG_SSE2(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+    {
+        return { _mm_or_pd(_mm_and_pd(mask.m, a.v), _mm_andnot_pd(mask.m, b.v)) };
+    }
 };
 
 template<SimdInstruction I>

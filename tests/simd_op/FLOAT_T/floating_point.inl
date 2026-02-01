@@ -1412,50 +1412,6 @@ TEST(dyn_dispatch_FLOAT_T, bit_xor)
 }
 #endif
 
-// ------------------------------------------ bit_select ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void bit_select(
-        const FLOAT_T* a,
-        const FLOAT_T* b,
-        const FLOAT_T* c,
-        FLOAT_T* out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            auto result = op::bit_select(op::load(a + i), op::load(b + i), op::load(c + i));
-            op::store(out + i, result);
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(bit_select);
-
-TEST(dyn_dispatch_FLOAT_T, bit_select)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T c[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T test[TOTAL];
-
-        FILL_ARRAY(a, make_float_from_bits<FLOAT_T>(0b10101));
-        FILL_ARRAY(b, make_float_from_bits<FLOAT_T>(0b11111));
-        FILL_ARRAY(c, make_float_from_bits<FLOAT_T>(0b00010));
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)[idx](a, b, c, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), make_float_from_bits<FLOAT_T>(0b10111)));
-    }
-}
-#endif
-
 
 // main function
 #if KSIMD_ONCE

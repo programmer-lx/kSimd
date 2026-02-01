@@ -239,6 +239,11 @@ struct SimdOp<I, float64>
     {
         return { _mm256_or_pd(_mm256_and_pd(mask.v, a.v), _mm256_andnot_pd(mask.v, b.v)) };
     }
+
+    KSIMD_OP_SIG_AVX(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+    {
+        return { _mm256_blendv_pd(b.v, a.v, mask.m) };
+    }
 };
 
 template<>
