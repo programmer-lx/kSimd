@@ -238,9 +238,8 @@ struct SimdOp<SimdInstruction::SSE2, float64>
         // [a+b]
         // get lane[0]
 
-        __m128d t1 = _mm_shuffle_pd(v.v, v.v, _MM_SHUFFLE2(0, 1));
-        t1 = _mm_add_pd(v.v, t1);
-        return _mm_cvtsd_f64(t1);
+        __m128d sum64 = _mm_add_pd(v.v, _mm_shuffle_pd(v.v, v.v, _MM_SHUFFLE2(0, 1)));
+        return _mm_cvtsd_f64(sum64);
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
