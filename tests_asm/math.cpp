@@ -1,5 +1,5 @@
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "clamp.cpp" // this file
+#define KSIMD_DISPATCH_THIS_FILE "math.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp>
 #include <kSimd/simd_op.hpp>
 #include <kSimd_extension/math.hpp>
@@ -21,7 +21,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         for (size_t i = 0; i + Lanes <= size; i += Lanes)
         {
-            op::store(out + i, math::clamp(op::load(v + i), op::load(min + i), op::load(max + i)));
+            op::batch_t data = math::clamp(op::load(v + i), op::load(min + i), op::load(max + i));
+            data = math::lerp(data, op::add(data, op::set(5)), op::set(0.5f));
+            data = math::safe_clamp(data, op::set(1), op::set(6));
+            data = math::sin(data);
+            op::store(out + i, data);
         }
     }
 }
