@@ -12,6 +12,10 @@
 
 KSIMD_NAMESPACE_BEGIN
 
+// -------------------------------- operators --------------------------------
+// template<is_scalar_type S, size_t A>
+// Scalar_family::Batch<S, A>
+
 namespace detail
 {
     /**
@@ -23,12 +27,12 @@ namespace detail
         KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, Scalar)
 
         #if defined(KSIMD_IS_TESTING)
-        KSIMD_OP_SIG_SCALAR(void, test_store_mask, (scalar_t* mem, mask_t mask))
+        KSIMD_OP_SIG_SCALAR_STATIC(void, test_store_mask, (scalar_t* mem, mask_t mask))
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             memcpy(mem, mask.m, size);
         }
-        KSIMD_OP_SIG_SCALAR(mask_t, test_load_mask, (const scalar_t* mem))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, test_load_mask, (const scalar_t* mem))
         {
             constexpr size_t size = Lanes * sizeof(scalar_t);
             mask_t result{};
@@ -41,7 +45,7 @@ namespace detail
         /**
          * @return for lane in mask, mask[0, count-1] = 1, mask[count, rest) = 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, mask_from_lanes, (unsigned int count))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, mask_from_lanes, (unsigned int count))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -59,7 +63,7 @@ namespace detail
          * @return foreach i in lanes: mem[i] = v[i]
          * @note mem **MUST** align to sizeof(batch_t)
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, load, (const scalar_t* mem))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, load, (const scalar_t* mem))
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             batch_t result{};
@@ -70,7 +74,7 @@ namespace detail
         /**
          * @return foreach i in lanes: mem[i] = v[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, loadu, (const scalar_t* mem))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, loadu, (const scalar_t* mem))
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             batch_t result{};
@@ -82,7 +86,7 @@ namespace detail
          * @brief foreach i in lanes: mem[i] = v[i]
          * @note mem **MUST** align to sizeof(batch_t)
          */
-        KSIMD_OP_SIG_SCALAR(void, store, (scalar_t* mem, batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(void, store, (scalar_t* mem, batch_t v))
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             memcpy(mem, v.v, size);
@@ -91,7 +95,7 @@ namespace detail
         /**
          * @brief foreach i in lanes: mem[i] = v[i]
          */
-        KSIMD_OP_SIG_SCALAR(void, storeu, (scalar_t* mem, batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(void, storeu, (scalar_t* mem, batch_t v))
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             memcpy(mem, v.v, size);
@@ -100,7 +104,7 @@ namespace detail
         /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mask_load, (const scalar_t* mem, mask_t mask))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mask_load, (const scalar_t* mem, mask_t mask))
         {
             using uint = same_bits_uint_t<scalar_t>;
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
@@ -118,7 +122,7 @@ namespace detail
         /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mask_loadu, (const scalar_t* mem, mask_t mask))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mask_loadu, (const scalar_t* mem, mask_t mask))
         {
             using uint = same_bits_uint_t<scalar_t>;
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
@@ -136,7 +140,7 @@ namespace detail
         /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mask_load, (const scalar_t* mem, mask_t mask, batch_t default_value))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mask_load, (const scalar_t* mem, mask_t mask, batch_t default_value))
         {
             return {};// TODO
         }
@@ -144,7 +148,7 @@ namespace detail
         /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mask_loadu, (const scalar_t* mem, mask_t mask, batch_t default_value))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mask_loadu, (const scalar_t* mem, mask_t mask, batch_t default_value))
         {
             return {};// TODO
         }
@@ -152,7 +156,7 @@ namespace detail
         /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
          */
-        KSIMD_OP_SIG_SCALAR(void, mask_store, (scalar_t* mem, batch_t v, mask_t mask))
+        KSIMD_OP_SIG_SCALAR_STATIC(void, mask_store, (scalar_t* mem, batch_t v, mask_t mask))
         {
             using uint = same_bits_uint_t<scalar_t>;
 
@@ -169,7 +173,7 @@ namespace detail
         /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
          */
-        KSIMD_OP_SIG_SCALAR(void, mask_storeu, (scalar_t* mem, batch_t v, mask_t mask))
+        KSIMD_OP_SIG_SCALAR_STATIC(void, mask_storeu, (scalar_t* mem, batch_t v, mask_t mask))
         {
             using uint = same_bits_uint_t<scalar_t>;
 
@@ -188,7 +192,7 @@ namespace detail
         /**
          * @return a memory block
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, undefined, ())
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, undefined, ())
         {
             return {};
         }
@@ -196,7 +200,7 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, zero, ())
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, zero, ())
         {
             constexpr size_t size = traits::Lanes * sizeof(scalar_t);
             batch_t result{};
@@ -207,7 +211,7 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = x
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, set, (scalar_t x))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, set, (scalar_t x))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
@@ -220,7 +224,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] + rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, add, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, add, (batch_t lhs, batch_t rhs))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -233,7 +237,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] - rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, sub, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, sub, (batch_t lhs, batch_t rhs))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -246,7 +250,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] * rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mul, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mul, (batch_t lhs, batch_t rhs))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -259,7 +263,7 @@ namespace detail
         /**
          * @return lane[0] + lane[1] + ... + lane[N]
          */
-        KSIMD_OP_SIG_SCALAR(scalar_t, reduce_sum, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(scalar_t, reduce_sum, (batch_t v))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -272,7 +276,7 @@ namespace detail
         /**
          * @return foreach i in lanes: a[i] * b[i] + c[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -285,7 +289,7 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = abx(v[i])
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, abs, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, abs, (batch_t v))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -298,7 +302,7 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = min(lhs[i], rhs[i])
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, min, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, min, (batch_t lhs, batch_t rhs))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -311,7 +315,7 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = max(lhs[i], rhs[i])
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, max, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, max, (batch_t lhs, batch_t rhs))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -327,7 +331,7 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] == rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, equal, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -339,7 +343,7 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] != rhs[i] ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, not_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, not_equal, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -351,7 +355,7 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] > rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, greater, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, greater, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -363,7 +367,7 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] >= rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, greater_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, greater_equal, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -375,7 +379,7 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] < rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, less, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, less, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -387,7 +391,7 @@ namespace detail
          * @return foreach i in lanes: lhs[i] <= rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, less_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, less_equal, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -400,7 +404,7 @@ namespace detail
         /**
          * @return foreach i in lanes: ~v[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, bit_not, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_not, (batch_t v))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(v.v[0]))) == sizeof(v.v[0]), "byte size should be equals.");
 
@@ -415,7 +419,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] & rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, bit_and, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_and, (batch_t lhs, batch_t rhs))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
@@ -430,7 +434,7 @@ namespace detail
         /**
          * @return foreach i in lanes: (~lhs[i]) & rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, bit_and_not, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_and_not, (batch_t lhs, batch_t rhs))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
@@ -445,7 +449,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] | rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, bit_or, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_or, (batch_t lhs, batch_t rhs))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
@@ -460,7 +464,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] ^ rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, bit_xor, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_xor, (batch_t lhs, batch_t rhs))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
@@ -475,7 +479,7 @@ namespace detail
         /**
          * @return foreach i in bits: result[i] = (mask[i] == 1) ? a[i] : b[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, bit_select, (batch_t mask, batch_t a, batch_t b))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_select, (batch_t mask, batch_t a, batch_t b))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.v[0]))) == sizeof(mask.v[0]), "byte size should be equals.");
 
@@ -502,7 +506,7 @@ namespace detail
         /**
          * @return foreach i in bits: result[i] = (mask[i] == 1) ? a[i] : b[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
         {
             static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.m[0]))) == sizeof(mask.m[0]), "byte size should be equals.");
 
@@ -532,7 +536,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] / rhs[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, div, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, div, (batch_t lhs, batch_t rhs))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -545,7 +549,7 @@ namespace detail
         /**
          * @return foreach i in lanes: 1.0 / v[i]
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, one_div, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, one_div, (batch_t v))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -558,7 +562,7 @@ namespace detail
         /**
          * @return foreach i in lanes: sqrt(v[i])
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, sqrt, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, sqrt, (batch_t v))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -571,7 +575,7 @@ namespace detail
         /**
          * @return foreach i in lanes: 1.0 / sqrt(v[i])
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, rsqrt, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, rsqrt, (batch_t v))
         {
             constexpr auto lanes = traits::Lanes;
 
@@ -587,7 +591,7 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = !(lhs[i] > rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, not_greater, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, not_greater, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -599,7 +603,7 @@ namespace detail
          * @return foreach i in lanes: !(lhs[i] >= rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, not_greater_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, not_greater_equal, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -611,7 +615,7 @@ namespace detail
          * @return foreach i in lanes: !(lhs[i] < rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, not_less, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, not_less, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -623,7 +627,7 @@ namespace detail
          * @return foreach i in lanes: !(lhs[i] <= rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, not_less_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, not_less_equal, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -634,7 +638,7 @@ namespace detail
         /**
          * @return foreach i in lanes: (lhs[i] == NaN || rhs[i] == NaN) ? 1 : 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, any_NaN, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, any_NaN, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
@@ -645,7 +649,7 @@ namespace detail
         /**
          * @return foreach i in lanes: (lhs[i] != NaN && rhs[i] != NaN) ? 1 : 0
          */
-        KSIMD_OP_SIG_SCALAR(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {

@@ -75,17 +75,17 @@
 
 
 // func sig
-#define KSIMD_OP_SIG_SCALAR(ret, func_name, params)         KSIMD_OP_SCALAR_API         static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_SCALAR_STATIC(ret, func_name, params)         KSIMD_OP_SCALAR_API         static ret KSIMD_CALL_CONV  func_name params noexcept
 
-#define KSIMD_OP_SIG_SSE(ret, func_name, params)            KSIMD_OP_SSE_API            static ret KSIMD_CALL_CONV  func_name params noexcept
-#define KSIMD_OP_SIG_SSE2(ret, func_name, params)           KSIMD_OP_SSE2_API           static ret KSIMD_CALL_CONV  func_name params noexcept
-#define KSIMD_OP_SIG_SSE3(ret, func_name, params)           KSIMD_OP_SSE3_API           static ret KSIMD_CALL_CONV  func_name params noexcept
-#define KSIMD_OP_SIG_SSE4_1(ret, func_name, params)         KSIMD_OP_SSE4_1_API         static ret KSIMD_CALL_CONV  func_name params noexcept
-#define KSIMD_OP_SIG_SSE4_2(ret, func_name, params)         KSIMD_OP_SSE4_2_API         static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_SSE_STATIC(ret, func_name, params)            KSIMD_OP_SSE_API            static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_SSE2_STATIC(ret, func_name, params)           KSIMD_OP_SSE2_API           static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_SSE3_STATIC(ret, func_name, params)           KSIMD_OP_SSE3_API           static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_SSE4_1_STATIC(ret, func_name, params)         KSIMD_OP_SSE4_1_API         static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_SSE4_2_STATIC(ret, func_name, params)         KSIMD_OP_SSE4_2_API         static ret KSIMD_CALL_CONV  func_name params noexcept
 
-#define KSIMD_OP_SIG_AVX(ret, func_name, params)            KSIMD_OP_AVX_API            static ret KSIMD_CALL_CONV  func_name params noexcept
-#define KSIMD_OP_SIG_AVX2(ret, func_name, params)           KSIMD_OP_AVX2_API           static ret KSIMD_CALL_CONV  func_name params noexcept
-#define KSIMD_OP_SIG_AVX2_FMA3_F16C(ret, func_name, params) KSIMD_OP_AVX2_FMA3_F16C_API static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_AVX_STATIC(ret, func_name, params)            KSIMD_OP_AVX_API            static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_AVX2_STATIC(ret, func_name, params)           KSIMD_OP_AVX2_API           static ret KSIMD_CALL_CONV  func_name params noexcept
+#define KSIMD_OP_SIG_AVX2_FMA3_F16C_STATIC(ret, func_name, params) KSIMD_OP_AVX2_FMA3_F16C_API static ret KSIMD_CALL_CONV  func_name params noexcept
 
 // dyn func sig
 #define KSIMD_EXT_SIG_DYN(ret, func_name, params)           KSIMD_OP_DYN_API                   ret KSIMD_CALL_CONV  func_name params noexcept
