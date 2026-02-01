@@ -62,6 +62,11 @@ struct SimdOp<I, float32>
         return { _mm256_load_ps(tmp) };
     }
 
+    KSIMD_OP_SIG_AVX(batch_t, undefined, ())
+    {
+        return { _mm256_undefined_ps() };
+    }
+
     KSIMD_OP_SIG_AVX(batch_t, zero, ())
     {
         return { _mm256_setzero_ps() };

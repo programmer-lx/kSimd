@@ -68,7 +68,12 @@ struct SimdOp<SimdInstruction::SSE2, float64>
         return { _mm_load_pd(tmp) };
     }
 
-   KSIMD_OP_SIG_SSE2(batch_t, zero, ())
+    KSIMD_OP_SIG_SSE2(batch_t, undefined, ())
+    {
+        return { _mm_undefined_pd() };
+    }
+
+    KSIMD_OP_SIG_SSE2(batch_t, zero, ())
     {
         return { _mm_setzero_pd() };
     }

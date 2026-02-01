@@ -112,6 +112,14 @@ namespace detail
 
         #pragma region set 设置, 初始化
         /**
+         * @return a memory block
+         */
+        KSIMD_OP_SIG_SCALAR(batch_t, undefined, ())
+        {
+            return {};
+        }
+
+        /**
          * @return foreach i in lanes: result[i] = 0
          */
         KSIMD_OP_SIG_SCALAR(batch_t, zero, ())

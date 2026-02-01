@@ -9,42 +9,40 @@
 
 using namespace ksimd;
 
+// ------------------------------------------ undefined ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void undefined() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        [[maybe_unused]] op::batch_t z = op::undefined();
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(undefined)
+#endif
+
 // ------------------------------------------ zero ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void zero(TYPE_T* KSIMD_RESTRICT out) noexcept
+    void zero() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T arr[Lanes]{};
 
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
+        op::batch_t z = op::zero();
+        op::store(arr, z);
+        for (size_t i = 0; i < Lanes; ++i)
         {
-            op::storeu(out + i, op::zero());
+            EXPECT_TRUE(arr[i] == TYPE_T(0));
         }
     }
 }
-
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(zero);
-
-TEST(dyn_dispatch_TYPE_T, zero)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(zero)); ++idx)
-    {
-        alignas(ALIGNMENT) TYPE_T out[TOTAL];
-
-        // 先填充非零值
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = static_cast<TYPE_T>(123);
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(zero)[idx](out);
-
-        // 检查结果是否全为 0
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == static_cast<TYPE_T>(0));
-    }
-}
+TEST_ONCE_DYN(zero)
 #endif
 
 // ------------------------------------------ set ------------------------------------------
