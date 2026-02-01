@@ -89,12 +89,16 @@ KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator^=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T 
 
 #undef KSIMD_BATCH_T
 
+
+#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
 template<>
 struct SimdOp<SimdInstruction::SSE, float64>
     : detail::SimdOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float64)
 };
+#endif
+
 
 template<>
 struct SimdOp<SimdInstruction::SSE2, float64>

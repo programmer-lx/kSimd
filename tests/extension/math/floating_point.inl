@@ -15,7 +15,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sin(FLOAT_T x, FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         using traits = op::traits;
         constexpr size_t Lanes = traits::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
@@ -65,7 +65,7 @@ namespace KSIMD_DYN_INSTRUCTION
               FLOAT_T* KSIMD_RESTRICT out
     ) noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
         using batch_t = op::batch_t;
@@ -151,7 +151,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT c,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
@@ -286,7 +286,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T* KSIMD_RESTRICT c,
         FLOAT_T* KSIMD_RESTRICT out) noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 

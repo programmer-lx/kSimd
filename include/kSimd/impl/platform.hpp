@@ -99,6 +99,11 @@
 
 #endif // x86 instructions
 
+// check fallback
+#if !defined(KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+    #error "we must have define a fallback instruction."
+#endif
+
 KSIMD_NAMESPACE_BEGIN
 
 namespace alignment

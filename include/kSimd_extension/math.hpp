@@ -19,7 +19,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) clamp(batch_t v, batch_t min, batch_t max)
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_SIMD_OP(scalar_t);
+        using op = KSIMD_DYN_OP(scalar_t);
 
         // result = max(min, min(v, max))
         return op::max(min, op::min(v, max));
@@ -29,7 +29,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) safe_clamp(batch_t v, batch_t edge1, batch_t edge2)
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_SIMD_OP(scalar_t);
+        using op = KSIMD_DYN_OP(scalar_t);
 
         // result = max(min, min(v, max))
         batch_t min = op::min(edge1, edge2);
@@ -46,7 +46,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) lerp(batch_t a, batch_t b, batch_t t)
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_SIMD_OP(scalar_t);
+        using op = KSIMD_DYN_OP(scalar_t);
 
         // result = (b - a) * t + a
         // mul_add
@@ -57,7 +57,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) sin(batch_t v)
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_SIMD_OP(scalar_t);
+        using op = KSIMD_DYN_OP(scalar_t);
         constexpr SimdInstruction Instruction = op::CurrentInstruction;
         constexpr size_t Lanes = op::Lanes;
 

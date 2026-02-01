@@ -5,9 +5,11 @@
 #include <pmmintrin.h> // SSE3
 #include <smmintrin.h> // SSE4.1
 
-#include "../../Scalar/base.hpp"
-
 #include "../../dispatch.hpp"
+
+#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+    #include "../../Scalar/base.hpp"
+#endif
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -98,6 +100,8 @@ struct SimdTraits<SimdInstruction::SSE, S>
 {
 };
 
+
+#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
 template<is_scalar_type S>
     requires (!std::is_same_v<float32, S>) // NOT float32
 struct SimdTraits<SimdInstruction::SSE, S>
@@ -105,6 +109,7 @@ struct SimdTraits<SimdInstruction::SSE, S>
         SimdInstruction::SSE, S, Scalar_family::Batch<S, alignment::SSE_Family>, Scalar_family::Mask<S, alignment::SSE_Family>, alignment::SSE_Family>
 {
 };
+#endif
 
 // SSE2+
 template<SimdInstruction Instruction, is_scalar_type S>

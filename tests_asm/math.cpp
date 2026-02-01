@@ -15,7 +15,7 @@ namespace KSIMD_DYN_INSTRUCTION
         const size_t                size
     ) noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(float);
+        using op = KSIMD_DYN_OP(float);
         namespace math = ksimd::ext::KSIMD_DYN_INSTRUCTION::math;
         constexpr size_t Lanes = op::Lanes;
 
@@ -24,7 +24,6 @@ namespace KSIMD_DYN_INSTRUCTION
             op::batch_t data = math::clamp(op::load(v + i), op::load(min + i), op::load(max + i));
             data = math::lerp(data, op::add(data, op::set(5)), op::set(0.5f));
             data = math::safe_clamp(data, op::set(1), op::set(6));
-            data = math::sin(data);
             op::store(out + i, data);
         }
     }

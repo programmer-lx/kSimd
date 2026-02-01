@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void one_div() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -42,7 +42,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sqrt() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -65,7 +65,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rsqrt() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -89,7 +89,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_greater() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -113,7 +113,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_greater_equal() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -137,7 +137,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_less() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -161,7 +161,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_less_equal() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -185,7 +185,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void any_NaN() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -209,7 +209,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_NaN() noexcept
     {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
+        using op = KSIMD_DYN_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
