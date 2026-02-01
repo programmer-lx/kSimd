@@ -102,6 +102,7 @@ def main():
                 # 3. 测试
                 run_command([
                     "ctest",
+                    "--output-on-failure",
                     "--test-dir", str(current_build_dir),
                     "-C", str(build_cfg)
                 ])

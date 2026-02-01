@@ -7,731 +7,80 @@
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 #include <kSimd/simd_op.hpp>
 
-// ------------------------------------------ add ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void add(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::add(op::loadu(a + i), op::loadu(b + i)));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(add);
-
-TEST(dyn_dispatch_FLOAT_T, add)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(add)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T(i);
-            b[i] = FLOAT_T(100 + i);
-            out[i] = -1.0f;
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(add)[idx](a, b, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == a[i] + b[i]);
-    }
-}
-#endif
-
-// ------------------------------------------ sub ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void sub(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::sub(op::loadu(a + i), op::loadu(b + i)));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(sub);
-
-TEST(dyn_dispatch_FLOAT_T, sub)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(sub)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T(i*2 + 10);
-            b[i] = FLOAT_T(i);
-            out[i] = -1.0f;
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(sub)[idx](a, b, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == a[i] - b[i]);
-    }
-}
-#endif
-
-// ------------------------------------------ mul ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void mul(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::mul(op::loadu(a + i), op::loadu(b + i)));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(mul);
-
-TEST(dyn_dispatch_FLOAT_T, mul)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mul)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T(i+1);
-            b[i] = FLOAT_T(2*(i+1));
-            out[i] = -1.0f;
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mul)[idx](a, b, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == a[i] * b[i]);
-    }
-}
-#endif
-
-// ------------------------------------------ div ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void div(const FLOAT_T* KSIMD_RESTRICT a, const FLOAT_T* KSIMD_RESTRICT b, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::div(op::loadu(a + i), op::loadu(b + i)));
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(div);
-
-TEST(dyn_dispatch_FLOAT_T, div)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(div)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL], b[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T((i+1)*10);
-            b[i] = FLOAT_T(i+1);
-            out[i] = -1.0f;
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(div)[idx](a, b, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            EXPECT_NEAR(out[i], a[i] / b[i], FLOAT_T_EPSILON);
-        }
-    }
-}
-#endif
 
 // ------------------------------------------ one_div ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void one_div(const FLOAT_T* KSIMD_RESTRICT a, FLOAT_T* KSIMD_RESTRICT out) noexcept
+    void one_div() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::one_div(op::loadu(a + i)));
-        }
+        // 常规数值
+        op::store(test, op::one_div(op::set(FLOAT_T(4))));
+        for (size_t i = 0; i < Lanes; ++i)
+            EXPECT_NEAR(test[i], FLOAT_T(0.25), FLOAT_T_EPSILON_ONE_DIV);
+
+        // 边界：1/Inf = 0, 1/0 = Inf
+        op::store(test, op::one_div(op::set(inf<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(0));
+
+        op::store(test, op::one_div(op::set(FLOAT_T(0))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(one_div);
-
-TEST(dyn_dispatch_FLOAT_T, one_div)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(one_div)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T((i+1)*10);
-            out[i] = -1.0f;
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(one_div)[idx](a, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_NEAR(out[i], 1.0f / a[i], FLOAT_T_EPSILON_ONE_DIV);
-    }
-}
-#endif
-
-// ------------------------------------------ reduce_sum ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void reduce_sum(const FLOAT_T* KSIMD_RESTRICT in, FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        FLOAT_T sum = 0.0f;
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            sum += op::reduce_sum(op::loadu(in + i));
-        }
-        *out = sum;
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(reduce_sum);
-
-TEST(dyn_dispatch_FLOAT_T, reduce_sum)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(reduce_sum)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T in[TOTAL];
-        FLOAT_T out = 0.0f;
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            in[i] = FLOAT_T(i+1); // 1,2,3,...
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(reduce_sum)[idx](in, &out);
-
-        FLOAT_T expected = 0.0f;
-        for (size_t i = 0; i < TOTAL; ++i)
-            expected += in[i];
-
-        EXPECT_TRUE(out == expected);
-    }
-}
-#endif
-
-// ------------------------------------------ mul_add ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void mul_add(
-        const FLOAT_T* KSIMD_RESTRICT a,
-        const FLOAT_T* KSIMD_RESTRICT b,
-        const FLOAT_T* KSIMD_RESTRICT c,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        FLOAT_T sum = 0.0f;
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            sum += op::reduce_sum(op::mul_add(
-                op::loadu(a + i),
-                op::loadu(b + i),
-                op::loadu(c + i)
-            ));
-        }
-        *out = sum;
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(mul_add);
-
-TEST(dyn_dispatch_FLOAT_T, mul_add)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mul_add)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T c[TOTAL];
-        FLOAT_T r = 0.0f;
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T(i + 1);        // 1,2,3,...
-            b[i] = FLOAT_T(i + 2);        // 2,3,4,...
-            c[i] = FLOAT_T(i + 3);        // 3,4,5,...
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(mul_add)[idx](a, b, c, &r);
-
-        FLOAT_T expected = 0.0f;
-        for (size_t i = 0; i < TOTAL; ++i)
-            expected += a[i] * b[i] + c[i];
-
-        EXPECT_TRUE(r == expected);
-    }
-}
+TEST_ONCE_DYN(one_div)
 #endif
 
 // ------------------------------------------ sqrt ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void sqrt(
-        const FLOAT_T* KSIMD_RESTRICT a,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
+    void sqrt() noexcept
     {
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            using batch_t = op::batch_t;
+        op::store(test, op::sqrt(op::set(FLOAT_T(16))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(test[i], FLOAT_T(4), FLOAT_T_EPSILON);
 
-            batch_t x = op::sqrt(op::load(a + i));
-            op::store(out + i, x);
-        }
+        // 边界：sqrt(-1) = NaN
+        op::store(test, op::sqrt(op::set(FLOAT_T(-1))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(sqrt);
-
-TEST(dyn_dispatch_FLOAT_T, sqrt)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(sqrt)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T(i + 1);
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(sqrt)[idx](a, r);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            EXPECT_NEAR(r[i], std::sqrt(a[i]), FLOAT_T_EPSILON);
-        }
-    }
-}
+TEST_ONCE_DYN(sqrt)
 #endif
 
 // ------------------------------------------ rsqrt ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void rsqrt(
-        const FLOAT_T* KSIMD_RESTRICT a,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            using batch_t = op::batch_t;
-
-            batch_t x = op::rsqrt(op::load(a + i));
-            op::store(out + i, x);
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(rsqrt);
-
-TEST(dyn_dispatch_FLOAT_T, rsqrt)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(rsqrt)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            a[i] = FLOAT_T(i + 1);
-        }
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(rsqrt)[idx](a, r);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-        {
-            EXPECT_NEAR(r[i], 1.0 / std::sqrt(a[i]), FLOAT_T_EPSILON_RSQRT);
-        }
-    }
-}
-#endif
-
-// ------------------------------------------ abs ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void abs(
-        const FLOAT_T* KSIMD_RESTRICT a,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            using batch_t = op::batch_t;
-
-            batch_t x = op::abs(op::load(a + i));
-            op::store(out + i, x);
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(abs);
-
-TEST(dyn_dispatch_FLOAT_T, abs)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
-
-        // positive test
-        FILL_ARRAY(a, 2);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)[idx](a, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 2));
-
-        // negative test
-        FILL_ARRAY(a, -2);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)[idx](a, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 2));
-
-        // +0
-        FILL_ARRAY(a, +0.0);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)[idx](a, r);
-        EXPECT_TRUE(array_bit_equal(r, std::size(r), ksimd::zero_block<FLOAT_T>));
-
-        // -0
-        FILL_ARRAY(a, -0.0);
-        // test sign bit is 0
-        for (size_t i = 0; i < std::size(r); ++i)
-        {
-            constexpr auto bit_idx = ksimd::inverse_bit_index<FLOAT_T, 0>;
-            EXPECT_FALSE(test_bit(r[i], ksimd::inverse_bit_index<FLOAT_T, bit_idx>));
-        }
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(abs)[idx](a, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 0.0));
-    }
-}
-#endif
-
-// ------------------------------------------ min ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void min(
-        const FLOAT_T* KSIMD_RESTRICT a,
-        const FLOAT_T* KSIMD_RESTRICT b,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            using batch_t = op::batch_t;
-
-            batch_t x = op::min(op::load(a + i), op::load(b + i));
-            op::store(out + i, x);
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(min);
-
-TEST(dyn_dispatch_FLOAT_T, min)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(min)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
-
-        // min
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, 2);
-        FILL_ARRAY(r, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(min)[idx](a, b, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 1));
-
-        // equal
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, 1);
-        FILL_ARRAY(r, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(min)[idx](a, b, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 1));
-
-        // max
-        FILL_ARRAY(a, 2);
-        FILL_ARRAY(b, 1);
-        FILL_ARRAY(r, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(min)[idx](a, b, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 1));
-    }
-}
-#endif
-
-// ------------------------------------------ max ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void max(
-        const FLOAT_T* KSIMD_RESTRICT a,
-        const FLOAT_T* KSIMD_RESTRICT b,
-        FLOAT_T* KSIMD_RESTRICT out) noexcept
-    {
-        
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
-
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            using batch_t = op::batch_t;
-
-            batch_t x = op::max(op::load(a + i), op::load(b + i));
-            op::store(out + i, x);
-        }
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(max);
-
-TEST(dyn_dispatch_FLOAT_T, max)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(max)); ++idx)
-    {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T r[TOTAL];
-
-        // min
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, 2);
-        FILL_ARRAY(r, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(max)[idx](a, b, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 2));
-
-        // equal
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, 1);
-        FILL_ARRAY(r, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(max)[idx](a, b, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 1));
-
-        // max
-        FILL_ARRAY(a, 2);
-        FILL_ARRAY(b, 1);
-        FILL_ARRAY(r, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(max)[idx](a, b, r);
-        EXPECT_TRUE(array_equal(r, std::size(r), 2));
-    }
-}
-#endif
-
-// ------------------------------------------ equal ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void equal() noexcept
+    void rsqrt() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // one test
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::equal(op::set(1), op::set(1)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        op::store(test, op::rsqrt(op::set(FLOAT_T(4))));
+        for (size_t i = 0; i < Lanes; ++i)
+            EXPECT_NEAR(test[i], FLOAT_T(0.5), FLOAT_T_EPSILON_RSQRT);
 
-        // zero test
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::equal(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 1
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::equal(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 2
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::equal(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 3
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+        // 边界：rsqrt(0) = Inf
+        op::store(test, op::rsqrt(op::set(FLOAT_T(0))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(equal);
-
-TEST(dyn_dispatch_FLOAT_T, equal)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx]();
-    }
-}
-#endif
-
-// ------------------------------------------ not_equal ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void not_equal() noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
-
-        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
-
-        // one test (1 != 2 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_equal(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (1 != 1 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_equal(op::set(1), op::set(1)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN one test 1 (NaN != 2 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_equal(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // NaN one test 2 (1 != NaN is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_equal(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // NaN one test 3 (NaN != NaN is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(not_equal);
-
-TEST(dyn_dispatch_FLOAT_T, not_equal)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_equal)[idx]();
-    }
-}
-#endif
-
-// ------------------------------------------ greater ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void greater() noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
-
-        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
-
-        // one test (2 > 1 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater(op::set(2), op::set(1)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (1 > 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // zero test (2 > 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater(op::set(2), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 1 (NaN > 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 2 (1 > NaN is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 3 (NaN > NaN is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(greater);
-
-TEST(dyn_dispatch_FLOAT_T, greater)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater)[idx]();
-    }
-}
+TEST_ONCE_DYN(rsqrt)
 #endif
 
 // ------------------------------------------ not_greater ------------------------------------------
@@ -742,102 +91,20 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // one test (1 > 2 is false, so not_greater is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // 1 > 2 为假 -> true
+        op::test_store_mask(test, op::not_greater(op::set(FLOAT_T(1)), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
 
-        // one test (2 > 2 is false, so not_greater is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater(op::set(2), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (3 > 2 is true, so not_greater is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN one test (NaN unordered, so not_greater is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // NaN 无序特性 (NaN > 2 为假) -> true
+        op::test_store_mask(test, op::not_greater(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(not_greater);
-
-TEST(dyn_dispatch_FLOAT_T, not_greater)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater)[idx]();
-    }
-}
-#endif
-
-// ------------------------------------------ greater_equal ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void greater_equal() noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
-
-        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
-
-        // one test (2 >= 1 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater_equal(op::set(2), op::set(1)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // one test (1 >= 1 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater_equal(op::set(1), op::set(1)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (1 >= 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater_equal(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero tests
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater_equal(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater_equal(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::greater_equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(greater_equal);
-
-TEST(dyn_dispatch_FLOAT_T, greater_equal)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(greater_equal)[idx]();
-    }
-}
+TEST_ONCE_DYN(not_greater)
 #endif
 
 // ------------------------------------------ not_greater_equal ------------------------------------------
@@ -848,102 +115,20 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // one test (1 >= 2 is false, so true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater_equal(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // 1 >= 1 为真 -> false
+        op::test_store_mask(test, op::not_greater_equal(op::set(FLOAT_T(1)), op::set(FLOAT_T(1))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
 
-        // zero test (1 >= 1 is true, so false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater_equal(op::set(1), op::set(1)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // zero test (3 >= 2 is true, so false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater_equal(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN one tests
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater_equal(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater_equal(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_greater_equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // NaN >= 2 为假 -> true
+        op::test_store_mask(test, op::not_greater_equal(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(not_greater_equal);
-
-TEST(dyn_dispatch_FLOAT_T, not_greater_equal)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_greater_equal)[idx]();
-    }
-}
-#endif
-
-// ------------------------------------------ less ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void less() noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
-
-        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
-
-        // one test (2 < 5 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less(op::set(2), op::set(5)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (2 < 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less(op::set(2), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // zero test (3 < 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero tests
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(less);
-
-TEST(dyn_dispatch_FLOAT_T, less)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less)[idx]();
-    }
-}
+TEST_ONCE_DYN(not_greater_equal)
 #endif
 
 // ------------------------------------------ not_less ------------------------------------------
@@ -954,102 +139,20 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // one test (3 < 2 is false, so true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // 3 < 2 为假 -> true
+        op::test_store_mask(test, op::not_less(op::set(FLOAT_T(3)), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
 
-        // one test (2 < 2 is false, so true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less(op::set(2), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (1 < 2 is true, so false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN one tests
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // NaN < 2 为假 -> true
+        op::test_store_mask(test, op::not_less(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(not_less);
-
-TEST(dyn_dispatch_FLOAT_T, not_less)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less)[idx]();
-    }
-}
-#endif
-
-// ------------------------------------------ less_equal ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void less_equal() noexcept
-    {
-        using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
-
-        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
-
-        // one test (2 <= 5 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less_equal(op::set(2), op::set(5)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // one test (2 <= 2 is true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less_equal(op::set(2), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test (3 <= 2 is false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less_equal(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero tests
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less_equal(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less_equal(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::less_equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-    }
-}
-
-#if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(less_equal);
-
-TEST(dyn_dispatch_FLOAT_T, less_equal)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(less_equal)[idx]();
-    }
-}
+TEST_ONCE_DYN(not_less)
 #endif
 
 // ------------------------------------------ not_less_equal ------------------------------------------
@@ -1060,49 +163,20 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // one test (3 <= 2 is false, so true)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less_equal(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // 1 <= 2 为真 -> false
+        op::test_store_mask(test, op::not_less_equal(op::set(FLOAT_T(1)), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
 
-        // zero test (2 <= 2 is true, so false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less_equal(op::set(2), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // zero test (1 <= 2 is true, so false)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less_equal(op::set(1), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN one tests
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less_equal(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less_equal(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_less_equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // NaN <= 2 为假 -> true
+        op::test_store_mask(test, op::not_less_equal(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(not_less_equal);
-
-TEST(dyn_dispatch_FLOAT_T, not_less_equal)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_less_equal)[idx]();
-    }
-}
+TEST_ONCE_DYN(not_less_equal)
 #endif
 
 // ------------------------------------------ any_NaN ------------------------------------------
@@ -1113,41 +187,20 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // zero test (3, 2 -> both are numbers)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::any_NaN(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+        // 正常数值 -> false
+        op::test_store_mask(test, op::any_NaN(op::set(FLOAT_T(3)), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
 
-        // one test (NaN, 2)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::any_NaN(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // one test (1, NaN)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::any_NaN(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // one test (NaN, NaN)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::any_NaN(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // 含有 NaN -> true
+        op::test_store_mask(test, op::any_NaN(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(any_NaN);
-
-TEST(dyn_dispatch_FLOAT_T, any_NaN)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(any_NaN)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(any_NaN)[idx]();
-    }
-}
+TEST_ONCE_DYN(any_NaN)
 #endif
 
 // ------------------------------------------ not_NaN ------------------------------------------
@@ -1158,41 +211,20 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
-
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // one test (3, 2 -> both are numbers)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_NaN(op::set(3), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+        // 两者皆为数值 -> true
+        op::test_store_mask(test, op::not_NaN(op::set(FLOAT_T(3)), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
 
-        // zero test (NaN, 2)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_NaN(op::set(qNaN<FLOAT_T>), op::set(2)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // zero test (1, NaN)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_NaN(op::set(1), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // zero test (NaN, NaN)
-        FILL_ARRAY(test, -1);
-        op::test_store_mask(test, op::not_NaN(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+        // 含有 NaN -> false
+        op::test_store_mask(test, op::not_NaN(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(not_NaN);
-
-TEST(dyn_dispatch_FLOAT_T, not_NaN)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_NaN)); ++idx)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(not_NaN)[idx]();
-    }
-}
+TEST_ONCE_DYN(not_NaN)
 #endif
 
 

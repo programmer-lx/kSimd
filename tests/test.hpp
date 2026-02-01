@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 
+#include <bitset>
 #include <type_traits>
 #include <stdexcept>
 #include <exception>
@@ -15,6 +16,8 @@
 #include <chrono>
 
 #include <gtest/gtest.h>
+
+#include "kSimd/impl/ops/utils.inl"
 
 #if !defined(KSIMD_IS_TESTING)
 #error "please define KSIMD_IS_TESTING macro to enable testing."
@@ -157,13 +160,13 @@ struct type_to_bits<int32_t>
 template<>
 struct type_to_bits<uint64_t>
 {
-    using uint = uint32_t;
+    using uint = uint64_t;
 };
 
 template<>
 struct type_to_bits<int64_t>
 {
-    using uint = uint32_t;
+    using uint = uint64_t;
 };
 
 template<>
@@ -180,12 +183,6 @@ struct type_to_bits<double>
 
 template<typename T>
 using bits_t = typename type_to_bits<T>::uint;
-
-template<typename T>
-constexpr T make_var_from_bits(bits_t<T> bits) noexcept
-{
-    return std::bit_cast<T>(bits);
-}
 
 template<size_t Bytes>
 struct uint_from_bytes
@@ -213,6 +210,12 @@ using uint_from_bytes_t = typename uint_from_bytes<Bytes>::type;
 template<typename S>
 using same_bits_uint_t = uint_from_bytes_t<sizeof(S)>;
 
+template<typename T>
+constexpr T make_var_from_bits(same_bits_uint_t<T> bits) noexcept
+{
+    return std::bit_cast<T>(bits);
+}
+
 template<typename S>
 bool test_bit(S bits, int index)
 {
@@ -223,6 +226,9 @@ bool test_bit(S bits, int index)
 
 template<typename F>
 F qNaN = std::numeric_limits<F>::quiet_NaN();
+
+template<typename F>
+F inf = std::numeric_limits<F>::infinity();
 
 #define TEST_ONCE_DYN(func_name) \
     KSIMD_DYN_DISPATCH_FUNC(func_name); \

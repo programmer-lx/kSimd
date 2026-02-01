@@ -1,5 +1,6 @@
 #include <cfloat>
 #include <cstddef>
+#include <limits>
 
 using TYPE_T = double;
 constexpr size_t TOTAL = 16;

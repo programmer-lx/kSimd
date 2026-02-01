@@ -49,107 +49,94 @@ TEST_ONCE_DYN(zero)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void set(TYPE_T x, TYPE_T* KSIMD_RESTRICT out) noexcept
+    void set() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test_val[Lanes];
 
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::set(x));
+        // 测试常规数值广播
+        TYPE_T val = TYPE_T(42);
+        op::store(test_val, op::set(val));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test_val[i], val);
+
+        // 针对浮点数的特殊值测试
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // 测试 NaN 广播
+            op::store(test_val, op::set(qNaN<TYPE_T>));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test_val[i]));
+
+            // 测试 Inf 广播
+            op::store(test_val, op::set(inf<TYPE_T>));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test_val[i]));
         }
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(set);
-
-TEST(dyn_dispatch_TYPE_T, set)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(set)); ++idx)
-    {
-        alignas(ALIGNMENT) TYPE_T out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = static_cast<TYPE_T>(123);
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(set)[idx](static_cast<TYPE_T>(3), out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == static_cast<TYPE_T>(3));
-    }
-}
+TEST_ONCE_DYN(set)
 #endif
 
-// ------------------------------------------ load + store ------------------------------------------
+// ------------------------------------------ load_store ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void load_store(const TYPE_T* KSIMD_RESTRICT in, TYPE_T* KSIMD_RESTRICT out) noexcept
+    void load_store() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::store(out + i, op::load(in + i));
+        alignas(ALIGNMENT) TYPE_T in[Lanes];
+        alignas(ALIGNMENT) TYPE_T out[Lanes];
+
+        // 初始化数据
+        for (size_t i = 0; i < Lanes; ++i) {
+            in[i] = TYPE_T(i + 7);
+            out[i] = TYPE_T(0);
         }
+
+        // 执行对齐的读写
+        op::store(out, op::load(in));
+
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(out[i], in[i]);
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(load_store);
-
-TEST(dyn_dispatch_TYPE_T, load_store)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_store)); ++idx)
-    {
-        alignas(ALIGNMENT) TYPE_T in[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i) in[i] = TYPE_T(i + 1);
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = TYPE_T(456);
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(load_store)[idx](in, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == in[i]);
-    }
-}
+TEST_ONCE_DYN(load_store)
 #endif
 
-// ------------------------------------------ loadu + storeu ------------------------------------------
+// ------------------------------------------ loadu_storeu ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void loadu_storeu(const TYPE_T* KSIMD_RESTRICT in, TYPE_T* KSIMD_RESTRICT out) noexcept
+    void loadu_storeu() noexcept
     {
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            op::storeu(out + i, op::loadu(in + i));
+        // 分配比 Lanes 稍大的空间，用于模拟非对齐起始地址
+        alignas(ALIGNMENT) TYPE_T buffer_in[Lanes + 1];
+        alignas(ALIGNMENT) TYPE_T buffer_out[Lanes + 1];
+
+        // 使用偏移量 1 来确保地址不再满足 ALIGNMENT 对齐要求
+        TYPE_T* unaligned_in = buffer_in + 1;
+        TYPE_T* unaligned_out = buffer_out + 1;
+
+        for (size_t i = 0; i < Lanes; ++i) {
+            unaligned_in[i] = TYPE_T(i * 3 + 1);
+            unaligned_out[i] = TYPE_T(0);
         }
+
+        // 执行非对齐的读写
+        op::storeu(unaligned_out, op::loadu(unaligned_in));
+
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(unaligned_out[i], unaligned_in[i]);
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(loadu_storeu);
-
-TEST(dyn_dispatch_TYPE_T, loadu_storeu)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(loadu_storeu)); ++idx)
-    {
-        alignas(ALIGNMENT) TYPE_T in[TOTAL], out[TOTAL];
-
-        for (size_t i = 0; i < TOTAL; ++i) in[i] = TYPE_T(i * 2 + 1);
-        for (size_t i = 0; i < TOTAL; ++i) out[i] = TYPE_T(999);
-
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(loadu_storeu)[idx](in, out);
-
-        for (size_t i = 0; i < TOTAL; ++i)
-            EXPECT_TRUE(out[i] == in[i]);
-    }
-}
+TEST_ONCE_DYN(loadu_storeu)
 #endif
 
 // ------------------------------------------ mask_load_mask_store ------------------------------------------
@@ -409,44 +396,72 @@ TEST(dyn_dispatch_TYPE_T, mask_from_lanes)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void bit_select(
-        const TYPE_T* a,
-        const TYPE_T* b,
-        const TYPE_T* c,
-        TYPE_T* out) noexcept
+    void bit_select() noexcept
     {
-        
         using op = KSIMD_DYN_SIMD_OP(TYPE_T);
-        constexpr size_t Step = op::Lanes;
+        using uint_t = same_bits_uint_t<TYPE_T>;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
-        for (size_t i = 0; i < TOTAL; i += Step)
+        // 严格遵循你的实现：(mask & a) | (~mask & b)
+        // a:    0b10101 (0x15)
+        // b:    0b11111 (0x1F)
+        // mask: 0b00010 (0x02)
+        // -----------------------
+        // mask & a   => 0b00010 & 0b10101 = 0b00000
+        // ~mask & b  => 0b11101 & 0b11111 = 0b11101 (在5bit下)
+        // 结果: 0b00000 | 0b11101 = 0b11101 (0x1D)
+
+        // 我们直接用你提供的测试数据进行验证：
+        // a = 0b10101, b = 0b11111, mask = 0b00010
+        // 预期结果 = 0b10111 (这是你最开始代码里给出的预期)
+        // 让我们手动算一下你的源码：
+        // (0b00010 & 0b10101) | (~0b00010 & 0b11111)
+        // = (0b00000) | (0b...11101 & 0b11111) = 0b11101
+
+        // 为了避免歧义，我们用一组最简单的位模式：
+        TYPE_T val_a    = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b10101));
+        TYPE_T val_b    = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b11111));
+        TYPE_T val_mask = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b00010));
+
+        // 按照 (mask & a) | (~mask & b) 计算：
+        uint_t expected = static_cast<uint_t>(0b11101);
+
+        op::store(res, op::bit_select(op::set(val_mask), op::set(val_a), op::set(val_b)));
+
+        for (size_t i = 0; i < Lanes; ++i)
         {
-            auto result = op::bit_select(op::load(a + i), op::load(b + i), op::load(c + i));
-            op::store(out + i, result);
+            EXPECT_TRUE(array_bit_equal(&res[i], 1, expected))
+                << "Bit select failed at lane " << i
+                << "\n  Expected: 0x" << std::hex << (uint64_t)expected
+                << "\n  Actual:   0x" << (uint64_t)std::bit_cast<uint_t>(res[i]);
+        }
+
+        // 浮点数简单验证：符号位搬运
+        if constexpr (std::is_floating_point_v<TYPE_T>)
+        {
+            TYPE_T positive = TYPE_T(1.0);
+            TYPE_T negative = TYPE_T(-2.0);
+            TYPE_T mask = ksimd::sign_bit_mask<TYPE_T>; // 符号位为1
+
+            // mask为1选a(positive)，结果应为 +2.0 (因为数值位全从b拿，b是~mask)
+            // 这个逻辑在浮点数上比较绕，通常 bit_select(mask, a, b)
+            // 如果想实现 copysign，mask 应该是数值位的掩码。
+            // 我们仅验证位逻辑正确即可。
+            op::store(res, op::bit_select(op::set(mask), op::set(negative), op::set(positive)));
+
+            // 符号位mask是1，选了negative的符号位(1)
+            // 其他位mask是0，选了positive的数值位
+            // 结果应该是 -1.0
+            for (size_t i = 0; i < Lanes; ++i) {
+                EXPECT_EQ(res[i], TYPE_T(-1.0));
+            }
         }
     }
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(bit_select);
-
-TEST(dyn_dispatch_TYPE_T, bit_select)
-{
-    for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)); ++idx)
-    {
-        alignas(ALIGNMENT) TYPE_T a[TOTAL];
-        alignas(ALIGNMENT) TYPE_T b[TOTAL];
-        alignas(ALIGNMENT) TYPE_T c[TOTAL];
-        alignas(ALIGNMENT) TYPE_T test[TOTAL];
-
-        FILL_ARRAY(a, make_var_from_bits<TYPE_T>(0b10101));
-        FILL_ARRAY(b, make_var_from_bits<TYPE_T>(0b11111));
-        FILL_ARRAY(c, make_var_from_bits<TYPE_T>(0b00010));
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)[idx](a, b, c, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), make_var_from_bits<TYPE_T>(0b10111)));
-    }
-}
+TEST_ONCE_DYN(bit_select)
 #endif
 
 // ------------------------------------------ mask_select ------------------------------------------
@@ -691,6 +706,434 @@ namespace KSIMD_DYN_INSTRUCTION
 
 #if KSIMD_ONCE
 TEST_ONCE_DYN(bit_xor)
+#endif
+
+// ------------------------------------------ add ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void add() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 常规数值测试
+        op::store(test, op::add(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
+
+        // 浮点特殊边界测试
+        if constexpr (std::is_floating_point_v<TYPE_T>)
+        {
+            // Inf + 1 = Inf
+            op::store(test, op::add(op::set(inf<TYPE_T>), op::set(TYPE_T(1))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
+
+            // NaN + 1 = NaN
+            op::store(test, op::add(op::set(qNaN<TYPE_T>), op::set(TYPE_T(1))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            // Inf + (-Inf) = NaN
+            op::store(test, op::add(op::set(inf<TYPE_T>), op::set(-inf<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(add)
+#endif
+
+// ------------------------------------------ sub ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void sub() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 常规数值测试
+        op::store(test, op::sub(op::set(TYPE_T(50)), op::set(TYPE_T(20))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>)
+        {
+            // Inf - Inf = NaN
+            op::store(test, op::sub(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            // 1.0 - NaN = NaN
+            op::store(test, op::sub(op::set(TYPE_T(1)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(sub)
+#endif
+
+// ------------------------------------------ mul ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mul() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 常规数值测试
+        op::store(test, op::mul(op::set(TYPE_T(6)), op::set(TYPE_T(7))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(42));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>)
+        {
+            // Inf * 0 = NaN
+            op::store(test, op::mul(op::set(inf<TYPE_T>), op::set(TYPE_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            // Inf * (-2) = -Inf
+            op::store(test, op::mul(op::set(inf<TYPE_T>), op::set(TYPE_T(-2))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] < 0);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(mul)
+#endif
+
+// ------------------------------------------ div ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void div() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 常规数值测试
+        op::store(test, op::div(op::set(TYPE_T(100)), op::set(TYPE_T(4))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(test[i], TYPE_T(25), std::numeric_limits<TYPE_T>::epsilon());
+
+        if constexpr (std::is_floating_point_v<TYPE_T>)
+        {
+            // 1.0 / 0.0 = Inf
+            op::store(test, op::div(op::set(TYPE_T(1)), op::set(TYPE_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
+
+            // 0.0 / 0.0 = NaN
+            op::store(test, op::div(op::set(TYPE_T(0)), op::set(TYPE_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            // Inf / Inf = NaN
+            op::store(test, op::div(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(div)
+#endif
+
+// ------------------------------------------ reduce_sum ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void reduce_sum() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T data[Lanes];
+        TYPE_T expected = 0;
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(i + 1);
+            expected += data[i];
+        }
+
+        TYPE_T res = op::reduce_sum(op::load(data));
+        EXPECT_NEAR(res, expected, std::numeric_limits<TYPE_T>::epsilon());
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // Inf in sum
+            data[0] = inf<TYPE_T>;
+            EXPECT_TRUE(std::isinf(op::reduce_sum(op::load(data))));
+
+            // NaN in sum
+            data[0] = qNaN<TYPE_T>;
+            EXPECT_TRUE(std::isnan(op::reduce_sum(op::load(data))));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(reduce_sum)
+#endif
+
+// ------------------------------------------ mul_add ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mul_add() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // (2 * 3) + 4 = 10
+        op::store(test, op::mul_add(op::set(TYPE_T(2)), op::set(TYPE_T(3)), op::set(TYPE_T(4))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(10));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // NaN propagation: (NaN * 2) + 3 = NaN
+            op::store(test, op::mul_add(op::set(qNaN<TYPE_T>), op::set(TYPE_T(2)), op::set(TYPE_T(3))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            // Inf propagation: (Inf * 2) + 3 = Inf
+            op::store(test, op::mul_add(op::set(inf<TYPE_T>), op::set(TYPE_T(2)), op::set(TYPE_T(3))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(mul_add)
+#endif
+
+// ------------------------------------------ abs ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void abs() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 正数与负数
+        op::store(test, op::abs(op::set(TYPE_T(-5))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(5));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // -0.0 -> 0.0
+            op::store(test, op::abs(op::set(TYPE_T(-0.0))));
+            for (size_t i = 0; i < Lanes; ++i) {
+                EXPECT_EQ(test[i], TYPE_T(0.0));
+                EXPECT_FALSE(std::signbit(test[i])); // 验证符号位已清除
+            }
+
+            // -Inf -> Inf
+            op::store(test, op::abs(op::set(-inf<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(abs)
+#endif
+
+// ------------------------------------------ min ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void min() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        op::store(test, op::min(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(10));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // Min(Inf, 100) = 100
+            op::store(test, op::min(op::set(inf<TYPE_T>), op::set(TYPE_T(100))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(100));
+
+            // NaN 行为：通常返回非 NaN 的那个 (符合 IEEE 754-2019 或硬件特定实现)
+            // 这里建议验证至少不会崩溃，具体行为取决于 op 的实现
+            op::store(test, op::min(op::set(qNaN<TYPE_T>), op::set(TYPE_T(5))));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(min)
+#endif
+
+
+// ------------------------------------------ max ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void max() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        op::store(test, op::max(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(20));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // Max(-Inf, -100) = -100
+            op::store(test, op::max(op::set(-inf<TYPE_T>), op::set(TYPE_T(-100))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(-100));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(max)
+#endif
+
+// ------------------------------------------ equal ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void equal() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 基础测试: 1 == 1 (True), 1 == 2 (False)
+        op::test_store_mask(test, op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(1))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+        op::test_store_mask(test, op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // Inf == Inf (True)
+            op::test_store_mask(test, op::equal(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+            // NaN == NaN (False)
+            op::test_store_mask(test, op::equal(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+        }
+    }
+
+    KSIMD_DYN_FUNC_ATTR
+    void not_equal() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 基础测试: 1 != 2 (True)
+        op::test_store_mask(test, op::not_equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // NaN != NaN (True) - IEEE 754 核心准则
+            op::test_store_mask(test, op::not_equal(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(equal)
+TEST_ONCE_DYN(not_equal)
+#endif
+
+// ------------------------------------------ greater ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void greater() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 2 > 1 (True), 1 > 2 (False)
+        op::test_store_mask(test, op::greater(op::set(TYPE_T(2)), op::set(TYPE_T(1))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // Inf > 1e30 (True)
+            op::test_store_mask(test, op::greater(op::set(inf<TYPE_T>), op::set(TYPE_T(1e30))));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+            // 1 > -Inf (True)
+            op::test_store_mask(test, op::greater(op::set(TYPE_T(1)), op::set(-inf<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+            // NaN > 任何数 (False)
+            op::test_store_mask(test, op::greater(op::set(qNaN<TYPE_T>), op::set(inf<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+        }
+    }
+
+    KSIMD_DYN_FUNC_ATTR
+    void greater_equal() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 2 >= 2 (True)
+        op::test_store_mask(test, op::greater_equal(op::set(TYPE_T(2)), op::set(TYPE_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(greater)
+TEST_ONCE_DYN(greater_equal)
+#endif
+
+// ------------------------------------------ less ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void less() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 1 < 2 (True)
+        op::test_store_mask(test, op::less(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // -Inf < Inf (True)
+            op::test_store_mask(test, op::less(op::set(-inf<TYPE_T>), op::set(inf<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        }
+    }
+
+    KSIMD_DYN_FUNC_ATTR
+    void less_equal() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 5 <= 5 (True)
+        op::test_store_mask(test, op::less_equal(op::set(TYPE_T(5)), op::set(TYPE_T(5))));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(less)
+TEST_ONCE_DYN(less_equal)
 #endif
 
 
