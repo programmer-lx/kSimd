@@ -439,12 +439,12 @@ TEST(dyn_dispatch_TYPE_T, bit_select)
         alignas(ALIGNMENT) TYPE_T c[TOTAL];
         alignas(ALIGNMENT) TYPE_T test[TOTAL];
 
-        FILL_ARRAY(a, make_float_from_bits<TYPE_T>(0b10101));
-        FILL_ARRAY(b, make_float_from_bits<TYPE_T>(0b11111));
-        FILL_ARRAY(c, make_float_from_bits<TYPE_T>(0b00010));
+        FILL_ARRAY(a, make_var_from_bits<TYPE_T>(0b10101));
+        FILL_ARRAY(b, make_var_from_bits<TYPE_T>(0b11111));
+        FILL_ARRAY(c, make_var_from_bits<TYPE_T>(0b00010));
         FILL_ARRAY(test, -1);
         KSIMD_DETAIL_PFN_TABLE_FULL_NAME(bit_select)[idx](a, b, c, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), make_float_from_bits<TYPE_T>(0b10111)));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), make_var_from_bits<TYPE_T>(0b10111)));
     }
 }
 #endif
@@ -509,6 +509,188 @@ namespace KSIMD_DYN_INSTRUCTION
 
 #if KSIMD_ONCE
 TEST_ONCE_DYN(mask_select)
+#endif
+
+// ------------------------------------------ bit_not ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void bit_not() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // 构造输入数据: ...010101 (21)
+        // 期望结果 (NOT): ...101010
+        // 我们只验证低 5 位
+        TYPE_T input_val = make_var_from_bits<TYPE_T>(0b10101);
+
+        FILL_ARRAY(test, -1);
+        op::store(test, op::bit_not(op::set(input_val)));
+
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            auto result_bits = ksimd::detail::bitcast_to_uint(test[i]);
+
+            // bit 0: 1 -> 0 (False)
+            EXPECT_FALSE(test_bit(result_bits, 0));
+            // bit 1: 0 -> 1 (True)
+            EXPECT_TRUE(test_bit(result_bits, 1));
+            // bit 2: 1 -> 0 (False)
+            EXPECT_FALSE(test_bit(result_bits, 2));
+            // bit 3: 0 -> 1 (True)
+            EXPECT_TRUE(test_bit(result_bits, 3));
+            // bit 4: 1 -> 0 (False)
+            EXPECT_FALSE(test_bit(result_bits, 4));
+        }
+
+        // 额外的全 0 测试 -> 应变为全 1 (ksimd::one_block 的位模式)
+        {
+            FILL_ARRAY(test, -1);
+            op::store(test, op::bit_not(op::set(TYPE_T(0))));
+            // 对于 IEEE 754 浮点数，全 0 取反不等于 one_block，
+            // 但位模式应该是全 F。这里直接验证位 cast 后的结果。
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                auto result_bits = ksimd::detail::bitcast_to_uint(test[i]);
+                EXPECT_EQ(result_bits, ~ksimd::detail::bitcast_to_uint(TYPE_T(0)));
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(bit_not)
+#endif
+
+// ------------------------------------------ bit_and ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void bit_and() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // a: ...10101
+        // b: ...10011
+        // r: ...10001
+        TYPE_T a = make_var_from_bits<TYPE_T>(0b10101);
+        TYPE_T b = make_var_from_bits<TYPE_T>(0b10011);
+        TYPE_T expected = make_var_from_bits<TYPE_T>(0b10001);
+
+        FILL_ARRAY(test, -1);
+        op::store(test, op::bit_and(op::set(a), op::set(b)));
+
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(bit_and)
+#endif
+
+// ------------------------------------------ bit_and_not ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void bit_and_not() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // a:     ...10101 -> NOT a: ...01010
+        // b:     ...10011
+        // result: ...00010 (AND)
+        TYPE_T a = make_var_from_bits<TYPE_T>(0b10101);
+        TYPE_T b = make_var_from_bits<TYPE_T>(0b10011);
+        TYPE_T expected = make_var_from_bits<TYPE_T>(0b00010);
+
+        FILL_ARRAY(test, -1);
+        op::store(test, op::bit_and_not(op::set(a), op::set(b)));
+
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(bit_and_not)
+#endif
+
+// ------------------------------------------ bit_or ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void bit_or() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // a: ...10101
+        // b: ...10011
+        // r: ...10111
+        TYPE_T a = make_var_from_bits<TYPE_T>(0b10101);
+        TYPE_T b = make_var_from_bits<TYPE_T>(0b10011);
+        TYPE_T expected = make_var_from_bits<TYPE_T>(0b10111);
+
+        FILL_ARRAY(test, -1);
+        op::store(test, op::bit_or(op::set(a), op::set(b)));
+
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(bit_or)
+#endif
+
+// ------------------------------------------ bit_xor ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void bit_xor() noexcept
+    {
+        using op = KSIMD_DYN_SIMD_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
+
+        // a: ...10101
+        // b: ...10011
+        // r: ...00110
+        TYPE_T a = make_var_from_bits<TYPE_T>(0b10101);
+        TYPE_T b = make_var_from_bits<TYPE_T>(0b10011);
+        TYPE_T expected = make_var_from_bits<TYPE_T>(0b00110);
+
+        FILL_ARRAY(test, -1);
+        op::store(test, op::bit_xor(op::set(a), op::set(b)));
+
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(bit_xor)
 #endif
 
 

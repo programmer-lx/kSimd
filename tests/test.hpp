@@ -116,27 +116,75 @@ bool array_approximately(T* arr, size_t len, const T2& val, const T3& tolerance)
 }
 
 template<typename T>
-struct float_bits;
+struct type_to_bits;
 
 template<>
-struct float_bits<float>
+struct type_to_bits<uint8_t>
+{
+    using uint = uint8_t;
+};
+
+template<>
+struct type_to_bits<int8_t>
+{
+    using uint = uint8_t;
+};
+
+template<>
+struct type_to_bits<uint16_t>
+{
+    using uint = uint16_t;
+};
+
+template<>
+struct type_to_bits<int16_t>
+{
+    using uint = uint16_t;
+};
+
+template<>
+struct type_to_bits<uint32_t>
 {
     using uint = uint32_t;
 };
 
 template<>
-struct float_bits<double>
+struct type_to_bits<int32_t>
+{
+    using uint = uint32_t;
+};
+
+template<>
+struct type_to_bits<uint64_t>
+{
+    using uint = uint32_t;
+};
+
+template<>
+struct type_to_bits<int64_t>
+{
+    using uint = uint32_t;
+};
+
+template<>
+struct type_to_bits<float>
+{
+    using uint = uint32_t;
+};
+
+template<>
+struct type_to_bits<double>
 {
     using uint = uint64_t;
 };
 
 template<typename T>
-using float_bits_t = typename float_bits<T>::uint;
+using bits_t = typename type_to_bits<T>::uint;
 
-template<typename F>
-constexpr F make_float_from_bits(float_bits_t<F> bits) noexcept
+template<typename T>
+constexpr T make_var_from_bits(bits_t<T> bits) noexcept
 {
-    return std::bit_cast<F>(bits);
+    return std::bit_cast<T>(bits);
 }
 
 template<size_t Bytes>
