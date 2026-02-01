@@ -53,7 +53,7 @@ namespace MyNamespace
             f32::batch_t tail_data = f32::mask_load(arr + i, mask);
             tail_data = f32::add(tail_data, f32::set(1000));
             tail_data = ext::math::clamp(tail_data, min_val, max_val);
-            f32::store(out + i, tail_data);
+            f32::mask_store(out + i, tail_data, mask);
         }
     }
 }
