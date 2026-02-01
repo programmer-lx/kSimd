@@ -22,10 +22,17 @@ namespace detail
     {
         KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, Scalar)
 
+        #if defined(KSIMD_IS_TESTING)
+        KSIMD_OP_SIG_SCALAR(void, test_store_mask, (scalar_t* mem, mask_t mask))
+        {
+            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            memcpy(mem, mask.m, size);
+        }
+        #endif
+
         #pragma region lane mask 通道掩码
         /**
          * @return for lane in mask, mask[0, count-1] = 1, mask[count, rest) = 0
-         * @example if count == 6, mask = [1, 1, 1, 1, 1, 1, 0, 0, ...]
          */
         KSIMD_OP_SIG_SCALAR(mask_t, mask_from_lanes, (unsigned int count))
         {
@@ -120,12 +127,10 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR(batch_t, set, (scalar_t x))
         {
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ((void)I, x)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
 
@@ -237,17 +242,15 @@ namespace detail
 
         #pragma region compare 比较
         /**
-         * @return foreach i in lanes: lhs[i] == rhs[i] ? one_block : zero_block \n
+         * @return foreach i in lanes, j in mask: result[j] = lhs[i] == rhs[i] ? one_block : zero_block \n
          * @note if NaN: return zero_block
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] == rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**

@@ -12,6 +12,13 @@ struct SimdOp<I, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float32)
 
+    #if defined(KSIMD_IS_TESTING)
+    KSIMD_OP_SIG_SSE(void, test_store_mask, (float32* mem, mask_t mask))
+    {
+        _mm_store_ps(mem, mask.m);
+    }
+    #endif
+
     KSIMD_OP_SIG_SSE(mask_t, mask_from_lanes, (unsigned int count))
     {
         __m128 idx = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
@@ -141,7 +148,7 @@ struct SimdOp<I, float32>
         return { _mm_max_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpeq_ps(lhs.v, rhs.v) };
     }

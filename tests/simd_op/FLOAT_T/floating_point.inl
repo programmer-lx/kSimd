@@ -583,20 +583,37 @@ TEST(dyn_dispatch_FLOAT_T, max)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void equal(
-        const FLOAT_T* a,
-        const FLOAT_T* b,
-        FLOAT_T* out) noexcept
+    void equal() noexcept
     {
-        
         using op = KSIMD_DYN_SIMD_OP(FLOAT_T);
-        constexpr size_t Step = op::Lanes;
+        constexpr size_t Lanes = op::Lanes;
 
-        for (size_t i = 0; i < TOTAL; i += Step)
-        {
-            auto result = op::equal(op::load(a + i), op::load(b + i));
-            op::store(out + i, result);
-        }
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        // one test
+        FILL_ARRAY(test, -1);
+        op::test_store_mask(test, op::equal(op::set(1), op::set(1)));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
+
+        // zero test
+        FILL_ARRAY(test, -1);
+        op::test_store_mask(test, op::equal(op::set(1), op::set(2)));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+
+        // NaN zero test 1
+        FILL_ARRAY(test, -1);
+        op::test_store_mask(test, op::equal(op::set(qNaN<FLOAT_T>), op::set(2)));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+
+        // NaN zero test 2
+        FILL_ARRAY(test, -1);
+        op::test_store_mask(test, op::equal(op::set(1), op::set(qNaN<FLOAT_T>)));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+
+        // NaN zero test 3
+        FILL_ARRAY(test, -1);
+        op::test_store_mask(test, op::equal(op::set(qNaN<FLOAT_T>), op::set(qNaN<FLOAT_T>)));
+        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
     }
 }
 
@@ -607,44 +624,7 @@ TEST(dyn_dispatch_FLOAT_T, equal)
 {
     for (size_t idx = 0; idx < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)); ++idx)
     {
-        alignas(ALIGNMENT) FLOAT_T a[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T b[TOTAL];
-        alignas(ALIGNMENT) FLOAT_T test[TOTAL];
-
-        // one test
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, 1);
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::one_block<FLOAT_T>));
-
-        // zero test
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, 2);
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 1
-        FILL_ARRAY(a, std::numeric_limits<FLOAT_T>::quiet_NaN());
-        FILL_ARRAY(b, 2);
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 2
-        FILL_ARRAY(a, 1);
-        FILL_ARRAY(b, std::numeric_limits<FLOAT_T>::quiet_NaN());
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
-
-        // NaN zero test 3
-        FILL_ARRAY(a, std::numeric_limits<FLOAT_T>::quiet_NaN());
-        FILL_ARRAY(b, std::numeric_limits<FLOAT_T>::quiet_NaN());
-        FILL_ARRAY(test, -1);
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx](a, b, test);
-        EXPECT_TRUE(array_bit_equal(test, std::size(test), ksimd::zero_block<FLOAT_T>));
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(equal)[idx]();
     }
 }
 #endif

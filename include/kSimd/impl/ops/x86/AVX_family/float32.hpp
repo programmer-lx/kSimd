@@ -10,6 +10,13 @@ struct SimdOp<I, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float32)
 
+    #if defined(KSIMD_IS_TESTING)
+    KSIMD_OP_SIG_AVX(void, test_store_mask, (float32* mem, mask_t mask))
+    {
+        _mm256_store_ps(mem, mask.m);
+    }
+    #endif
+
     KSIMD_OP_SIG_AVX(mask_t, mask_from_lanes, (unsigned int count))
     {
         __m256 idx = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
@@ -143,7 +150,7 @@ struct SimdOp<I, float32>
         return { _mm256_max_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_EQ_OQ) };
     }
