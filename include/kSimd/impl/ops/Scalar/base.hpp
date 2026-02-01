@@ -242,8 +242,8 @@ namespace detail
 
         #pragma region compare 比较
         /**
-         * @return foreach i in lanes, j in mask: result[j] = lhs[i] == rhs[i] ? one_block : zero_block \n
-         * @note if NaN: return zero_block
+         * @return foreach i in lanes, j in mask: result[j] = lhs[i] == rhs[i] ? 1 : 0
+         * @note if NaN: return 0
          */
         KSIMD_OP_SIG_SCALAR(mask_t, equal, (batch_t lhs, batch_t rhs))
         {
@@ -254,73 +254,63 @@ namespace detail
         }
 
         /**
-         * @return foreach i in lanes: lhs[i] != rhs[i] ? one_block : zero_block
-         * @note if NaN: return one_block
+         * @return foreach i in lanes, j in mask: result[j] = lhs[i] != rhs[i] ? 1 : 0
+         * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, not_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, not_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] != rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: lhs[i] > rhs[i] ? one_block : zero_block
-         * @note if NaN: return zero_block
+         * @return foreach i in lanes, j in mask: result[j] = lhs[i] > rhs[i] ? 1 : 0
+         * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, greater, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, greater, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] > rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: lhs[i] >= rhs[i] ? one_block : zero_block
-         * @note if NaN: return zero_block
+         * @return foreach i in lanes, j in mask: result[j] = lhs[i] >= rhs[i] ? 1 : 0
+         * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, greater_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, greater_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] >= rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: lhs[i] < rhs[i] ? one_block : zero_block
-         * @note if NaN: return zero_block
+         * @return foreach i in lanes, j in mask: result[j] = lhs[i] < rhs[i] ? 1 : 0
+         * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, less, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, less, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] < rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: lhs[i] <= rhs[i] ? one_block : zero_block
-         * @note if NaN: return zero_block
+         * @return foreach i in lanes: lhs[i] <= rhs[i] ? 1 : 0
+         * @note if NaN: return 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, less_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, less_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] <= rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
 
@@ -526,85 +516,73 @@ namespace detail
 
         #pragma region compare 比较
         /**
-         * @return foreach i in lanes: !(lhs[i] > rhs[i]) ? one_block : zero_block
-         * @note if NaN: return one_block
+         * @return foreach i in lanes, j in mask: result[j] = !(lhs[i] > rhs[i]) ? 1 : 0
+         * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, not_greater, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, not_greater, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { ( !(lhs.v[I] > rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: !(lhs[i] >= rhs[i]) ? one_block : zero_block
-         * @note if NaN: return one_block
+         * @return foreach i in lanes: !(lhs[i] >= rhs[i]) ? 1 : 0
+         * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, not_greater_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, not_greater_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { ( !(lhs.v[I] >= rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: !(lhs[i] < rhs[i]) ? one_block : zero_block
-         * @note if NaN: return one_block
+         * @return foreach i in lanes: !(lhs[i] < rhs[i]) ? 1 : 0
+         * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, not_less, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, not_less, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { ( !(lhs.v[I] < rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: !(lhs[i] <= rhs[i]) ? one_block : zero_block
-         * @note if NaN: return one_block
+         * @return foreach i in lanes: !(lhs[i] <= rhs[i]) ? 1 : 0
+         * @note if NaN: return 1
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, not_less_equal, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, not_less_equal, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { ( !(lhs.v[I] <= rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: (lhs[i] == NaN || rhs[i] == NaN) ? one_block : zero_block
+         * @return foreach i in lanes: (lhs[i] == NaN || rhs[i] == NaN) ? 1 : 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, any_NaN, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, any_NaN, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { ( std::isnan(lhs.v[I]) || std::isnan(rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
-         * @return foreach i in lanes: (lhs[i] != NaN && rhs[i] != NaN) ? one_block : zero_block
+         * @return foreach i in lanes: (lhs[i] != NaN && rhs[i] != NaN) ? 1 : 0
          */
-        KSIMD_OP_SIG_SCALAR(batch_t, not_NaN, (batch_t lhs, batch_t rhs))
+        KSIMD_OP_SIG_SCALAR(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
         {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { ( !(std::isnan(lhs.v[I]) || std::isnan(rhs.v[I])) ? one_block<scalar_t> : zero_block<scalar_t> )... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
     };

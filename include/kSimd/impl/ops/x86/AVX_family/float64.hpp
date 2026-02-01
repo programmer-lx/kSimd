@@ -150,57 +150,57 @@ struct SimdOp<I, float64>
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_EQ_OQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, not_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, not_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NEQ_UQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, greater, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, greater, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_GT_OQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, not_greater, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, not_greater, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NGT_UQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, greater_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, greater_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_GE_OQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, not_greater_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, not_greater_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NGE_UQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, less, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, less, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_LT_OQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, not_less, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, not_less, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NLT_UQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, less_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, less_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_LE_OQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, not_less_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, not_less_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NLE_UQ) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, any_NaN, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, any_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_UNORD_Q) };
     }
 
-    KSIMD_OP_SIG_AVX(batch_t, not_NaN, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_AVX(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_ORD_Q) };
     }

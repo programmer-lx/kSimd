@@ -153,57 +153,57 @@ struct SimdOp<I, float32>
         return { _mm_cmpeq_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, not_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, not_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpneq_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, greater, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, greater, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpgt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, not_greater, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, not_greater, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpngt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, greater_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, greater_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpge_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, not_greater_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, not_greater_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpnge_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, less, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, less, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmplt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, not_less, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, not_less, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpnlt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, less_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, less_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmple_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, not_less_equal, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, not_less_equal, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpnle_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, any_NaN, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, any_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpunord_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SIG_SSE(batch_t, not_NaN, (batch_t lhs, batch_t rhs))
+    KSIMD_OP_SIG_SSE(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpord_ps(lhs.v, rhs.v) };
     }
