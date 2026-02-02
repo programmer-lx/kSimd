@@ -21,20 +21,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_OP(scalar_t);
 
-        // result = max(min, min(v, max))
-        return op::max(min, op::min(v, max));
-    }
-
-    template<is_batch_type batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) safe_clamp(batch_t v, batch_t edge1, batch_t edge2) noexcept
-    {
-        using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_OP(scalar_t);
-
-        // result = max(min, min(v, max))
-        batch_t min = op::min(edge1, edge2);
-        batch_t max = op::max(edge1, edge2);
-        return op::max(min, op::min(v, max));
+        return op::min(max, op::max(v, min));
     }
 
 #pragma endregion ------------- any types -------------------------
