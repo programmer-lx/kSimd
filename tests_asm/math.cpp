@@ -35,16 +35,16 @@ namespace MyNamespace
             {
                 f64::batch_t x = f64::load(src + i);
 
-                f64::batch_t res = ext::math::safe_clamp(c10, x, c9);
+                f64::batch_t res = ext::math::clamp(c10, x, c9);
                 res = ext::math::lerp(res, x, c8);
                 res = ext::math::lerp(res, x, c7);
                 res = ext::math::lerp(res, x, c6);
                 res = ext::math::lerp(res, x, c5);
-                res = ext::math::safe_clamp(res, x, c4);
-                res = ext::math::safe_clamp(res, x, c3);
-                res = ext::math::safe_clamp(res, x, c2);
-                res = ext::math::safe_clamp(res, x, c1);
-                res = ext::math::safe_clamp(res, x, c0);
+                res = ext::math::clamp(res, x, c4);
+                res = ext::math::clamp(res, x, c3);
+                res = ext::math::clamp(res, x, c2);
+                res = ext::math::clamp(res, x, c1);
+                res = ext::math::clamp(res, x, c0);
 
                 f64::store(dst + i, res);
             }
@@ -55,16 +55,16 @@ namespace MyNamespace
                 const f64::mask_t mask = f64::mask_from_lanes(static_cast<unsigned int>(tail));
                 f64::batch_t x = f64::mask_load(src + i, mask);
 
-                f64::batch_t res = ext::math::safe_clamp(c10, x, c9);
+                f64::batch_t res = ext::math::clamp(c10, x, c9);
                 res = ext::math::lerp(res, x, c8);
                 res = ext::math::lerp(res, x, c7);
                 res = ext::math::lerp(res, x, c6);
                 res = ext::math::lerp(res, x, c5);
                 res = ext::math::lerp(res, x, c4);
-                res = ext::math::safe_clamp(res, x, c3);
-                res = ext::math::safe_clamp(res, x, c2);
-                res = ext::math::safe_clamp(res, x, c1);
-                res = ext::math::safe_clamp(res, x, c0);
+                res = ext::math::clamp(res, x, c3);
+                res = ext::math::clamp(res, x, c2);
+                res = ext::math::clamp(res, x, c1);
+                res = ext::math::clamp(res, x, c0);
 
                 f64::mask_store(dst + i, res, mask);
             }

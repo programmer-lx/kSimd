@@ -52,9 +52,9 @@ namespace MyNamespace
                 res = f64::mul_add(res, x, c2);
                 res = f64::mul_add(res, x, c1);
                 res = f64::mul_add(res, x, c0);
-                res = ext::math::safe_clamp(res, c0, c1);
-                res = ext::math::safe_clamp(res, c2, c3);
-                res = ext::math::safe_clamp(res, c4, c5);
+                res = ext::math::clamp(res, c0, c1);
+                res = ext::math::clamp(res, c2, c3);
+                res = ext::math::clamp(res, c4, c5);
 
                 f64::store(dst + i, res);
             }
@@ -75,9 +75,9 @@ namespace MyNamespace
                 res = f64::mul_add(res, x, c2);
                 res = f64::mul_add(res, x, c1);
                 res = f64::mul_add(res, x, c0);
-                res = ext::math::safe_clamp(res, c0, c1);
-                res = ext::math::safe_clamp(res, c2, c3);
-                res = ext::math::safe_clamp(res, c4, c5);
+                res = ext::math::clamp(res, c0, c1);
+                res = ext::math::clamp(res, c2, c3);
+                res = ext::math::clamp(res, c4, c5);
 
                 f64::mask_store(dst + i, res, mask);
             }
