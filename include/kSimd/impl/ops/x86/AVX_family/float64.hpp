@@ -53,7 +53,7 @@ namespace AVX_family
 
     KSIMD_OP_SIG_AVX(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(one_block<float64>)) };
+        return { _mm256_xor_pd(v.v, _mm256_set1_pd(OneBlock<float64>)) };
     }
 
     KSIMD_OP_SIG_AVX(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
@@ -228,7 +228,7 @@ struct BaseOp<SimdInstruction::AVX, float64>
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, abs, (batch_t v))
     {
-        return { _mm256_and_pd(v.v, _mm256_set1_pd(sign_bit_clear_mask<float64>)) };
+        return { _mm256_and_pd(v.v, _mm256_set1_pd(SignBitClearMask<float64>)) };
     }
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, min, (batch_t lhs, batch_t rhs))
@@ -295,15 +295,43 @@ struct BaseOp<SimdInstruction::AVX, float64>
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_UNORD_Q) };
     }
+    
+    KSIMD_OP_SIG_AVX_STATIC(mask_t, all_NaN, (batch_t lhs, batch_t rhs))
+    {
+        __m256d l_nan = _mm256_cmp_pd(lhs.v, lhs.v, _CMP_UNORD_Q);
+        __m256d r_nan = _mm256_cmp_pd(rhs.v, rhs.v, _CMP_UNORD_Q);
+        return { _mm256_and_pd(l_nan, r_nan) };
+    }
 
     KSIMD_OP_SIG_AVX_STATIC(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_ORD_Q) };
     }
+    
+    KSIMD_OP_SIG_AVX_STATIC(mask_t, any_finite, (batch_t lhs, batch_t rhs))
+    {
+        __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
+        __m256d inf = _mm256_set1_pd(Inf<float64>);
+
+        __m256d combined = _mm256_and_pd(lhs.v, rhs.v);
+
+        return { _mm256_cmp_pd(_mm256_and_pd(combined, abs_mask), inf, _CMP_LT_OQ) };
+    }
+    
+    KSIMD_OP_SIG_AVX_STATIC(mask_t, all_finite, (batch_t lhs, batch_t rhs))
+    {
+        __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
+        __m256d inf = _mm256_set1_pd(Inf<float64>);
+
+        __m256d l_finite = _mm256_cmp_pd(_mm256_and_pd(lhs.v, abs_mask), inf, _CMP_LT_OQ);
+        __m256d r_finite = _mm256_cmp_pd(_mm256_and_pd(rhs.v, abs_mask), inf, _CMP_LT_OQ);
+
+        return { _mm256_and_pd(l_finite, r_finite) };
+    }
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, bit_not, (batch_t v))
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(one_block<float64>)) };
+        return { _mm256_xor_pd(v.v, _mm256_set1_pd(OneBlock<float64>)) };
     }
 
     KSIMD_OP_SIG_AVX_STATIC(batch_t, bit_and, (batch_t lhs, batch_t rhs))

@@ -54,7 +54,7 @@ namespace SSE_family::SSE2_up
 
     KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
     {
-        return { _mm_xor_pd(v.v, _mm_set1_pd(one_block<float64>)) };
+        return { _mm_xor_pd(v.v, _mm_set1_pd(OneBlock<float64>)) };
     }
 
     KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
@@ -269,7 +269,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, abs, (batch_t v))
     {
-        return { _mm_and_pd(v.v, _mm_set1_pd(sign_bit_clear_mask<float64>)) };
+        return { _mm_and_pd(v.v, _mm_set1_pd(SignBitClearMask<float64>)) };
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, min, (batch_t lhs, batch_t rhs))
@@ -336,15 +336,44 @@ struct BaseOp<SimdInstruction::SSE2, float64>
     {
         return { _mm_cmpunord_pd(lhs.v, rhs.v) };
     }
+    
+    KSIMD_OP_SIG_SSE2_STATIC(mask_t, all_NaN, (batch_t lhs, batch_t rhs))
+    {
+        __m128d l_nan = _mm_cmpunord_pd(lhs.v, lhs.v);
+        __m128d r_nan = _mm_cmpunord_pd(rhs.v, rhs.v);
+        return { _mm_and_pd(l_nan, r_nan) };
+    }
 
     KSIMD_OP_SIG_SSE2_STATIC(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpord_pd(lhs.v, rhs.v) };
     }
 
+    KSIMD_OP_SIG_SSE2_STATIC(mask_t, any_finite, (batch_t lhs, batch_t rhs))
+    {
+        __m128d abs_mask = _mm_set1_pd(SignBitClearMask<float64>);
+        __m128d inf = _mm_set1_pd(Inf<float64>);
+
+        // 如果一个是有限值(指数位有0)，AND 之后结果的指数位一定会有0
+        __m128d combined = _mm_and_pd(lhs.v, rhs.v);
+
+        return { _mm_cmplt_pd(_mm_and_pd(combined, abs_mask), inf) };
+    }
+    
+    KSIMD_OP_SIG_SSE2_STATIC(mask_t, all_finite, (batch_t lhs, batch_t rhs))
+    {
+        __m128d abs_mask = _mm_set1_pd(SignBitClearMask<float64>);
+        __m128d inf = _mm_set1_pd(Inf<float64>);
+
+        __m128d l_finite = _mm_cmplt_pd(_mm_and_pd(lhs.v, abs_mask), inf);
+        __m128d r_finite = _mm_cmplt_pd(_mm_and_pd(rhs.v, abs_mask), inf);
+
+        return { _mm_and_pd(l_finite, r_finite) };
+    }
+
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, bit_not, (batch_t v))
     {
-        return { _mm_xor_pd(v.v, _mm_set1_pd(one_block<float64>)) };
+        return { _mm_xor_pd(v.v, _mm_set1_pd(OneBlock<float64>)) };
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, bit_and, (batch_t lhs, batch_t rhs))

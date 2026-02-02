@@ -177,7 +177,7 @@ namespace KSIMD_DYN_INSTRUCTION
             // 验证 load 结果是否为 0 (Zeroing 语义)
             alignas(ALIGNMENT) TYPE_T load_res[Lanes];
             op::store(load_res, data);
-            EXPECT_TRUE(array_bit_equal(load_res, Lanes, ksimd::zero_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(load_res, Lanes, ksimd::ZeroBlock<TYPE_T>));
 
             // 验证 store 是否不写入任何内容
             op::mask_store(dst, data, mask);
@@ -316,8 +316,8 @@ namespace KSIMD_DYN_INSTRUCTION
             // 构造一个只有首尾被激活的掩码
             alignas(ALIGNMENT) TYPE_T mask_arr[Lanes];
             memset(mask_arr, 0x00, sizeof(mask_arr));
-            mask_arr[0] = one_block<TYPE_T>;
-            mask_arr[Lanes - 1] = one_block<TYPE_T>;
+            mask_arr[0] = OneBlock<TYPE_T>;
+            mask_arr[Lanes - 1] = OneBlock<TYPE_T>;
             mask_t mask = op::test_load_mask(mask_arr);
 
             FILL_ARRAY(dst_raw, TYPE_T(99));
@@ -355,7 +355,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // [0, lane - 1] == 1
         mask_t mask = op::mask_from_lanes(lanes - 1);
-        FILL_ARRAY(arr, one_block<TYPE_T>);
+        FILL_ARRAY(arr, OneBlock<TYPE_T>);
         arr[lanes - 1] = TYPE_T(0);
         FILL_ARRAY(dst, TYPE_T(100));
         op::test_store_mask(dst, mask);
@@ -364,7 +364,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // [all] == 1
         mask = op::mask_from_lanes(1000);
-        FILL_ARRAY(arr, one_block<TYPE_T>);
+        FILL_ARRAY(arr, OneBlock<TYPE_T>);
         FILL_ARRAY(dst, TYPE_T(100));
         op::test_store_mask(dst, mask);
         for (size_t i = 0; i< lanes; ++i)
@@ -372,7 +372,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // [all] == 0
         mask = op::mask_from_lanes(0);
-        FILL_ARRAY(arr, zero_block<TYPE_T>);
+        FILL_ARRAY(arr, ZeroBlock<TYPE_T>);
         FILL_ARRAY(dst, TYPE_T(100));
         op::test_store_mask(dst, mask);
         for (size_t i = 0; i< lanes; ++i)
@@ -442,7 +442,7 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             TYPE_T positive = TYPE_T(1.0);
             TYPE_T negative = TYPE_T(-2.0);
-            TYPE_T mask = ksimd::sign_bit_mask<TYPE_T>; // 符号位为1
+            TYPE_T mask = ksimd::SignBitMask<TYPE_T>; // 符号位为1
 
             // mask为1选a(positive)，结果应为 +2.0 (因为数值位全从b拿，b是~mask)
             // 这个逻辑在浮点数上比较绕，通常 bit_select(mask, a, b)
@@ -1106,19 +1106,19 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 基础测试: 1 == 1 (True), 1 == 2 (False)
         op::test_store_mask(test, op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(1))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
         op::test_store_mask(test, op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
 
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // Inf == Inf (True)
             op::test_store_mask(test, op::equal(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
             // NaN == NaN (False)
             op::test_store_mask(test, op::equal(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
         }
     }
 
@@ -1131,12 +1131,12 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 基础测试: 1 != 2 (True)
         op::test_store_mask(test, op::not_equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // NaN != NaN (True) - IEEE 754 核心准则
             op::test_store_mask(test, op::not_equal(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
         }
     }
 }
@@ -1158,20 +1158,20 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 2 > 1 (True), 1 > 2 (False)
         op::test_store_mask(test, op::greater(op::set(TYPE_T(2)), op::set(TYPE_T(1))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // Inf > 1e30 (True)
             op::test_store_mask(test, op::greater(op::set(inf<TYPE_T>), op::set(TYPE_T(1e30))));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
             // 1 > -Inf (True)
             op::test_store_mask(test, op::greater(op::set(TYPE_T(1)), op::set(-inf<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
             // NaN > 任何数 (False)
             op::test_store_mask(test, op::greater(op::set(qNaN<TYPE_T>), op::set(inf<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
         }
     }
 
@@ -1184,7 +1184,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 2 >= 2 (True)
         op::test_store_mask(test, op::greater_equal(op::set(TYPE_T(2)), op::set(TYPE_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
     }
 }
 
@@ -1205,19 +1205,19 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 1 < 2 (True)
         op::test_store_mask(test, op::less(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // -Inf < Inf (True)
             op::test_store_mask(test, op::less(op::set(-inf<TYPE_T>), op::set(inf<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
             // NaN (False)
             op::test_store_mask(test, op::less(op::set(-inf<TYPE_T>), op::set(qNaN<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
 
             op::test_store_mask(test, op::less(op::set(qNaN<TYPE_T>), op::set(-inf<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
         }
     }
 
@@ -1230,7 +1230,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 5 <= 5 (True)
         op::test_store_mask(test, op::less_equal(op::set(TYPE_T(5)), op::set(TYPE_T(5))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
     }
 }
 

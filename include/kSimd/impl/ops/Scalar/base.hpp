@@ -208,7 +208,7 @@ namespace detail
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (I < count ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (I < count ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
@@ -266,9 +266,9 @@ namespace detail
             {
                 return {
                     (
-                        ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0)
+                        ((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0)
                         ? mem[I]
-                        : zero_block<scalar_t>
+                        : ZeroBlock<scalar_t>
                     )...
                 };
             }(std::make_index_sequence<Lanes>{});
@@ -284,9 +284,9 @@ namespace detail
             {
                 return {
                     (
-                        ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0)
+                        ((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0)
                         ? mem[I]
-                        : zero_block<scalar_t>
+                        : ZeroBlock<scalar_t>
                     )...
                 };
             }(std::make_index_sequence<Lanes>{});
@@ -318,7 +318,7 @@ namespace detail
             [&]<size_t... I>(std::index_sequence<I...>)
             {
                 (
-                    ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0
+                    ((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0
                     ? (mem[I] = v.v[I], void())
                     : void())
                 , ... );
@@ -335,7 +335,7 @@ namespace detail
             [&]<size_t... I>(std::index_sequence<I...>)
             {
                 (
-                    ((std::bit_cast<uint>(mask.m[I]) & one_block<uint>) != 0
+                    ((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0
                     ? (mem[I] = v.v[I], void())
                     : void())
                 , ... );
@@ -475,7 +475,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (lhs.v[I] == rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (lhs.v[I] == rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -487,7 +487,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (lhs.v[I] != rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (lhs.v[I] != rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -499,7 +499,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (lhs.v[I] > rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (lhs.v[I] > rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -511,7 +511,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (lhs.v[I] >= rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (lhs.v[I] >= rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -523,7 +523,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (lhs.v[I] < rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (lhs.v[I] < rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -535,7 +535,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { (lhs.v[I] <= rhs.v[I] ? one_block<scalar_t> : zero_block<scalar_t>)... };
+                return { (lhs.v[I] <= rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
@@ -735,7 +735,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( !(lhs.v[I] > rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( !(lhs.v[I] > rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -747,7 +747,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( !(lhs.v[I] >= rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( !(lhs.v[I] >= rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -759,7 +759,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( !(lhs.v[I] < rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( !(lhs.v[I] < rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -771,7 +771,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( !(lhs.v[I] <= rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( !(lhs.v[I] <= rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -782,7 +782,18 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( is_NaN(lhs.v[I]) || is_NaN(rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( is_NaN(lhs.v[I]) || is_NaN(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: (lhs[i] == NaN && rhs[i] == NaN) ? 1 : 0
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, all_NaN, (batch_t lhs, batch_t rhs))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            {
+                return { ( is_NaN(lhs.v[I]) && is_NaN(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -793,7 +804,29 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( !(is_NaN(lhs.v[I]) || is_NaN(rhs.v[I])) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( !(is_NaN(lhs.v[I]) || is_NaN(rhs.v[I])) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: (lhs[i] != NaN,Inf || rhs[i] != NaN,Inf) ? 1 : 0
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, any_finite, (batch_t lhs, batch_t rhs))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            {
+                return { ( is_finite(lhs.v[I]) || is_finite(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: (lhs[i] != NaN,Inf && rhs[i] != NaN,Inf) ? 1 : 0
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(mask_t, all_finite, (batch_t lhs, batch_t rhs))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            {
+                return { ( is_finite(lhs.v[I]) && is_finite(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion

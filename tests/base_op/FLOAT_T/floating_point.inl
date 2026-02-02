@@ -95,11 +95,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 1 > 2 为假 -> true
         op::test_store_mask(test, op::not_greater(op::set(FLOAT_T(1)), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
 
         // NaN 无序特性 (NaN > 2 为假) -> true
         op::test_store_mask(test, op::not_greater(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
     }
 }
 
@@ -119,11 +119,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 1 >= 1 为真 -> false
         op::test_store_mask(test, op::not_greater_equal(op::set(FLOAT_T(1)), op::set(FLOAT_T(1))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
 
         // NaN >= 2 为假 -> true
         op::test_store_mask(test, op::not_greater_equal(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
     }
 }
 
@@ -143,11 +143,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 3 < 2 为假 -> true
         op::test_store_mask(test, op::not_less(op::set(FLOAT_T(3)), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
 
         // NaN < 2 为假 -> true
         op::test_store_mask(test, op::not_less(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
     }
 }
 
@@ -167,11 +167,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 1 <= 2 为真 -> false
         op::test_store_mask(test, op::not_less_equal(op::set(FLOAT_T(1)), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
 
         // NaN <= 2 为假 -> true
         op::test_store_mask(test, op::not_less_equal(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
     }
 }
 
@@ -189,38 +189,60 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        #define run_any(a, b) do { op::test_store_mask(test, op::any_NaN(op::set(a), op::set(b))); } while (0)
+        using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
+        const uint_t base_nan = std::bit_cast<uint_t>(qNaN<FLOAT_T>);
+        const FLOAT_T n_hi = std::bit_cast<FLOAT_T>(base_nan | (uint_t(1) << (std::numeric_limits<FLOAT_T>::digits - 2)));
+        const FLOAT_T n_lo = std::bit_cast<FLOAT_T>(base_nan | uint_t(1));
 
-        // 1. 正常数值 -> False
-        run_any(FLOAT_T(1.2), FLOAT_T(3.4));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+#define run_any(a, b) do { op::test_store_mask(test, op::any_NaN(op::set(a), op::set(b))); } while (0)
 
-        // 2. 含有 Inf / -Inf -> False (Inf 不是 NaN)
-        run_any(inf<FLOAT_T>, FLOAT_T(1.0));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
-        run_any(-inf<FLOAT_T>, inf<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+        run_any(FLOAT_T(1.0), FLOAT_T(2.0));      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_any(inf<FLOAT_T>, -inf<FLOAT_T>);     EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_any(n_hi, FLOAT_T(0.0));              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(FLOAT_T(-1.0), n_lo);             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(n_hi, n_lo);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(n_lo, inf<FLOAT_T>);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(qNaN<FLOAT_T>, qNaN<FLOAT_T>);    EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(FLOAT_T(0.0), FLOAT_T(0.0));      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
 
-        // 3. 含有 NaN (左侧/右侧/双侧) -> True
-        run_any(qNaN<FLOAT_T>, FLOAT_T(1.0));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
-
-        run_any(FLOAT_T(1.0), qNaN<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
-
-        run_any(qNaN<FLOAT_T>, qNaN<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
-
-        // 4. 混合 NaN 与 Inf -> True
-        run_any(qNaN<FLOAT_T>, inf<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
-
-        #undef run_any
+#undef run_any
     }
 }
-
 #if KSIMD_ONCE
 TEST_ONCE_DYN(any_NaN)
+#endif
+
+// ------------------------------------------ all_NaN ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void all_NaN() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
+        const uint_t base_nan = std::bit_cast<uint_t>(qNaN<FLOAT_T>);
+        const FLOAT_T n_hi = std::bit_cast<FLOAT_T>(base_nan | (uint_t(1) << (std::numeric_limits<FLOAT_T>::digits - 2)));
+        const FLOAT_T n_lo = std::bit_cast<FLOAT_T>(base_nan | uint_t(1));
+
+#define run_all(a, b) do { op::test_store_mask(test, op::all_NaN(op::set(a), op::set(b))); } while (0)
+
+        run_all(n_hi, n_lo);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_all(n_lo, n_hi);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_all(n_hi, n_hi);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_all(n_hi, inf<FLOAT_T>);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(inf<FLOAT_T>, n_lo);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(FLOAT_T(1.0), n_hi);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(n_lo, FLOAT_T(0.0));              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(inf<FLOAT_T>, -inf<FLOAT_T>);     EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+
+#undef run_all
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(all_NaN)
 #endif
 
 // ------------------------------------------ not_NaN ------------------------------------------
@@ -233,36 +255,100 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        #define run_not(a, b) do { op::test_store_mask(test, op::not_NaN(op::set(a), op::set(b))); } while (0)
+        using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
+        const uint_t base_nan = std::bit_cast<uint_t>(qNaN<FLOAT_T>);
+        const FLOAT_T n_hi = std::bit_cast<FLOAT_T>(base_nan | (uint_t(1) << (std::numeric_limits<FLOAT_T>::digits - 2)));
+        const FLOAT_T n_lo = std::bit_cast<FLOAT_T>(base_nan | uint_t(1));
 
-        // 1. 两者皆为正常数值 -> True
-        run_not(FLOAT_T(0), FLOAT_T(-0.0));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+#define run_not(a, b) do { op::test_store_mask(test, op::not_NaN(op::set(a), op::set(b))); } while (0)
 
-        // 2. 包含 Inf -> True (Inf 是有效的比较对象)
-        run_not(inf<FLOAT_T>, FLOAT_T(1.0));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
-        
-        run_not(-inf<FLOAT_T>, inf<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        run_not(FLOAT_T(1.0), FLOAT_T(2.0));      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_not(inf<FLOAT_T>, -inf<FLOAT_T>);     EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_not(FLOAT_T(0.0), inf<FLOAT_T>);      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_not(n_hi, FLOAT_T(1.0));              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_not(FLOAT_T(1.0), n_lo);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_not(n_hi, n_lo);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_not(n_lo, inf<FLOAT_T>);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
 
-        // 3. 含有任意 NaN -> False
-        run_not(qNaN<FLOAT_T>, FLOAT_T(1.0));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
-
-        run_not(inf<FLOAT_T>, qNaN<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
-
-        // 4. 两者皆为 NaN -> False
-        run_not(qNaN<FLOAT_T>, qNaN<FLOAT_T>);
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
-
-        #undef run_not
+#undef run_not
     }
 }
-
 #if KSIMD_ONCE
 TEST_ONCE_DYN(not_NaN)
+#endif
+
+// ------------------------------------------ any_finite ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void any_finite() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
+        const uint_t base_nan = std::bit_cast<uint_t>(qNaN<FLOAT_T>);
+        const FLOAT_T n_hi = std::bit_cast<FLOAT_T>(base_nan | (uint_t(1) << (std::numeric_limits<FLOAT_T>::digits - 2)));
+        const FLOAT_T n_lo = std::bit_cast<FLOAT_T>(base_nan | uint_t(1));
+
+#define run_any(a, b) do { op::test_store_mask(test, op::any_finite(op::set(a), op::set(b))); } while (0)
+
+        run_any(FLOAT_T(1.0), n_hi);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(inf<FLOAT_T>, FLOAT_T(0.0));      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(n_lo, FLOAT_T(-1.0));             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_any(n_hi, n_lo);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_any(inf<FLOAT_T>, n_hi);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_any(-inf<FLOAT_T>, inf<FLOAT_T>);     EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_any(qNaN<FLOAT_T>, inf<FLOAT_T>);     EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+
+        if constexpr (std::is_same_v<FLOAT_T, float>) {
+            FLOAT_T denorm = std::bit_cast<float>(0x00000001u);
+            run_any(denorm, n_hi);                EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        }
+
+#undef run_any
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(any_finite)
+#endif
+
+// ------------------------------------------ all_finite ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void all_finite() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        using uint_t = ksimd::same_bits_uint_t<FLOAT_T>;
+        const uint_t base_nan_bits = std::bit_cast<uint_t>(qNaN<FLOAT_T>);
+        const FLOAT_T n_hi = make_var_from_bits<FLOAT_T>(base_nan_bits | (uint_t(1) << (std::numeric_limits<FLOAT_T>::digits - 2)));
+
+        #define run_all(a, b) do { op::test_store_mask(test, op::all_finite(op::set(a), op::set(b))); } while (0)
+
+        run_all(FLOAT_T(1.0), FLOAT_T(2.0));      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_all(FLOAT_T(0.0), FLOAT_T(-0.0));     EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        run_all(n_hi, FLOAT_T(1.0));              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(FLOAT_T(1.0), inf<FLOAT_T>);      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(inf<FLOAT_T>, n_hi);              EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(inf<FLOAT_T>, inf<FLOAT_T>);      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        run_all(n_hi, n_hi);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+
+        if constexpr (sizeof(FLOAT_T) == 4) {
+            [[maybe_unused]] const FLOAT_T f1 = make_var_from_bits<FLOAT_T>(0x3F800000u);
+            [[maybe_unused]] const FLOAT_T f2 = make_var_from_bits<FLOAT_T>(0x40000000u);
+            run_all(f1, f2);                      EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        }
+
+        #undef run_all
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(all_finite)
 #endif
 
 

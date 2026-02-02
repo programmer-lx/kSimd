@@ -56,7 +56,7 @@ namespace SSE_family::SSE
 
     KSIMD_OP_SIG_SSE(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
     {
-        return { _mm_xor_ps(v.v, _mm_set1_ps(one_block<float32>)) };
+        return { _mm_xor_ps(v.v, _mm_set1_ps(OneBlock<float32>)) };
     }
 
     KSIMD_OP_SIG_SSE(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
@@ -266,7 +266,7 @@ struct BaseOp<SimdInstruction::SSE, float32>
 
     KSIMD_OP_SIG_SSE_STATIC(batch_t, abs, (batch_t v))
     {
-        return { _mm_and_ps(v.v, _mm_set1_ps(sign_bit_clear_mask<float32>)) };
+        return { _mm_and_ps(v.v, _mm_set1_ps(SignBitClearMask<float32>)) };
     }
 
     KSIMD_OP_SIG_SSE_STATIC(batch_t, min, (batch_t lhs, batch_t rhs))
@@ -334,14 +334,43 @@ struct BaseOp<SimdInstruction::SSE, float32>
         return { _mm_cmpunord_ps(lhs.v, rhs.v) };
     }
 
+    KSIMD_OP_SIG_SSE_STATIC(mask_t, all_NaN, (batch_t lhs, batch_t rhs))
+    {
+        __m128 l_nan = _mm_cmpunord_ps(lhs.v, lhs.v);
+        __m128 r_nan = _mm_cmpunord_ps(rhs.v, rhs.v);
+        return { _mm_and_ps(l_nan, r_nan) };
+    }
+
     KSIMD_OP_SIG_SSE_STATIC(mask_t, not_NaN, (batch_t lhs, batch_t rhs))
     {
         return { _mm_cmpord_ps(lhs.v, rhs.v) };
     }
 
+    KSIMD_OP_SIG_SSE_STATIC(mask_t, any_finite, (batch_t lhs, batch_t rhs))
+    {
+        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float32>);
+        __m128 inf = _mm_set1_ps(Inf<float32>);
+
+        // 如果一个是有限值(指数位有0)，AND 之后结果的指数位一定会有0
+        __m128 combined = _mm_and_ps(lhs.v, rhs.v);
+
+        return { _mm_cmplt_ps(_mm_and_ps(combined, abs_mask), inf) };
+    }
+
+    KSIMD_OP_SIG_SSE_STATIC(mask_t, all_finite, (batch_t lhs, batch_t rhs))
+    {
+        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float32>);
+        __m128 inf = _mm_set1_ps(Inf<float32>);
+
+        __m128 l_finite = _mm_cmplt_ps(_mm_and_ps(lhs.v, abs_mask), inf);
+        __m128 r_finite = _mm_cmplt_ps(_mm_and_ps(rhs.v, abs_mask), inf);
+
+        return { _mm_and_ps(l_finite, r_finite) };
+    }
+
     KSIMD_OP_SIG_SSE_STATIC(batch_t, bit_not, (batch_t v))
     {
-        return { _mm_xor_ps(v.v, _mm_set1_ps(one_block<float32>)) };
+        return { _mm_xor_ps(v.v, _mm_set1_ps(OneBlock<float32>)) };
     }
 
     KSIMD_OP_SIG_SSE_STATIC(batch_t, bit_and, (batch_t lhs, batch_t rhs))

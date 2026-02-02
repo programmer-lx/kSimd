@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <type_traits>
+#include <limits>
 
 #include "common_macros.hpp"
 #include "traits.hpp"
@@ -55,6 +56,25 @@ namespace detail
         static_assert(idx >= 0 && idx < sizeof(S) * 8);
         return idx;
     }
+
+    template<is_scalar_floating_point F>
+    consteval F exp_mask()
+    {
+        if constexpr (std::is_same_v<float32, F>)
+        {
+            constexpr uint32 mask = static_cast<uint32>(0b1111'1111u) << 23;
+            return std::bit_cast<F>(mask);
+        }
+        else if constexpr (std::is_same_v<float64, F>)
+        {
+            constexpr uint64 mask = static_cast<uint64>(0b111'1111'1111u) << 52;
+            return std::bit_cast<F>(mask);
+        }
+        else
+        {
+            return 0;
+        }
+    }
 } // namespace detail
 
 template<is_scalar_type S>
@@ -83,7 +103,7 @@ KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_NaN(const float32 f) noexcept
     // 指数位均为1，尾数位 != 0
     // 1位符号，8位指数，23位尾数
     const uint32 bits = std::bit_cast<uint32>(f);
-    constexpr uint32 exp_mask = static_cast<uint32>(0b11111111u) << 23;
+    constexpr uint32 exp_mask = static_cast<uint32>(0b1111'1111u) << 23;
     constexpr uint32 mantissa_mask = ~static_cast<uint32>(0u) >> 9;
     return ((bits & exp_mask) == exp_mask) && ((bits & mantissa_mask) != 0u);
 }
@@ -92,39 +112,65 @@ KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_NaN(const float64 f) noexcept
 {
     // 1位符号位，11位指数，52位尾数
     const uint64 bits = std::bit_cast<uint64>(f);
-    constexpr uint64 exp_mask = static_cast<uint64>(0b11111111111u) << 52;
+    constexpr uint64 exp_mask = static_cast<uint64>(0b111'1111'1111u) << 52;
     constexpr uint64 mantissa_mask = ~static_cast<uint64>(0u) >> 12;
     return ((bits & exp_mask) == exp_mask) && ((bits & mantissa_mask) != 0ull);
 }
 
+KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float32 f) noexcept
+{
+    // 指数位不全为1
+    const uint32 bits = std::bit_cast<uint32>(f);
+    constexpr uint32 exp_mask = static_cast<uint32>(0b1111'1111u) << 23;
+    return (bits & exp_mask) != exp_mask;
+}
+
+KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float64 f) noexcept
+{
+    const uint64 bits = std::bit_cast<uint64>(f);
+    constexpr uint64 exp_mask = static_cast<uint64>(0b111'1111'1111u) << 52;
+    return (bits & exp_mask) != exp_mask;
+}
+
 template<typename S, int index>
-KSIMD_HEADER_GLOBAL_CONSTEXPR int inverse_bit_index = detail::inverse_bit_index_impl<S, index>();
+KSIMD_HEADER_GLOBAL_CONSTEXPR int InverseBitIndex = detail::inverse_bit_index_impl<S, index>();
 
 /**
- * @return 0b11111111...
+ * @brief 0b11111111...
  */
 template<is_scalar_type S>
-KSIMD_HEADER_GLOBAL_CONSTEXPR S one_block = std::bit_cast<S>(~static_cast<detail::uint_from_bytes_t<sizeof(S)>>(0));
+KSIMD_HEADER_GLOBAL_CONSTEXPR S OneBlock = std::bit_cast<S>(~static_cast<detail::uint_from_bytes_t<sizeof(S)>>(0));
 
 /**
- * @return 0b00000000...
+ * @brief 0b00000000...
  */
 template<is_scalar_type S>
-KSIMD_HEADER_GLOBAL_CONSTEXPR S zero_block = static_cast<S>(0);
+KSIMD_HEADER_GLOBAL_CONSTEXPR S ZeroBlock = static_cast<S>(0);
 
 /**
- * @return 0b10000000...
+ * @brief 0b10000000...
  */
 template<is_scalar_type S>
-KSIMD_HEADER_GLOBAL_CONSTEXPR S sign_bit_mask = std::bit_cast<S>(
-    static_cast<detail::uint_from_bytes_t<sizeof(S)>>(1) << static_cast<detail::uint_from_bytes_t<sizeof(S)>>(inverse_bit_index<S, 0>)
+KSIMD_HEADER_GLOBAL_CONSTEXPR S SignBitMask = std::bit_cast<S>(
+    static_cast<detail::uint_from_bytes_t<sizeof(S)>>(1) << static_cast<detail::uint_from_bytes_t<sizeof(S)>>(InverseBitIndex<S, 0>)
 );
 
 /**
- * @return 0b01111111...
+ * @brief 0b01111111...
  */
 template<is_scalar_type S>
-KSIMD_HEADER_GLOBAL_CONSTEXPR S sign_bit_clear_mask = std::bit_cast<S>(one_block<same_bits_uint_t<S>> >> static_cast<same_bits_uint_t<S>>(1));
+KSIMD_HEADER_GLOBAL_CONSTEXPR S SignBitClearMask = std::bit_cast<S>(OneBlock<same_bits_uint_t<S>> >> static_cast<same_bits_uint_t<S>>(1));
 
+/**
+ * @brief 指数位全为1，其余位全为0
+ */
+template<is_scalar_floating_point F>
+KSIMD_HEADER_GLOBAL_CONSTEXPR F ExpMask = detail::exp_mask<F>();
+
+template<is_scalar_floating_point F>
+KSIMD_HEADER_GLOBAL_CONSTEXPR F Inf = std::numeric_limits<F>::infinity();
+
+template<is_scalar_floating_point F>
+KSIMD_HEADER_GLOBAL_CONSTEXPR F QNaN = std::numeric_limits<F>::quiet_NaN();
 
 KSIMD_NAMESPACE_END
