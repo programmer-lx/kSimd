@@ -1047,9 +1047,12 @@ namespace KSIMD_DYN_INSTRUCTION
             op::store(test, op::min(op::set(inf<TYPE_T>), op::set(TYPE_T(100))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(100));
 
-            // NaN 行为：通常返回非 NaN 的那个 (符合 IEEE 754-2019 或硬件特定实现)
-            // 这里建议验证至少不会崩溃，具体行为取决于 op 的实现
+            // NaN 行为
             op::store(test, op::min(op::set(qNaN<TYPE_T>), op::set(TYPE_T(5))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(5));
+
+            op::store(test, op::min(op::set(TYPE_T(5)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
 }
@@ -1076,6 +1079,13 @@ namespace KSIMD_DYN_INSTRUCTION
             // Max(-Inf, -100) = -100
             op::store(test, op::max(op::set(-inf<TYPE_T>), op::set(TYPE_T(-100))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(-100));
+
+            // NaN
+            op::store(test, op::max(op::set(qNaN<TYPE_T>), op::set(TYPE_T(-100))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(-100));
+
+            op::store(test, op::max(op::set(TYPE_T(-100)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
 }
@@ -1201,6 +1211,13 @@ namespace KSIMD_DYN_INSTRUCTION
             // -Inf < Inf (True)
             op::test_store_mask(test, op::less(op::set(-inf<TYPE_T>), op::set(inf<TYPE_T>)));
             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<TYPE_T>));
+
+            // NaN (False)
+            op::test_store_mask(test, op::less(op::set(-inf<TYPE_T>), op::set(qNaN<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
+
+            op::test_store_mask(test, op::less(op::set(qNaN<TYPE_T>), op::set(-inf<TYPE_T>)));
+            EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<TYPE_T>));
         }
     }
 
