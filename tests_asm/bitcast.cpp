@@ -9,8 +9,8 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void kernel_impl() noexcept
     {
-        using f32 = KSIMD_DYN_SIMD_OP(float);
-        using f64 = KSIMD_DYN_SIMD_OP(double);
+        using f32 = KSIMD_DYN_OP(float);
+        using f64 = KSIMD_DYN_OP(double);
         using type = KSIMD_DYN_TYPE_OP();
         
         // -------------------- self -> self --------------------
