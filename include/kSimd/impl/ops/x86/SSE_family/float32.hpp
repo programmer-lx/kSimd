@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility> // std::index_sequence
-
 #include "types.hpp"
 #include "kSimd/impl/ops/BaseOp.hpp"
 #include "kSimd/impl/utils.hpp"
@@ -142,52 +140,130 @@ struct BaseOp<SimdInstruction::SSE, float32>
 
     KSIMD_OP_SIG_SSE_STATIC(batch_t, mask_load, (const float32* mem, mask_t mask))
     {
-        uint32 m = _mm_movemask_ps(mask.m); // 仅 [3:0] 有效
-        alignas(BatchAlignment) float32 tmp[Lanes]{};
+        __m128 lane0 = _mm_setzero_ps();
+        __m128 lane1 = _mm_setzero_ps();
+        __m128 lane2 = _mm_setzero_ps();
+        __m128 lane3 = _mm_setzero_ps();
 
-        [&]<size_t... I>(std::index_sequence<I...>)
+        const uint32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
+
+        if (m & 0b0001)
         {
-            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0f), ...);
-        }(std::make_index_sequence<Lanes>{});
+            // [ 0, 0, 0, mem[0] ]
+            lane0 = _mm_load_ss(mem);
+        }
+        if (m & 0b0010)
+        {
+            // [ 0, 0, 0, mem[1] ]
+            lane1 = _mm_load_ss(mem + 1);
+        }
+        if (m & 0b0100)
+        {
+            // [ 0, 0, 0, mem[2] ]
+            lane2 = _mm_load_ss(mem + 2);
+        }
+        if (m & 0b1000)
+        {
+            // [ 0, 0, 0, mem[3] ]
+            lane3 = _mm_load_ss(mem + 3);
+        }
 
-        return { _mm_load_ps(tmp) };
+        // lane0 + lane1 = [ 0, 0, mem[1], mem[0] ]
+        __m128 lane01 = _mm_unpacklo_ps(lane0, lane1);
+
+        // lane2 + lane3 = [ 0, 0, mem[3], mem[2] ]
+        __m128 lane23 = _mm_unpacklo_ps(lane2, lane3);
+
+        return { _mm_movelh_ps(lane01, lane23) };
     }
 
     KSIMD_OP_SIG_SSE_STATIC(batch_t, mask_loadu, (const float32* mem, mask_t mask))
     {
-        uint32 m = _mm_movemask_ps(mask.m); // 仅 [3:0] 有效
-        alignas(BatchAlignment) float32 tmp[Lanes]{};
+        __m128 lane0 = _mm_setzero_ps();
+        __m128 lane1 = _mm_setzero_ps();
+        __m128 lane2 = _mm_setzero_ps();
+        __m128 lane3 = _mm_setzero_ps();
 
-        [&]<size_t... I>(std::index_sequence<I...>)
+        const uint32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
+
+        if (m & 0b0001)
         {
-            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0f), ...);
-        }(std::make_index_sequence<Lanes>{});
+            // [ 0, 0, 0, mem[0] ]
+            lane0 = _mm_load_ss(mem);
+        }
+        if (m & 0b0010)
+        {
+            // [ 0, 0, 0, mem[1] ]
+            lane1 = _mm_load_ss(mem + 1);
+        }
+        if (m & 0b0100)
+        {
+            // [ 0, 0, 0, mem[2] ]
+            lane2 = _mm_load_ss(mem + 2);
+        }
+        if (m & 0b1000)
+        {
+            // [ 0, 0, 0, mem[3] ]
+            lane3 = _mm_load_ss(mem + 3);
+        }
 
-        return { _mm_load_ps(tmp) };
+        // lane0 + lane1 = [ 0, 0, mem[1], mem[0] ]
+        __m128 lane01 = _mm_unpacklo_ps(lane0, lane1);
+
+        // lane2 + lane3 = [ 0, 0, mem[3], mem[2] ]
+        __m128 lane23 = _mm_unpacklo_ps(lane2, lane3);
+
+        return { _mm_movelh_ps(lane01, lane23) };
     }
 
     KSIMD_OP_SIG_SSE_STATIC(void, mask_store, (float32* mem, batch_t v, mask_t mask))
     {
-        alignas(BatchAlignment) float32 tmp[Lanes]{};
-        _mm_store_ps(tmp, v.v);
-
         const uint32_t m = _mm_movemask_ps(mask.m); // [3:0]有效
-        [&]<size_t... I>(std::index_sequence<I...>)
+
+        if (m & 0b0001)
         {
-            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
-        }(std::make_index_sequence<Lanes>{});
+            _mm_store_ss(mem, v.v);
+        }
+        if (m & 0b0010)
+        {
+            __m128 tmp = _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(1, 1, 1, 1));
+            _mm_store_ss(mem + 1, tmp);
+        }
+        if (m & 0b0100)
+        {
+            __m128 tmp = _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(2, 2, 2, 2));
+            _mm_store_ss(mem + 2, tmp);
+        }
+        if (m & 0b1000)
+        {
+            __m128 tmp = _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(3, 3, 3, 3));
+            _mm_store_ss(mem + 3, tmp);
+        }
     }
 
     KSIMD_OP_SIG_SSE_STATIC(void, mask_storeu, (float32* mem, batch_t v, mask_t mask))
     {
-        alignas(BatchAlignment) float32 tmp[Lanes]{};
-        _mm_store_ps(tmp, v.v);
-
         const uint32_t m = _mm_movemask_ps(mask.m); // [3:0]有效
-        [&]<size_t... I>(std::index_sequence<I...>)
+
+        if (m & 0b0001)
         {
-            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
-        }(std::make_index_sequence<Lanes>{});
+            _mm_store_ss(mem, v.v);
+        }
+        if (m & 0b0010)
+        {
+            __m128 tmp = _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(1, 1, 1, 1));
+            _mm_store_ss(mem + 1, tmp);
+        }
+        if (m & 0b0100)
+        {
+            __m128 tmp = _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(2, 2, 2, 2));
+            _mm_store_ss(mem + 2, tmp);
+        }
+        if (m & 0b1000)
+        {
+            __m128 tmp = _mm_shuffle_ps(v.v, v.v, _MM_SHUFFLE(3, 3, 3, 3));
+            _mm_store_ss(mem + 3, tmp);
+        }
     }
 
     KSIMD_OP_SIG_SSE_STATIC(batch_t, undefined, ())
