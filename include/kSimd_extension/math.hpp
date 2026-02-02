@@ -1,7 +1,7 @@
 // do not use this, let it dispatch
 // #pragma once
 
-// Elementary Math Functions
+// Elementary Math
 
 #include <cmath>
 #include <utility>
@@ -11,8 +11,15 @@
 #define KSIMD_EXT_MATH_INLINE_API(ret)   KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE ret KSIMD_CALL_CONV
 #define KSIMD_EXT_MATH_FLATTEN_API(ret)  KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN ret KSIMD_CALL_CONV
 
-namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
+namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
 {
+#pragma region ------------- constants -------------------------
+
+
+
+#pragma endregion ------------- constants -------------------------
+
+
 #pragma region ------------- any types -------------------------
 
     template<is_batch_type batch_t>

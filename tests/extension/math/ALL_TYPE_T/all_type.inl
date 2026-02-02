@@ -23,7 +23,7 @@ namespace KSIMD_DYN_INSTRUCTION
         #define run_test(va, vb, vc) \
         { \
             for (size_t i = 0; i < Lanes; ++i) { a[i] = va; b[i] = vb; c[i] = vc; } \
-            op::store(r, ext::math::clamp(op::load(a), op::load(b), op::load(c))); \
+            op::store(r, ext::vmath::clamp(op::load(a), op::load(b), op::load(c))); \
         }
 
         // --- 1. Inf 测试 ---

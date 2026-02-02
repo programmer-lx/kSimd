@@ -27,7 +27,7 @@ namespace KSIMD_DYN_INSTRUCTION
             for (size_t i = 0; i < Lanes; ++i) {
                 in_data[i] = val + FLOAT_T(i) * FLOAT_T(0.01);
             }
-            op::store(out_data, ext::math::sin(op::load(in_data)));
+            op::store(out_data, ext::vmath::sin(op::load(in_data)));
             for (size_t i = 0; i < Lanes; ++i) {
                 if (std::isnan(in_data[i]) || std::isinf(in_data[i])) { // 特殊值处理
                     EXPECT_TRUE(std::isnan(out_data[i]));
@@ -42,7 +42,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) {
             in_data[i] = cases[i % 5];
         }
-        op::store(out_data, ext::math::sin(op::load(in_data)));
+        op::store(out_data, ext::vmath::sin(op::load(in_data)));
         for (size_t i = 0; i < Lanes; ++i) {
             if (std::isnan(in_data[i]) || std::isinf(in_data[i])) { // 指数全 1 判定
                 EXPECT_TRUE(std::isnan(out_data[i]));
@@ -73,7 +73,7 @@ namespace KSIMD_DYN_INSTRUCTION
         #define run_lerp_test(va, vb, vt) \
             do { \
                 for (size_t i = 0; i < Lanes; ++i) { aa[i] = va; bb[i] = vb; tt[i] = vt; } \
-                op::store(rr, ext::math::lerp(op::load(aa), op::load(bb), op::load(tt))); \
+                op::store(rr, ext::vmath::lerp(op::load(aa), op::load(bb), op::load(tt))); \
             } while (0)
 
         // 基础插值与外插
