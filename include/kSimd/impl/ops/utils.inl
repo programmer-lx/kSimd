@@ -4,7 +4,6 @@
 
 #include "../common_macros.hpp"
 #include "SimdTraits.inl"
-#include "utils.inl"
 
 KSIMD_NAMESPACE_BEGIN
 
