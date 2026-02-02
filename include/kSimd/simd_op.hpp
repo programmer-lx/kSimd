@@ -24,6 +24,4 @@
     #include "impl/ops/x86/AVX_family/float64.hpp"
 #endif
 
-#include "impl/using_operators.hpp"
-
 // clang-format on

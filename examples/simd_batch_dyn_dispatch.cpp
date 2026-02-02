@@ -28,7 +28,6 @@ namespace MyNamespace
             const size_t                 size
         ) noexcept
         {
-            KSIMD_ENABLE_OPERATORS();
             namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
             using f64 = KSIMD_DYN_OP(double);
 
