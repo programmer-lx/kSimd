@@ -151,52 +151,36 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, mask_load, (const float64* mem, mask_t mask))
     {
-        uint32 m = _mm_movemask_pd(mask.m); // 仅 [3:0] 有效
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
+        __m128d result = _mm_setzero_pd();
 
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0), ...);
-        }(std::make_index_sequence<Lanes>{});
-
-        return { _mm_load_pd(tmp) };
+        const uint32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
+        if (m & 0b01) result = _mm_load_sd(mem);
+        if (m & 0b10) result = _mm_loadh_pd(result, mem + 1);
+        return { result };
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, mask_loadu, (const float64* mem, mask_t mask))
     {
-        uint32 m = _mm_movemask_pd(mask.m); // 仅 [3:0] 有效
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
+        __m128d result = _mm_setzero_pd();
 
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ((tmp[I] = (m & (1 << I)) ? mem[I] : 0.0), ...);
-        }(std::make_index_sequence<Lanes>{});
-
-        return { _mm_load_pd(tmp) };
+        const uint32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
+        if (m & 0b01) result = _mm_load_sd(mem);
+        if (m & 0b10) result = _mm_loadh_pd(result, mem + 1);
+        return { result };
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(void, mask_store, (float64* mem, batch_t v, mask_t mask))
     {
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
-        _mm_store_pd(tmp, v.v);
-
         const uint32_t m = _mm_movemask_pd(mask.m); // [1:0]有效
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
-        }(std::make_index_sequence<Lanes>{});
+        if (m & 0b01) _mm_store_sd(mem, v.v);
+        if (m & 0b10) _mm_storeh_pd(mem + 1, v.v);
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(void, mask_storeu, (float64* mem, batch_t v, mask_t mask))
     {
-        alignas(BatchAlignment) float64 tmp[Lanes]{};
-        _mm_store_pd(tmp, v.v);
-
         const uint32_t m = _mm_movemask_pd(mask.m); // [1:0]有效
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ( ((m & (1 << I)) ? (mem[I] = tmp[I], void()) : void()), ... );
-        }(std::make_index_sequence<Lanes>{});
+        if (m & 0b01) _mm_store_sd(mem, v.v);
+        if (m & 0b10) _mm_storeh_pd(mem + 1, v.v);
     }
 
     KSIMD_OP_SIG_SSE2_STATIC(batch_t, undefined, ())
