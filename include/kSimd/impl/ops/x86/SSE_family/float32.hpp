@@ -3,7 +3,9 @@
 #include <utility> // std::index_sequence
 
 #include "types.hpp"
-#include "kSimd/impl/ops/SimdOp.hpp"
+#include "kSimd/impl/ops/BaseOp.hpp"
+#include "kSimd/impl/utils.hpp"
+#include "kSimd/impl/func_attr.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -96,7 +98,7 @@ namespace SSE_family::SSE
 }
 
 template<>
-struct SimdOp<SimdInstruction::SSE, float32>
+struct BaseOp<SimdInstruction::SSE, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float32)
 
@@ -374,13 +376,13 @@ struct SimdOp<SimdInstruction::SSE, float32>
 };
 
 template<>
-struct SimdOp<SimdInstruction::SSE2, float32> : SimdOp<SimdInstruction::SSE, float32>
+struct BaseOp<SimdInstruction::SSE2, float32> : BaseOp<SimdInstruction::SSE, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE2, float32)
 };
 
 template<>
-struct SimdOp<SimdInstruction::SSE3, float32> : SimdOp<SimdInstruction::SSE2, float32>
+struct BaseOp<SimdInstruction::SSE3, float32> : BaseOp<SimdInstruction::SSE2, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float32)
 
@@ -398,7 +400,7 @@ struct SimdOp<SimdInstruction::SSE3, float32> : SimdOp<SimdInstruction::SSE2, fl
 };
 
 template<>
-struct SimdOp<SimdInstruction::SSE4_1, float32> : SimdOp<SimdInstruction::SSE3, float32>
+struct BaseOp<SimdInstruction::SSE4_1, float32> : BaseOp<SimdInstruction::SSE3, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE4_1, float32)
 

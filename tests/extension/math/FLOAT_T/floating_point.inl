@@ -5,7 +5,7 @@
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 
 // 下面这两个文件一定要放在dispatch_this_file.hpp之后
-#include <kSimd/simd_op.hpp>
+#include <kSimd/base_op.hpp>
 #include <kSimd_extension/math.hpp>
 
 
@@ -15,35 +15,41 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sin() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
         alignas(ALIGNMENT) FLOAT_T in_data[Lanes];
         alignas(ALIGNMENT) FLOAT_T out_data[Lanes];
 
-        auto verify = [&](std::function<FLOAT_T(size_t)> generator) {
-            for (size_t i = 0; i < Lanes; ++i) in_data[i] = generator(i);
+        // 1. 常规步进测试 (-10.0 to 10.0)
+        for (FLOAT_T val = FLOAT_T(-10); val < FLOAT_T(10); val += FLOAT_T(0.5)) {
+            for (size_t i = 0; i < Lanes; ++i) {
+                in_data[i] = val + FLOAT_T(i) * FLOAT_T(0.01);
+            }
             op::store(out_data, ext::math::sin(op::load(in_data)));
             for (size_t i = 0; i < Lanes; ++i) {
-                if (std::isnan(in_data[i]) || std::isinf(in_data[i])) {
-                    EXPECT_TRUE(std::isnan(out_data[i])); // sin(inf) 或 sin(nan) 均为 NaN
+                if (std::isnan(in_data[i]) || std::isinf(in_data[i])) { // 特殊值处理
+                    EXPECT_TRUE(std::isnan(out_data[i]));
                 } else {
                     EXPECT_NEAR(out_data[i], std::sin(in_data[i]), std::numeric_limits<FLOAT_T>::epsilon() * 100);
                 }
             }
-        };
-
-        // 1. 常规步进测试 (-10.0 to 10.0)
-        for (FLOAT_T val = FLOAT_T(-10); val < FLOAT_T(10); val += FLOAT_T(0.5)) {
-            verify([&](size_t i) { return val + FLOAT_T(i) * FLOAT_T(0.01); });
         }
 
-        // 2. 特殊值测试
-        verify([](size_t i) {
-            const FLOAT_T cases[] = { FLOAT_T(0), FLOAT_T(-0.0), qNaN<FLOAT_T>, inf<FLOAT_T>, -inf<FLOAT_T> };
-            return cases[i % 5];
-        });
+        // 2. 特殊值点对点测试
+        const FLOAT_T cases[] = { FLOAT_T(0), FLOAT_T(-0.0), qNaN<FLOAT_T>, inf<FLOAT_T>, -inf<FLOAT_T> };
+        for (size_t i = 0; i < Lanes; ++i) {
+            in_data[i] = cases[i % 5];
+        }
+        op::store(out_data, ext::math::sin(op::load(in_data)));
+        for (size_t i = 0; i < Lanes; ++i) {
+            if (std::isnan(in_data[i]) || std::isinf(in_data[i])) { // 指数全 1 判定
+                EXPECT_TRUE(std::isnan(out_data[i]));
+            } else {
+                EXPECT_EQ(out_data[i], std::sin(in_data[i]));
+            }
+        }
     }
 }
 
@@ -57,40 +63,42 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void lerp() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
         alignas(ALIGNMENT) FLOAT_T aa[Lanes], bb[Lanes], tt[Lanes], rr[Lanes];
 
-        auto verify_lerp = [&](FLOAT_T va, FLOAT_T vb, FLOAT_T vt, std::optional<FLOAT_T> expected = std::nullopt) {
-            for (size_t i = 0; i < Lanes; ++i) { aa[i] = va; bb[i] = vb; tt[i] = vt; }
-            op::store(rr, ext::math::lerp(op::load(aa), op::load(bb), op::load(tt)));
-            
-            for (size_t i = 0; i < Lanes; ++i) {
-                if (std::isnan(va) || std::isnan(vb) || std::isnan(vt)) {
-                    EXPECT_TRUE(std::isnan(rr[i]));
-                } else if (expected) {
-                    EXPECT_NEAR(rr[i], *expected, std::numeric_limits<FLOAT_T>::epsilon() * 10);
-                }
-            }
-        };
+        // 1. 基础与边界值测试
+        #define run_lerp_test(va, vb, vt) \
+            do { \
+                for (size_t i = 0; i < Lanes; ++i) { aa[i] = va; bb[i] = vb; tt[i] = vt; } \
+                op::store(rr, ext::math::lerp(op::load(aa), op::load(bb), op::load(tt))); \
+            } while (0)
 
-        // 1. 基础插值 (t=0.6, a=0, b=2 -> 1.2)
-        verify_lerp(FLOAT_T(0), FLOAT_T(2), FLOAT_T(0.6), FLOAT_T(1.2));
+        // 基础插值与外插
+        run_lerp_test(0, 2, 0.6f);
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(rr[i], 1.2f, std::numeric_limits<FLOAT_T>::epsilon() * 10);
 
-        // 2. 边界 t=0 和 t=1
-        verify_lerp(FLOAT_T(10), FLOAT_T(20), FLOAT_T(0), FLOAT_T(10));
-        verify_lerp(FLOAT_T(10), FLOAT_T(20), FLOAT_T(1), FLOAT_T(20));
+        run_lerp_test(10, 20, 0);
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(rr[i], 10);
 
-        // 3. 外插 (t > 1 或 t < 0)
-        verify_lerp(FLOAT_T(0), FLOAT_T(2), FLOAT_T(2), FLOAT_T(4));
-        verify_lerp(FLOAT_T(0), FLOAT_T(2), FLOAT_T(-1), FLOAT_T(-2));
+        run_lerp_test(10, 20, 1);
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(rr[i], 20);
 
-        // 4. 特殊值测试 (NaN & Inf)
-        verify_lerp(qNaN<FLOAT_T>, FLOAT_T(1), FLOAT_T(0.5)); // 结果应为 NaN
-        verify_lerp(FLOAT_T(0), inf<FLOAT_T>, FLOAT_T(0.5), inf<FLOAT_T>); 
-        verify_lerp(FLOAT_T(0), FLOAT_T(1), inf<FLOAT_T>, inf<FLOAT_T>);
+        // 2. 特殊值测试
+        // Case: NaN 参与运算 (结果必为 NaN)
+        run_lerp_test(qNaN<FLOAT_T>, 1.0f, 0.5f); // 阶码全 1, 尾数 != 0
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(rr[i]));
+
+        // Case: Inf 参与运算
+        run_lerp_test(0, inf<FLOAT_T>, 0.5f); // 阶码全 1, 尾数 == 0
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(rr[i]));
+
+        run_lerp_test(0, 1.0f, inf<FLOAT_T>);
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(rr[i]));
+
+        #undef run_lerp_test
     }
 }
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "types.hpp"
-#include "kSimd/impl/ops/SimdOp.hpp"
+#include "kSimd/impl/ops/BaseOp.hpp"
+#include "kSimd/impl/utils.hpp"
+#include "kSimd/impl/func_attr.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -96,8 +98,8 @@ namespace SSE_family::SSE2_up
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
 template<>
-struct SimdOp<SimdInstruction::SSE, float64>
-    : detail::SimdOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
+struct BaseOp<SimdInstruction::SSE, float64>
+    : detail::BaseOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float64)
 };
@@ -105,7 +107,7 @@ struct SimdOp<SimdInstruction::SSE, float64>
 
 
 template<>
-struct SimdOp<SimdInstruction::SSE2, float64>
+struct BaseOp<SimdInstruction::SSE2, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE2, float64)
     
@@ -377,7 +379,7 @@ struct SimdOp<SimdInstruction::SSE2, float64>
 };
 
 template<>
-struct SimdOp<SimdInstruction::SSE3, float64> : SimdOp<SimdInstruction::SSE2, float64>
+struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float64)
 
@@ -392,7 +394,7 @@ struct SimdOp<SimdInstruction::SSE3, float64> : SimdOp<SimdInstruction::SSE2, fl
 };
 
 template<>
-struct SimdOp<SimdInstruction::SSE4_1, float64> : SimdOp<SimdInstruction::SSE3, float64>
+struct BaseOp<SimdInstruction::SSE4_1, float64> : BaseOp<SimdInstruction::SSE3, float64>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE4_1, float64)
 

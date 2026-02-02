@@ -2,7 +2,7 @@
 #define KSIMD_DISPATCH_THIS_FILE "math.cpp"
 #include <kSimd/dispatch_this_file.hpp>
 
-#include <kSimd/simd_op.hpp>
+#include <kSimd/base_op.hpp>
 #include <kSimd_extension/math.hpp>
 
 namespace MyNamespace
@@ -16,7 +16,7 @@ namespace MyNamespace
         ) noexcept
         {
             namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
-            using f64 = KSIMD_DYN_OP(double);
+            using f64 = KSIMD_DYN_BASE_OP(double);
 
             const f64::batch_t c10 = f64::set(0.123);
             const f64::batch_t c9 = f64::set(-0.456);

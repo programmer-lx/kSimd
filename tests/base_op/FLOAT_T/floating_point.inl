@@ -3,9 +3,9 @@
 #include "../../test.hpp"
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "simd_op/FLOAT_T/floating_point.inl" // this file
+#define KSIMD_DISPATCH_THIS_FILE "base_op/FLOAT_T/floating_point.inl" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/simd_op.hpp>
+#include <kSimd/base_op.hpp>
 
 
 // ------------------------------------------ one_div ------------------------------------------
@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void one_div() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -42,7 +42,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sqrt() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -65,7 +65,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rsqrt() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -89,7 +89,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_greater() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -113,7 +113,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_greater_equal() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -137,7 +137,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_less() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -161,7 +161,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_less_equal() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
@@ -185,13 +185,11 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void any_NaN() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        auto run_any = [&](FLOAT_T a, FLOAT_T b) {
-            op::test_store_mask(test, op::any_NaN(op::set(a), op::set(b)));
-        };
+        #define run_any(a, b) do { op::test_store_mask(test, op::any_NaN(op::set(a), op::set(b))); } while (0)
 
         // 1. 正常数值 -> False
         run_any(FLOAT_T(1.2), FLOAT_T(3.4));
@@ -216,6 +214,8 @@ namespace KSIMD_DYN_INSTRUCTION
         // 4. 混合 NaN 与 Inf -> True
         run_any(qNaN<FLOAT_T>, inf<FLOAT_T>);
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+
+        #undef run_any
     }
 }
 
@@ -229,13 +229,11 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_NaN() noexcept
     {
-        using op = KSIMD_DYN_OP(FLOAT_T);
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        auto run_not = [&](FLOAT_T a, FLOAT_T b) {
-            op::test_store_mask(test, op::not_NaN(op::set(a), op::set(b)));
-        };
+        #define run_not(a, b) do { op::test_store_mask(test, op::not_NaN(op::set(a), op::set(b))); } while (0)
 
         // 1. 两者皆为正常数值 -> True
         run_not(FLOAT_T(0), FLOAT_T(-0.0));
@@ -258,6 +256,8 @@ namespace KSIMD_DYN_INSTRUCTION
         // 4. 两者皆为 NaN -> False
         run_not(qNaN<FLOAT_T>, qNaN<FLOAT_T>);
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+
+        #undef run_not
     }
 }
 

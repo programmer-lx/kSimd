@@ -1,7 +1,7 @@
 #include <vector>
 
 #include <kSimd/aligned_allocate.hpp>
-#include <kSimd/simd_op.hpp>
+#include <kSimd/base_op.hpp>
 
 #include "test.hpp"
 
@@ -12,7 +12,7 @@ TEST(aligned_allocate, alignment_test)
 
     for (int i = 1; i < 20; ++i)
     {
-        float* mem = ksimd::aligned_allocate<float*>(i * sizeof(float) * 8, alignment);
+        float* mem = (float*)ksimd::aligned_allocate(i * sizeof(float) * 8, alignment);
 
         EXPECT_TRUE(reinterpret_cast<uintptr_t>(mem) % alignment == 0);
 

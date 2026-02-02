@@ -1,5 +1,7 @@
 #pragma once
 
+// 该文件编写所有的SIMD类型相关的逻辑
+
 #include <cstdint>
 
 #include <limits>

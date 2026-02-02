@@ -1,5 +1,7 @@
 #pragma once
 
+// 该头文件编写函数分发表相关逻辑
+
 #include "platform.hpp"
 
 KSIMD_NAMESPACE_BEGIN

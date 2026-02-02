@@ -27,13 +27,6 @@ KSIMD_HEADER_GLOBAL void* aligned_allocate(size_t bytes, size_t alignment) noexc
 #endif
 }
 
-template<typename T>
-    requires std::is_pointer_v<T>
-T aligned_allocate(size_t bytes, size_t alignment) noexcept
-{
-    return static_cast<T>(aligned_allocate(bytes, alignment));
-}
-
 KSIMD_HEADER_GLOBAL void aligned_free(void* mem) noexcept
 {
 #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)

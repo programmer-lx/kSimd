@@ -5,11 +5,11 @@
 #include <pmmintrin.h> // SSE3
 #include <smmintrin.h> // SSE4.1
 
-#include "../../../dispatch.hpp"
-
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-    #include "../../Scalar/base.hpp"
+    #include "kSimd/impl/ops/Scalar/base.hpp"
 #endif
+
+#include "kSimd/impl/traits.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "impl/dispatch.hpp"
+#include "impl/func_attr.hpp"
 
 #if !defined(KSIMD_DISPATCH_THIS_FILE)
     #error "has not defined KSIMD_DISPATCH_THIS_FILE"

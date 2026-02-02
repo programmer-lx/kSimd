@@ -1,7 +1,7 @@
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "bitcast.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp>
-#include <kSimd/simd_op.hpp>
+#include <kSimd/base_op.hpp>
 #include <kSimd/type_op.hpp>
 
 namespace KSIMD_DYN_INSTRUCTION
@@ -9,8 +9,8 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void kernel_impl() noexcept
     {
-        using f32 = KSIMD_DYN_OP(float);
-        using f64 = KSIMD_DYN_OP(double);
+        using f32 = KSIMD_DYN_BASE_OP(float);
+        using f64 = KSIMD_DYN_BASE_OP(double);
         using type = KSIMD_DYN_TYPE_OP();
         
         // -------------------- self -> self --------------------

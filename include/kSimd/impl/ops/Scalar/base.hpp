@@ -8,10 +8,10 @@
 #include <bit> // std::bit_cast
 #include <utility> // std::index_sequence
 
-#include "types.hpp"
-#include "kSimd/impl/ops/SimdOp.hpp"
 #include "kSimd/impl/func_attr.hpp"
+#include "kSimd/impl/ops/BaseOp.hpp"
 #include "kSimd/impl/utils.hpp"
+#include "types.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -179,7 +179,7 @@ namespace detail
      * @brief 所有数据类型都有的函数
      */
     template<SimdInstruction Instruction, is_scalar_type Scalar>
-    struct SimdOp_Scalar_Base
+    struct BaseOp_Scalar_Base
     {
         KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, Scalar)
 
@@ -668,7 +668,7 @@ namespace detail
      * @brief 只有 float32, float64 数据类型才有的函数
      */
     template<SimdInstruction Instruction, is_scalar_floating_point FloatingPoint>
-    struct SimdOp_Scalar_FloatingPoint_Base : SimdOp_Scalar_Base<Instruction, FloatingPoint>
+    struct BaseOp_Scalar_FloatingPoint_Base : BaseOp_Scalar_Base<Instruction, FloatingPoint>
     {
         KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, FloatingPoint)
 

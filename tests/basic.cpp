@@ -6,7 +6,7 @@
 #define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp>
 
-#include <kSimd/simd_op.hpp>
+#include <kSimd/base_op.hpp>
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
@@ -38,7 +38,7 @@ TEST(dyn_dispatch, float32)
         using batch_t = trait::batch_t;
         EXPECT_TRUE(alignof(batch_t) == alignof(float32));
 
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::Scalar, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::Scalar, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::Scalar);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -48,7 +48,7 @@ TEST(dyn_dispatch, float32)
     // sse
     {
         using trait = SimdTraits<SimdInstruction::SSE, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -58,7 +58,7 @@ TEST(dyn_dispatch, float32)
     // sse2
     {
         using trait = SimdTraits<SimdInstruction::SSE2, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE2, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE2, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE2);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -68,7 +68,7 @@ TEST(dyn_dispatch, float32)
     // sse3
     {
         using trait = SimdTraits<SimdInstruction::SSE3, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE3, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE3, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE3);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -78,7 +78,7 @@ TEST(dyn_dispatch, float32)
     // sse4.1
     {
         using trait = SimdTraits<SimdInstruction::SSE4_1, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE4_1, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE4_1, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE4_1);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -89,7 +89,7 @@ TEST(dyn_dispatch, float32)
     // avx
     {
         using trait = SimdTraits<SimdInstruction::AVX, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::AVX, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::AVX, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::AVX);
         EXPECT_TRUE(trait::BatchSize == 32);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -99,7 +99,7 @@ TEST(dyn_dispatch, float32)
     // avx2
     {
         using trait = SimdTraits<SimdInstruction::AVX2, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::AVX2, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::AVX2, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::AVX2);
         EXPECT_TRUE(trait::BatchSize == 32);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -109,7 +109,7 @@ TEST(dyn_dispatch, float32)
     // avx2+fma3
     {
         using trait = SimdTraits<SimdInstruction::AVX2_FMA3_F16C, float32>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::AVX2_FMA3_F16C, float32>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::AVX2_FMA3_F16C);
         EXPECT_TRUE(trait::BatchSize == 32);
         EXPECT_TRUE(trait::ElementSize == 4);
@@ -128,7 +128,7 @@ TEST(dyn_dispatch, float64)
         using batch_t = trait::batch_t;
         EXPECT_TRUE(alignof(batch_t) == alignof(float64));
 
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::Scalar, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::Scalar, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::Scalar);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -138,7 +138,7 @@ TEST(dyn_dispatch, float64)
     // sse
     {
         using trait = SimdTraits<SimdInstruction::SSE, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -148,7 +148,7 @@ TEST(dyn_dispatch, float64)
     // sse2
     {
         using trait = SimdTraits<SimdInstruction::SSE2, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE2, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE2, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE2);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -158,7 +158,7 @@ TEST(dyn_dispatch, float64)
     // sse3
     {
         using trait = SimdTraits<SimdInstruction::SSE3, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE3, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE3, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE3);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -168,7 +168,7 @@ TEST(dyn_dispatch, float64)
     // sse4.1
     {
         using trait = SimdTraits<SimdInstruction::SSE4_1, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::SSE4_1, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::SSE4_1, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::SSE4_1);
         EXPECT_TRUE(trait::BatchSize == 16);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -179,7 +179,7 @@ TEST(dyn_dispatch, float64)
     // avx
     {
         using trait = SimdTraits<SimdInstruction::AVX, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::AVX, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::AVX, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::AVX);
         EXPECT_TRUE(trait::BatchSize == 32);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -189,7 +189,7 @@ TEST(dyn_dispatch, float64)
     // avx2
     {
         using trait = SimdTraits<SimdInstruction::AVX2, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::AVX2, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::AVX2, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::AVX2);
         EXPECT_TRUE(trait::BatchSize == 32);
         EXPECT_TRUE(trait::ElementSize == 8);
@@ -199,7 +199,7 @@ TEST(dyn_dispatch, float64)
     // avx2+fma3
     {
         using trait = SimdTraits<SimdInstruction::AVX2_FMA3_F16C, float64>;
-        EXPECT_TRUE((std::is_same_v<SimdOp<SimdInstruction::AVX2_FMA3_F16C, float64>::traits, trait>));
+        EXPECT_TRUE((std::is_same_v<BaseOp<SimdInstruction::AVX2_FMA3_F16C, float64>::traits, trait>));
         EXPECT_TRUE(trait::CurrentInstruction == SimdInstruction::AVX2_FMA3_F16C);
         EXPECT_TRUE(trait::BatchSize == 32);
         EXPECT_TRUE(trait::ElementSize == 8);

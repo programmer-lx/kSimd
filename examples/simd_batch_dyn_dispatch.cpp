@@ -22,7 +22,7 @@ namespace MyNamespace
         ) noexcept
         {
             namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
-            using f64 = KSIMD_DYN_OP(double);
+            using f64 = KSIMD_DYN_BASE_OP(double);
 
             // 预设 10 个系数，增加寄存器内的计算压力
             const f64::batch_t c10 = f64::set(0.123);

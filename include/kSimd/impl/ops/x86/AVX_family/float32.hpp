@@ -1,7 +1,8 @@
 #pragma once
 
 #include "types.hpp"
-#include "kSimd/impl/ops/SimdOp.hpp"
+#include "kSimd/impl/ops/BaseOp.hpp"
+#include "kSimd/impl/func_attr.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -94,7 +95,7 @@ namespace AVX_family
 }
 
 template<>
-struct SimdOp<SimdInstruction::AVX, float32>
+struct BaseOp<SimdInstruction::AVX, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float32)
 
@@ -341,14 +342,14 @@ struct SimdOp<SimdInstruction::AVX, float32>
 };
 
 template<>
-struct SimdOp<SimdInstruction::AVX2, float32> : SimdOp<SimdInstruction::AVX, float32>
+struct BaseOp<SimdInstruction::AVX2, float32> : BaseOp<SimdInstruction::AVX, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2, float32)
 };
 
 // AVX2 + FMA指令特化
 template<>
-struct SimdOp<SimdInstruction::AVX2_FMA3_F16C, float32> : SimdOp<SimdInstruction::AVX2, float32>
+struct BaseOp<SimdInstruction::AVX2_FMA3_F16C, float32> : BaseOp<SimdInstruction::AVX2, float32>
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2_FMA3_F16C, float32)
 

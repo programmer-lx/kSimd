@@ -5,8 +5,8 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct SimdOp<SimdInstruction::Scalar, float64>
-    : detail::SimdOp_Scalar_FloatingPoint_Base<SimdInstruction::Scalar, float64>
+struct BaseOp<SimdInstruction::Scalar, float64>
+    : detail::BaseOp_Scalar_FloatingPoint_Base<SimdInstruction::Scalar, float64>
 {
 };
 

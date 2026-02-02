@@ -6,7 +6,7 @@
 #include <cmath>
 #include <utility>
 
-#include "kSimd/simd_op.hpp"
+#include "kSimd/base_op.hpp"
 
 #define KSIMD_EXT_MATH_INLINE_API(ret)   KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE ret KSIMD_CALL_CONV
 #define KSIMD_EXT_MATH_FLATTEN_API(ret)  KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN ret KSIMD_CALL_CONV
@@ -19,7 +19,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) clamp(batch_t v, batch_t min, batch_t max) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_OP(scalar_t);
+        using op = KSIMD_DYN_BASE_OP(scalar_t);
 
         return op::min(max, op::max(v, min));
     }
@@ -33,7 +33,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) lerp(batch_t a, batch_t b, batch_t t) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_OP(scalar_t);
+        using op = KSIMD_DYN_BASE_OP(scalar_t);
 
         // result = (b - a) * t + a
         // mul_add
@@ -44,7 +44,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::math
     KSIMD_EXT_MATH_FLATTEN_API(batch_t) sin(batch_t v) noexcept
     {
         using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_OP(scalar_t);
+        using op = KSIMD_DYN_BASE_OP(scalar_t);
         constexpr SimdInstruction Instruction = op::CurrentInstruction;
         constexpr size_t Lanes = op::Lanes;
 
