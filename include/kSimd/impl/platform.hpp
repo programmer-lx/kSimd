@@ -1,8 +1,15 @@
 #pragma once
 
-#include "common_macros.hpp"
+/*
 
-#include <limits>
+KSIMD_INSTRUCTION_FEATURE 宏:
+1. 根据CPU架构，预定义该CPU可能支持的SIMD指令，比如我定义了 KSIMD_INSTRUCTION_FEATURE_SSE ，代表我假设目标平台支持SSE指令
+2. 函数分发逻辑(分发表的构建、分发索引的选择...)只能依赖 INSTRUCTION_FEATURE 宏，不能依赖任何的 ARCH 宏。
+    这样就可以做到精确的 **指令级别** 的分发，而不是根据平台分发。(比如可以强制注释掉某个 FEATURE 宏，就可以一键禁用某个指令的分发)
+    当然，未来可以添加一些 cmake option，在保证库的基线指令被分发的前提下，让开发者决定额外分发某些指令
+*/
+
+#include "common_macros.hpp"
 
 // compiler
 #if !defined(KSIMD_COMPILER_MSVC) && !defined(KSIMD_COMPILER_GCC) && !defined(KSIMD_COMPILER_CLANG)
@@ -63,7 +70,7 @@
     #define KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY
     // SSE: 只在 x86 32bit 提供SSE分发
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
-        #define KSIMD_INSTRUCTION_FEATURE_SSE 1
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE 1 // 直接跳级到SSE2就行了，注释保留，如果真的有需要分发纯SSE函数，可以启用这段代码
     #endif
 
     // SSE2 及以上
@@ -76,16 +83,16 @@
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
         #endif
 
-        #define KSIMD_INSTRUCTION_FEATURE_SSE3 1
-        #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE3 1
+        // #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1
         #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1
-        #define KSIMD_INSTRUCTION_FEATURE_SSE4_2 1
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE4_2 1
     #endif
 
     // AVX family
     #define KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
-        #define KSIMD_INSTRUCTION_FEATURE_AVX 1
+        // #define KSIMD_INSTRUCTION_FEATURE_AVX 1
         #define KSIMD_INSTRUCTION_FEATURE_F16C 1
         #define KSIMD_INSTRUCTION_FEATURE_FMA3 1
         #define KSIMD_INSTRUCTION_FEATURE_AVX2 1
@@ -94,7 +101,7 @@
     // AVX-512 family
     #define KSIMD_INSTRUCTION_FEATURE_AVX512_FAMILY
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
-        #define KSIMD_INSTRUCTION_FEATURE_AVX512_F 1
+        // #define KSIMD_INSTRUCTION_FEATURE_AVX512_F 1
     #endif
 
 #endif // x86 instructions

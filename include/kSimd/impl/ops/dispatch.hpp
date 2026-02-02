@@ -81,16 +81,17 @@ KSIMD_NAMESPACE_BEGIN
 
 // function table
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
-    /* ------------------------------------- scalar ------------------------------------- */ \
-    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name) \
-    /* ------------------------------------- x86 ------------------------------------- */ \
-    KSIMD_DETAIL_SSE_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_SSE2_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_SSE3_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_AVX_FUNC_IMPL(func_name) \
+    /* ------------------------------------- avx family ------------------------------------- */ \
+    KSIMD_DETAIL_AVX2_FMA3_F16C_FUNC_IMPL(func_name) \
     KSIMD_DETAIL_AVX2_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_AVX2_FMA3_F16C_FUNC_IMPL(func_name)
+    KSIMD_DETAIL_AVX_FUNC_IMPL(func_name) \
+    /* ------------------------------------- sse family ------------------------------------- */ \
+    KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name) \
+    KSIMD_DETAIL_SSE3_FUNC_IMPL(func_name) \
+    KSIMD_DETAIL_SSE2_FUNC_IMPL(func_name) \
+    KSIMD_DETAIL_SSE_FUNC_IMPL(func_name) \
+    /* ------------------------------------- scalar ------------------------------------- */ \
+    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name)
 
 #if !defined(KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY)
     #error "have not defined DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY to cache the simd function pointers"
@@ -101,40 +102,41 @@ KSIMD_NAMESPACE_BEGIN
 namespace detail
 {
     // 这个枚举的值就是函数指针表的索引
+    // 越现代的指令集，排得越靠前，索引越小
     enum class SimdInstructionIndex : int
     {
         Invalid = -1,
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-        Scalar,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-        SSE,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE2)
-        SSE2,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE3)
-        SSE3,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
-        SSE4_1,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX)
-        AVX,
+    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2) && defined(KSIMD_INSTRUCTION_FEATURE_FMA3) && defined(KSIMD_INSTRUCTION_FEATURE_F16C)
+        KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C,
     #endif
 
     #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2)
-        AVX2,
+        KSIMD_DYN_INSTRUCTION_AVX2,
     #endif
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2) && defined(KSIMD_INSTRUCTION_FEATURE_FMA3) && defined(KSIMD_INSTRUCTION_FEATURE_F16C)
-        AVX2_FMA3_F16C,
+    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX)
+        KSIMD_DYN_INSTRUCTION_AVX,
+    #endif
+
+    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
+        KSIMD_DYN_INSTRUCTION_SSE4_1,
+    #endif
+
+    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE3)
+        KSIMD_DYN_INSTRUCTION_SSE3,
+    #endif
+
+    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE2)
+        KSIMD_DYN_INSTRUCTION_SSE2,
+    #endif
+
+    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
+        KSIMD_DYN_INSTRUCTION_SSE,
+    #endif
+
+    #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+        KSIMD_DYN_INSTRUCTION_SCALAR,
     #endif
 
         Num
