@@ -119,99 +119,7 @@ bool array_approximately(T* arr, size_t len, const T2& val, const T3& tolerance)
 }
 
 template<typename T>
-struct type_to_bits;
-
-template<>
-struct type_to_bits<uint8_t>
-{
-    using uint = uint8_t;
-};
-
-template<>
-struct type_to_bits<int8_t>
-{
-    using uint = uint8_t;
-};
-
-template<>
-struct type_to_bits<uint16_t>
-{
-    using uint = uint16_t;
-};
-
-template<>
-struct type_to_bits<int16_t>
-{
-    using uint = uint16_t;
-};
-
-template<>
-struct type_to_bits<uint32_t>
-{
-    using uint = uint32_t;
-};
-
-template<>
-struct type_to_bits<int32_t>
-{
-    using uint = uint32_t;
-};
-
-template<>
-struct type_to_bits<uint64_t>
-{
-    using uint = uint64_t;
-};
-
-template<>
-struct type_to_bits<int64_t>
-{
-    using uint = uint64_t;
-};
-
-template<>
-struct type_to_bits<float>
-{
-    using uint = uint32_t;
-};
-
-template<>
-struct type_to_bits<double>
-{
-    using uint = uint64_t;
-};
-
-template<typename T>
-using bits_t = typename type_to_bits<T>::uint;
-
-template<size_t Bytes>
-struct uint_from_bytes
-{
-    using type = std::conditional_t<
-        (Bytes == sizeof(uint8_t)), uint8_t,
-        std::conditional_t<
-            (Bytes == sizeof(uint16_t)), uint16_t,
-            std::conditional_t<
-                (Bytes == sizeof(uint32_t)), uint32_t,
-                std::conditional_t<
-                    (Bytes == sizeof(uint64_t)), uint64_t, void
-                >
-            >
-        >
-    >;
-
-    // check
-    static_assert(!std::is_void_v<type>);
-};
-
-template<size_t Bytes>
-using uint_from_bytes_t = typename uint_from_bytes<Bytes>::type;
-
-template<typename S>
-using same_bits_uint_t = uint_from_bytes_t<sizeof(S)>;
-
-template<typename T>
-constexpr T make_var_from_bits(same_bits_uint_t<T> bits) noexcept
+constexpr T make_var_from_bits(ksimd::same_bits_uint_t<T> bits) noexcept
 {
     return std::bit_cast<T>(bits);
 }
@@ -219,7 +127,7 @@ constexpr T make_var_from_bits(same_bits_uint_t<T> bits) noexcept
 template<typename S>
 bool test_bit(S bits, int index)
 {
-    using UInt = same_bits_uint_t<S>;
+    using UInt = ksimd::same_bits_uint_t<S>;
     auto uint = std::bit_cast<UInt>(bits);
     return ( uint & (static_cast<UInt>(1) << static_cast<UInt>(index)) ) != 0;
 }

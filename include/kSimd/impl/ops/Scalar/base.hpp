@@ -88,7 +88,7 @@ namespace Scalar_family
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
-            return { std::bit_cast<S>(detail::bitcast_to_uint(lhs.v[I]) & detail::bitcast_to_uint(rhs.v[I]))... };
+            return { std::bit_cast<S>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
@@ -99,7 +99,7 @@ namespace Scalar_family
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
-            return { std::bit_cast<S>(detail::bitcast_to_uint(lhs.v[I]) | detail::bitcast_to_uint(rhs.v[I]))... };
+            return { std::bit_cast<S>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) | KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
@@ -110,7 +110,7 @@ namespace Scalar_family
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
-            return { std::bit_cast<S>(detail::bitcast_to_uint(lhs.v[I]) ^ detail::bitcast_to_uint(rhs.v[I]))... };
+            return { std::bit_cast<S>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) ^ KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
@@ -121,7 +121,7 @@ namespace Scalar_family
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
-            return { std::bit_cast<S>(~detail::bitcast_to_uint(v.v[I]))... };
+            return { std::bit_cast<S>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
@@ -445,7 +445,7 @@ namespace detail
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { (detail::min(lhs.v[I], rhs.v[I]))... };
+                return { (KSIMD_NAMESPACE_NAME::min(lhs.v[I], rhs.v[I]))... };
             }(std::make_index_sequence<lanes>{});
         }
 
@@ -458,7 +458,7 @@ namespace detail
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { (detail::max(lhs.v[I], rhs.v[I]))... };
+                return { (KSIMD_NAMESPACE_NAME::max(lhs.v[I], rhs.v[I]))... };
             }(std::make_index_sequence<lanes>{});
         }
         #pragma endregion
@@ -543,13 +543,13 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_not, (batch_t v))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(v.v[0]))) == sizeof(v.v[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[0]))) == sizeof(v.v[0]), "byte size should be equals.");
 
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { std::bit_cast<scalar_t>(~detail::bitcast_to_uint(v.v[I]))... };
+                return { std::bit_cast<scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[I]))... };
             }(std::make_index_sequence<lanes>{});
         }
 
@@ -558,13 +558,13 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_and, (batch_t lhs, batch_t rhs))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { std::bit_cast<scalar_t>(detail::bitcast_to_uint(lhs.v[I]) & detail::bitcast_to_uint(rhs.v[I]))... };
+                return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
             }(std::make_index_sequence<lanes>{});
         }
 
@@ -573,13 +573,13 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_and_not, (batch_t lhs, batch_t rhs))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { std::bit_cast<scalar_t>( ~detail::bitcast_to_uint(lhs.v[I]) & detail::bitcast_to_uint(rhs.v[I]) )... };
+                return { std::bit_cast<scalar_t>( ~KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]) )... };
             }(std::make_index_sequence<lanes>{});
         }
 
@@ -588,13 +588,13 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_or, (batch_t lhs, batch_t rhs))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { std::bit_cast<scalar_t>( detail::bitcast_to_uint(lhs.v[I]) | detail::bitcast_to_uint(rhs.v[I]) )... };
+                return { std::bit_cast<scalar_t>( KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) | KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]) )... };
             }(std::make_index_sequence<lanes>{});
         }
 
@@ -603,13 +603,13 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_xor, (batch_t lhs, batch_t rhs))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]), "byte size should be equals.");
 
             constexpr auto lanes = traits::Lanes;
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
-                return { std::bit_cast<scalar_t>( detail::bitcast_to_uint(lhs.v[I]) ^ detail::bitcast_to_uint(rhs.v[I]) )... };
+                return { std::bit_cast<scalar_t>( KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) ^ KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]) )... };
             }(std::make_index_sequence<lanes>{});
         }
 
@@ -618,7 +618,7 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, bit_select, (batch_t mask, batch_t a, batch_t b))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.v[0]))) == sizeof(mask.v[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[0]))) == sizeof(mask.v[0]), "byte size should be equals.");
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
@@ -633,8 +633,8 @@ namespace detail
                 return {
                     (
                         std::bit_cast<scalar_t>(
-                            (detail::bitcast_to_uint(mask.v[I]) & detail::bitcast_to_uint(a.v[I])) |
-                            (~detail::bitcast_to_uint(mask.v[I]) & detail::bitcast_to_uint(b.v[I])))
+                            (KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(a.v[I])) |
+                            (~KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(b.v[I])))
                     )...
                 };
             }(std::make_index_sequence<Lanes>{});
@@ -645,15 +645,15 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
         {
-            static_assert(sizeof(decltype(detail::bitcast_to_uint(mask.m[0]))) == sizeof(mask.m[0]), "byte size should be equals.");
+            static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[0]))) == sizeof(mask.m[0]), "byte size should be equals.");
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return {
                     (
                         std::bit_cast<scalar_t>(
-                            (detail::bitcast_to_uint(mask.m[I]) & detail::bitcast_to_uint(a.v[I])) |
-                            (~detail::bitcast_to_uint(mask.m[I]) & detail::bitcast_to_uint(b.v[I])))
+                            (KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(a.v[I])) |
+                            (~KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[I]) & KSIMD_NAMESPACE_NAME::bitcast_to_uint(b.v[I])))
                     )...
                 };
             }(std::make_index_sequence<Lanes>{});
@@ -779,7 +779,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( std::isnan(lhs.v[I]) || std::isnan(rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( is_NaN(lhs.v[I]) || is_NaN(rhs.v[I]) ? one_block<scalar_t> : zero_block<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
 
@@ -790,7 +790,7 @@ namespace detail
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
-                return { ( !(std::isnan(lhs.v[I]) || std::isnan(rhs.v[I])) ? one_block<scalar_t> : zero_block<scalar_t> )... };
+                return { ( !(is_NaN(lhs.v[I]) || is_NaN(rhs.v[I])) ? one_block<scalar_t> : zero_block<scalar_t> )... };
             }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion

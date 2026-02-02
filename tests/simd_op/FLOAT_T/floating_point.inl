@@ -189,12 +189,32 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // 正常数值 -> false
-        op::test_store_mask(test, op::any_NaN(op::set(FLOAT_T(3)), op::set(FLOAT_T(2))));
+        auto run_any = [&](FLOAT_T a, FLOAT_T b) {
+            op::test_store_mask(test, op::any_NaN(op::set(a), op::set(b)));
+        };
+
+        // 1. 正常数值 -> False
+        run_any(FLOAT_T(1.2), FLOAT_T(3.4));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
 
-        // 含有 NaN -> true
-        op::test_store_mask(test, op::any_NaN(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        // 2. 含有 Inf / -Inf -> False (Inf 不是 NaN)
+        run_any(inf<FLOAT_T>, FLOAT_T(1.0));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+        run_any(-inf<FLOAT_T>, inf<FLOAT_T>);
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+
+        // 3. 含有 NaN (左侧/右侧/双侧) -> True
+        run_any(qNaN<FLOAT_T>, FLOAT_T(1.0));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+
+        run_any(FLOAT_T(1.0), qNaN<FLOAT_T>);
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+
+        run_any(qNaN<FLOAT_T>, qNaN<FLOAT_T>);
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+
+        // 4. 混合 NaN 与 Inf -> True
+        run_any(qNaN<FLOAT_T>, inf<FLOAT_T>);
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
     }
 }
@@ -213,12 +233,30 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // 两者皆为数值 -> true
-        op::test_store_mask(test, op::not_NaN(op::set(FLOAT_T(3)), op::set(FLOAT_T(2))));
+        auto run_not = [&](FLOAT_T a, FLOAT_T b) {
+            op::test_store_mask(test, op::not_NaN(op::set(a), op::set(b)));
+        };
+
+        // 1. 两者皆为正常数值 -> True
+        run_not(FLOAT_T(0), FLOAT_T(-0.0));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
 
-        // 含有 NaN -> false
-        op::test_store_mask(test, op::not_NaN(op::set(qNaN<FLOAT_T>), op::set(FLOAT_T(2))));
+        // 2. 包含 Inf -> True (Inf 是有效的比较对象)
+        run_not(inf<FLOAT_T>, FLOAT_T(1.0));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+        
+        run_not(-inf<FLOAT_T>, inf<FLOAT_T>);
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::one_block<FLOAT_T>));
+
+        // 3. 含有任意 NaN -> False
+        run_not(qNaN<FLOAT_T>, FLOAT_T(1.0));
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+
+        run_not(inf<FLOAT_T>, qNaN<FLOAT_T>);
+        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
+
+        // 4. 两者皆为 NaN -> False
+        run_not(qNaN<FLOAT_T>, qNaN<FLOAT_T>);
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::zero_block<FLOAT_T>));
     }
 }

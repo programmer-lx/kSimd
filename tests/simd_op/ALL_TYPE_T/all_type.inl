@@ -547,7 +547,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         for (size_t i = 0; i < Lanes; ++i)
         {
-            auto result_bits = ksimd::detail::bitcast_to_uint(test[i]);
+            auto result_bits = ksimd::bitcast_to_uint(test[i]);
 
             // bit 0: 1 -> 0 (False)
             EXPECT_FALSE(test_bit(result_bits, 0));
@@ -569,8 +569,8 @@ namespace KSIMD_DYN_INSTRUCTION
             // 但位模式应该是全 F。这里直接验证位 cast 后的结果。
             for (size_t i = 0; i < Lanes; ++i)
             {
-                auto result_bits = ksimd::detail::bitcast_to_uint(test[i]);
-                EXPECT_EQ(result_bits, ~ksimd::detail::bitcast_to_uint(TYPE_T(0)));
+                auto result_bits = ksimd::bitcast_to_uint(test[i]);
+                EXPECT_EQ(result_bits, ~ksimd::bitcast_to_uint(TYPE_T(0)));
             }
         }
     }
@@ -603,7 +603,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         for (size_t i = 0; i < Lanes; ++i)
         {
-            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+            EXPECT_EQ(ksimd::bitcast_to_uint(test[i]), ksimd::bitcast_to_uint(expected));
         }
     }
 }
@@ -635,7 +635,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         for (size_t i = 0; i < Lanes; ++i)
         {
-            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+            EXPECT_EQ(ksimd::bitcast_to_uint(test[i]), ksimd::bitcast_to_uint(expected));
         }
     }
 }
@@ -667,7 +667,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         for (size_t i = 0; i < Lanes; ++i)
         {
-            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+            EXPECT_EQ(ksimd::bitcast_to_uint(test[i]), ksimd::bitcast_to_uint(expected));
         }
     }
 }
@@ -699,7 +699,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         for (size_t i = 0; i < Lanes; ++i)
         {
-            EXPECT_EQ(ksimd::detail::bitcast_to_uint(test[i]), ksimd::detail::bitcast_to_uint(expected));
+            EXPECT_EQ(ksimd::bitcast_to_uint(test[i]), ksimd::bitcast_to_uint(expected));
         }
     }
 }
