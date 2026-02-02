@@ -13,7 +13,7 @@ KSIMD_INSTRUCTION_FEATURE 宏:
 
 // compiler
 #if !defined(KSIMD_COMPILER_MSVC) && !defined(KSIMD_COMPILER_GCC) && !defined(KSIMD_COMPILER_CLANG)
-    #error "Unknown compiler, tSimd only support MSVC, GCC, clang"
+    #error "Unknown compiler, only support MSVC, GCC, clang"
 #endif
 
 
@@ -108,7 +108,7 @@ KSIMD_INSTRUCTION_FEATURE 宏:
 
 // check fallback
 #if !defined(KSIMD_DETAIL_INST_FEATURE_FALLBACK)
-    #error "we must have define a fallback instruction."
+    #error "we must define a fallback instruction."
 #endif
 
 KSIMD_NAMESPACE_BEGIN
@@ -122,38 +122,36 @@ namespace alignment
 
 struct CpuSupportInfo
 {
-    // 从低到高排序
+    static constexpr unsigned Scalar = 1;
 
-    static constexpr bool Scalar = true;
-
-    bool FXSR       = false;
+    unsigned FXSR       : 1 = 0;
 
     // SSE family
-    bool SSE        = false;
-    bool SSE2       = false;
-    bool SSE3       = false;
-    bool SSSE3      = false;
-    bool SSE4_1     = false;
-    bool SSE4_2     = false;
+    unsigned SSE        : 1 = 0;
+    unsigned SSE2       : 1 = 0;
+    unsigned SSE3       : 1 = 0;
+    unsigned SSSE3      : 1 = 0;
+    unsigned SSE4_1     : 1 = 0;
+    unsigned SSE4_2     : 1 = 0;
 
     // XSAVE & OS_XSAVE
-    bool XSAVE      = false;
-    bool OS_XSAVE   = false;
+    unsigned XSAVE      : 1 = 0;
+    unsigned OS_XSAVE   : 1 = 0;
 
     // AVX family
-    bool AVX        = false;
+    unsigned AVX        : 1 = 0;
 
     // 这两个是独立指令集，在tsimd库中，AVX的op不使用FMA3+F16C指令，AVX2的op分成两套:
     // 1. AVX2, 2. AVX2+FMA3+F16C。一套不使用FMA3+F16C，另一套使用FMA3+F16C
-    bool F16C       = false;
-    bool FMA3       = false;
+    unsigned F16C       : 1 = 0;
+    unsigned FMA3       : 1 = 0;
 
-    bool AVX2       = false;
+    unsigned AVX2       : 1 = 0;
 
     // AVX-512 family
-    bool AVX512_F   = false; // AVX512F支持FMA运算，不需要单独划分FMA3支持
+    unsigned AVX512_F   : 1 = 0; // AVX512F支持FMA运算，不需要单独划分FMA3支持
 };
 
-const CpuSupportInfo& get_cpu_support_info() noexcept;
+CpuSupportInfo get_cpu_support_info() noexcept;
 
 KSIMD_NAMESPACE_END

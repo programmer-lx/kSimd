@@ -4,50 +4,50 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace detail
+namespace
 {
-    static int dyn_func_index_impl() noexcept
+    int dyn_func_index_impl() noexcept
     {
-        const auto& supports = get_cpu_support_info();
+        const CpuSupportInfo supports = get_cpu_support_info();
 
         // 从最高级的指令往下判断
 #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2) && defined(KSIMD_INSTRUCTION_FEATURE_FMA3) && defined(KSIMD_INSTRUCTION_FEATURE_F16C)
         if (supports.AVX2 && supports.FMA3 && supports.F16C)
         {
-            return underlying(SimdInstructionIndex::AVX2_FMA3_F16C);
+            return detail::underlying(detail::SimdInstructionIndex::AVX2_FMA3_F16C);
         }
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2)
         if (supports.AVX2)
         {
-            return underlying(SimdInstructionIndex::AVX2);
+            return detail::underlying(detail::SimdInstructionIndex::AVX2);
         }
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_AVX)
         if (supports.AVX)
         {
-            return underlying(SimdInstructionIndex::AVX);
+            return detail::underlying(detail::SimdInstructionIndex::AVX);
         }
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE2)
         if (supports.SSE2)
         {
-            return underlying(SimdInstructionIndex::SSE2);
+            return detail::underlying(detail::SimdInstructionIndex::SSE2);
         }
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
         if (supports.SSE)
         {
-            return underlying(SimdInstructionIndex::SSE);
+            return detail::underlying(detail::SimdInstructionIndex::SSE);
         }
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-        return underlying(SimdInstructionIndex::Scalar);
+        return detail::underlying(detail::SimdInstructionIndex::Scalar);
 #endif
 
         return 0;
@@ -57,7 +57,7 @@ namespace detail
 // 测试时，这段代码不会被调用
 int KSIMD_CALL_CONV dyn_func_index() noexcept
 {
-    static int i = detail::dyn_func_index_impl();
+    static int i = dyn_func_index_impl();
     return i;
 }
 
