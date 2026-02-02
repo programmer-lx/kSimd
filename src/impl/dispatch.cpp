@@ -1,4 +1,4 @@
-#include "kSimd/impl/ops/dispatch.hpp"
+#include "kSimd/impl/dispatch.hpp"
 
 #include "kSimd/impl/utils.hpp"
 

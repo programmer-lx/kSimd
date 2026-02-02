@@ -3,6 +3,7 @@
 #include <bit> // std::bit_cast
 
 #include "types.hpp"
+#include "kSimd/impl/ops/TypeOp.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../platform.hpp"
+#include "platform.hpp"
 
 // see https://gcc.gnu.org/onlinedocs/gcc/x86-Function-Attributes.html#x86-Function-Attributes for more intrinsics attributes information
 

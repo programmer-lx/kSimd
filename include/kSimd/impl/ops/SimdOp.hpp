@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SimdTraits.inl"
+#include "kSimd/impl/traits.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

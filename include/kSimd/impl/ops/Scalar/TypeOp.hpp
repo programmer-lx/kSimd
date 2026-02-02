@@ -4,6 +4,8 @@
 #include <utility> // index_sequence
 
 #include "types.hpp"
+#include "kSimd/impl/ops/TypeOp.hpp"
+#include "kSimd/impl/func_attr.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../platform.hpp"
+#include "platform.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -169,18 +169,3 @@ int KSIMD_CALL_CONV dyn_func_index() noexcept;
 #define KSIMD_DYN_FUNC_ATTR "you should include your file after include <kSimd/dispatch_this_file.hpp>"
 
 KSIMD_NAMESPACE_END
-
-// utils : 工具库
-#include "utils.inl"
-
-// func attributes : 函数的 __attribute__((...)), __declspec(...)
-#include "func_attr.inl"
-
-// InstructionTraits : 指令集信息 (lanes, alignment, ...)
-#include "SimdTraits.inl"
-
-// SimdOp<SimdInstruction, ScalarType> : 用于SIMD数据操作
-#include "SimdOp.inl"
-
-// TypeOp<SimdInstruction> : 用于SIMD类型操作，比如 bitcast
-#include "TypeOp.inl"

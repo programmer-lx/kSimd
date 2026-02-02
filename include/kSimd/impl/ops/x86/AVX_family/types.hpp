@@ -2,7 +2,7 @@
 
 #include <immintrin.h> // AVX
 
-#include "../../dispatch.hpp"
+#include "kSimd/impl/traits.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "kSimd/impl/ops/utils.inl"
+#include "kSimd/impl/utils.hpp"
 
 #if !defined(KSIMD_IS_TESTING)
 #error "please define KSIMD_IS_TESTING macro to enable testing."

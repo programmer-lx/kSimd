@@ -9,6 +9,9 @@
 #include <utility> // std::index_sequence
 
 #include "types.hpp"
+#include "kSimd/impl/ops/SimdOp.hpp"
+#include "kSimd/impl/func_attr.hpp"
+#include "kSimd/impl/utils.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "impl/ops/dispatch.hpp"
+#include "impl/dispatch.hpp"
 
 #if !defined(KSIMD_DISPATCH_THIS_FILE)
     #error "has not defined KSIMD_DISPATCH_THIS_FILE"

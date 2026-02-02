@@ -5,7 +5,7 @@
 #include <limits>
 #include <type_traits>
 
-#include "../platform.hpp"
+#include "platform.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
