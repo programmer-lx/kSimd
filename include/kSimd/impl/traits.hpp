@@ -107,8 +107,6 @@ concept is_batch_type_includes = is_batch_type<T> && (std::is_same_v<typename T:
 
 
 // ----------------- mask type -----------------
-// mask用于控制哪个lane能够被操作，比如 mask = 0b0011'1111，就代表[5:0]lanes能被操作，其他lanes就使用默认值进行填充
-// 所以mask类型只能通过sizeof(scalar_t)来区分，不能通过scalar_t区分
 namespace detail
 {
     enum class UnderlyingMaskType
@@ -144,6 +142,9 @@ concept is_mask_type = requires(T v)
 
     v.m;
 };
+
+template<typename T, typename... Ts>
+concept is_mask_type_includes = is_mask_type<T> && (std::is_same_v<typename T::scalar_t, Ts> || ...);
 
 template<SimdInstruction Instruction, is_scalar_type ScalarType>
 struct BaseOpTraits;
