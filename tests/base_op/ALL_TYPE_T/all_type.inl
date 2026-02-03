@@ -1047,6 +1047,10 @@ namespace KSIMD_DYN_INSTRUCTION
             op::store(test, op::min(op::set(inf<TYPE_T>), op::set(TYPE_T(100))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(100));
 
+            // Min(100, Inf) = 100
+            op::store(test, op::min(op::set(TYPE_T(100)), op::set(inf<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(100));
+
             // NaN 行为
             op::store(test, op::min(op::set(qNaN<TYPE_T>), op::set(TYPE_T(5))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(5));
