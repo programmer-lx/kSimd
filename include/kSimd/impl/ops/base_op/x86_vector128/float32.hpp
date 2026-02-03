@@ -145,7 +145,7 @@ struct BaseOp<SimdInstruction::SSE, float32>
         __m128 lane2 = _mm_setzero_ps();
         __m128 lane3 = _mm_setzero_ps();
 
-        const uint32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
+        const int32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
 
         if (m & 0b0001)
         {
@@ -184,7 +184,7 @@ struct BaseOp<SimdInstruction::SSE, float32>
         __m128 lane2 = _mm_setzero_ps();
         __m128 lane3 = _mm_setzero_ps();
 
-        const uint32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
+        const int32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
 
         if (m & 0b0001)
         {
@@ -218,7 +218,7 @@ struct BaseOp<SimdInstruction::SSE, float32>
 
     KSIMD_API(void) mask_store(float32* mem, batch_t v, mask_t mask) noexcept
     {
-        const uint32_t m = _mm_movemask_ps(mask.m); // [3:0]有效
+        const int32 m = _mm_movemask_ps(mask.m); // [3:0]有效
 
         if (m & 0b0001)
         {
@@ -243,7 +243,7 @@ struct BaseOp<SimdInstruction::SSE, float32>
 
     KSIMD_API(void) mask_storeu(float32* mem, batch_t v, mask_t mask) noexcept
     {
-        const uint32_t m = _mm_movemask_ps(mask.m); // [3:0]有效
+        const int32 m = _mm_movemask_ps(mask.m); // [3:0]有效
 
         if (m & 0b0001)
         {

@@ -155,7 +155,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
     {
         __m128d result = _mm_setzero_pd();
 
-        const uint32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
+        const int32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
         if (m & 0b01)
             result = _mm_load_sd(mem);
         if (m & 0b10)
@@ -167,7 +167,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
     {
         __m128d result = _mm_setzero_pd();
 
-        const uint32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
+        const int32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
         if (m & 0b01)
             result = _mm_load_sd(mem);
         if (m & 0b10)
@@ -177,7 +177,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 
     KSIMD_API(void) mask_store(float64* mem, batch_t v, mask_t mask) noexcept
     {
-        const uint32_t m = _mm_movemask_pd(mask.m); // [1:0]有效
+        const int32 m = _mm_movemask_pd(mask.m); // [1:0]有效
         if (m & 0b01)
             _mm_store_sd(mem, v.v);
         if (m & 0b10)
@@ -186,7 +186,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 
     KSIMD_API(void) mask_storeu(float64* mem, batch_t v, mask_t mask) noexcept
     {
-        const uint32_t m = _mm_movemask_pd(mask.m); // [1:0]有效
+        const int32 m = _mm_movemask_pd(mask.m); // [1:0]有效
         if (m & 0b01)
             _mm_store_sd(mem, v.v);
         if (m & 0b10)
