@@ -200,7 +200,7 @@ namespace detail
         /**
          * @return for lane in mask, mask[0, count-1] = 1, mask[count, rest) = 0
          */
-        KSIMD_API(mask_t) mask_from_lanes(unsigned int count) noexcept
+        KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {

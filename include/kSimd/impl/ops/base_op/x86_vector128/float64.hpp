@@ -124,7 +124,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
     }
 #endif
 
-    KSIMD_API(mask_t) mask_from_lanes(unsigned int count) noexcept
+    KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
     {
         __m128d idx = _mm_set_pd(1.0, 0.0);
         __m128d cnt = _mm_set1_pd(static_cast<float64>(count));

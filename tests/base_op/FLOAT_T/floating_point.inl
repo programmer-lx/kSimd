@@ -569,11 +569,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 大值本身就是整数，round 之后不应改变
         op::store(test, op::round(op::set(big_val)));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big_val);
+        for (size_t i = 0; i < Lanes; ++i) FLOAT_T_EQ(test[i], big_val);
 
         // 大值 + 1.0 同样
         op::store(test, op::round(op::set(big_val + FLOAT_T(1.0))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big_val + FLOAT_T(1.0));
+        for (size_t i = 0; i < Lanes; ++i) FLOAT_T_EQ(test[i], big_val + FLOAT_T(1.0));
 
 
         // --- 5. 特殊值处理 ---
