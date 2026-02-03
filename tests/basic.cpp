@@ -25,7 +25,7 @@ KSIMD_DYN_DISPATCH_FUNC(kernel_dyn_impl);
 
 TEST(dyn_dispatch, pfn_table_size)
 {
-    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 5);
+    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), (size_t)ksimd::detail::SimdInstructionIndex::Num);
 }
 
 TEST(dyn_dispatch, float32)

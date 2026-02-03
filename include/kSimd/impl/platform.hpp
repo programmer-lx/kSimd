@@ -58,9 +58,9 @@ KSIMD_INSTRUCTION_FEATURE 宏:
 #define KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE (-1) // fallback值
 #undef KSIMD_DETAIL_INST_FEATURE_FALLBACK
 
-// Scalar: x86 32bit, arm 32bit, 测试模式下提供标量分发
-#if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
-    #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE // 当一个平台需要定义标量的时候，那么他肯定就是fallback
+// Scalar
+#if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
+    #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
 #endif
 
@@ -70,21 +70,22 @@ KSIMD_INSTRUCTION_FEATURE 宏:
     #define KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY
     // SSE: 只在 x86 32bit 提供SSE分发
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE 1 // 直接跳级到SSE2就行了，注释保留，如果真的有需要分发纯SSE函数，可以启用这段代码
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE 1      // 2026 无需支持
     #endif
 
     // SSE2 及以上
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
-        #define KSIMD_INSTRUCTION_FEATURE_SSE2 1
-        // SSE2: x86 64 fallback
-        #if !defined(KSIMD_DETAIL_INST_FEATURE_FALLBACK)
-            #undef KSIMD_INSTRUCTION_FEATURE_SSE2
-            #define KSIMD_INSTRUCTION_FEATURE_SSE2 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE // fallback value
-            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
-        #endif
+        // SSE2
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE2 1     // 2026 无需支持
+        // // SSE2: fallback 1
+        // #if !defined(KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        //     #undef KSIMD_INSTRUCTION_FEATURE_SSE2
+        //     #define KSIMD_INSTRUCTION_FEATURE_SSE2 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE // fallback value
+        //     #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
+        // #endif
 
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE3 1
-        // #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE3 1     // 2026 无需支持
+        // #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1    // 2026 无需支持
         #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1
         // #define KSIMD_INSTRUCTION_FEATURE_SSE4_2 1
     #endif
@@ -92,10 +93,9 @@ KSIMD_INSTRUCTION_FEATURE 宏:
     // AVX family
     #define KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
-        // #define KSIMD_INSTRUCTION_FEATURE_AVX 1
-        #define KSIMD_INSTRUCTION_FEATURE_F16C 1
-        #define KSIMD_INSTRUCTION_FEATURE_FMA3 1
-        #define KSIMD_INSTRUCTION_FEATURE_AVX2 1
+        // #define KSIMD_INSTRUCTION_FEATURE_AVX 1      // 2026 无需支持
+        // #define KSIMD_INSTRUCTION_FEATURE_AVX2 1     // 2026 无需支持
+        #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C 1
     #endif
 
     // AVX-512 family
