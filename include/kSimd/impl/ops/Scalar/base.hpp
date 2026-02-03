@@ -16,7 +16,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace vector_scalar
+namespace base_vector_scalar
 {
     #define KSIMD_BATCH_T Batch<S, A>
 

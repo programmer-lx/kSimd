@@ -8,7 +8,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace vector128_x86::SSE2_up
+namespace base_vector128_x86
 {
     #define KSIMD_BATCH_T Batch<float64>
 

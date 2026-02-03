@@ -14,82 +14,64 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace vector128_x86
+namespace base_vector128_x86
 {
-    namespace SSE
+    template<is_scalar_type scalar_type>
+    struct Batch
     {
-        // 除了float32，其他类型直接fallback到标量
-        template<is_scalar_type scalar_type>
-        struct Batch;
+        using scalar_t = scalar_type;
+        static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128i;
+        static constexpr size_t byte_size = 16;
 
-        template<>
-        struct Batch<float32>
-        {
-            using scalar_t = float32;
-            static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128;
-            static constexpr size_t byte_size = 16;
+        __m128i v; // (u)int(n) 128bits
+    };
 
-            __m128 v;
-        };
-
-        // 除了float32，其他类型fallback到标量
-        template<is_scalar_type scalar_type>
-        struct Mask;
-
-        template<>
-        struct Mask<float32>
-        {
-            using scalar_t = float32;
-            static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128;
-
-            __m128 m;
-        };
-    }
-
-    namespace SSE2_up
+    template<>
+    struct Batch<float32>
     {
-        template<is_scalar_type scalar_type>
-        struct Batch
-        {
-            static_assert(!std::is_same_v<scalar_type, float32>, "Batch<float32> is SSE type, not SSE2_up");
+        using scalar_t = float32;
+        static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128;
+        static constexpr size_t byte_size = 16;
 
-            using scalar_t = scalar_type;
-            static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128i;
-            static constexpr size_t byte_size = 16;
+        __m128 v;
+    };
 
-            __m128i v; // (u)int(n) 128bits
-        };
+    template<>
+    struct Batch<float64>
+    {
+        using scalar_t = float64;
+        static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128d;
+        static constexpr size_t byte_size = 16;
 
-        template<>
-        struct Batch<float64>
-        {
-            using scalar_t = float64;
-            static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128d;
-            static constexpr size_t byte_size = 16;
+        __m128d v;
+    };
 
-            __m128d v;
-        };
+    template<is_scalar_type scalar_type>
+    struct Mask
+    {
+        using scalar_t = scalar_type;
+        static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128i;
 
-        template<is_scalar_type scalar_type>
-        struct Mask
-        {
-            static_assert(!std::is_same_v<scalar_type, float32>, "Mask<float32> is SSE type, not SSE2_up");
+        __m128i m;
+    };
 
-            using scalar_t = scalar_type;
-            static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128i;
+    template<>
+    struct Mask<float32>
+    {
+        using scalar_t = float32;
+        static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128;
 
-            __m128i m;
-        };
+        __m128 m;
+    };
 
-        template<>
-        struct Mask<float64>
-        {
-            using scalar_t = float64;
-            static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128d;
+    template<>
+    struct Mask<float64>
+    {
+        using scalar_t = float64;
+        static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128d;
 
-            __m128d m;
-        };
-    }
+        __m128d m;
+    };
 }
 
 // traits
@@ -97,7 +79,7 @@ namespace vector128_x86
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
 struct BaseOpTraits<SimdInstruction::SSE, S>
-    : detail::SimdTraits_Base<SimdInstruction::SSE, S, vector128_x86::SSE::Batch<S>, vector128_x86::SSE::Mask<S>, alignment::SSE_Family>
+    : detail::SimdTraits_Base<SimdInstruction::SSE, S, base_vector128_x86::Batch<S>, base_vector128_x86::Mask<S>, alignment::Vec128>
 {
 };
 
@@ -107,7 +89,7 @@ template<is_scalar_type S>
     requires (!std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<SimdInstruction::SSE, S>
     : detail::SimdTraits_Base<
-        SimdInstruction::SSE, S, vector_scalar::Batch<S, alignment::SSE_Family>, vector_scalar::Mask<S, alignment::SSE_Family>, alignment::SSE_Family>
+        SimdInstruction::SSE, S, base_vector_scalar::Batch<S, alignment::Vec128>, base_vector_scalar::Mask<S, alignment::Vec128>, alignment::Vec128>
 {
 };
 #endif
@@ -116,14 +98,14 @@ struct BaseOpTraits<SimdInstruction::SSE, S>
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && std::is_same_v<float32, S>) // float32 only
 struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, vector128_x86::SSE::Batch<S>, vector128_x86::SSE::Mask<S>, alignment::SSE_Family>
+    : detail::SimdTraits_Base<Instruction, S, base_vector128_x86::Batch<S>, base_vector128_x86::Mask<S>, alignment::Vec128>
 {
 };
 
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && !std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, vector128_x86::SSE2_up::Batch<S>, vector128_x86::SSE2_up::Mask<S>, alignment::SSE_Family>
+    : detail::SimdTraits_Base<Instruction, S, base_vector128_x86::Batch<S>, base_vector128_x86::Mask<S>, alignment::Vec128>
 {
 };
 
