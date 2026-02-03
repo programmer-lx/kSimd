@@ -98,7 +98,8 @@ namespace x86_vector128
 #undef KSIMD_API
 
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+// SSE float64 使用标量模拟
+#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
 template<>
 struct BaseOp<SimdInstruction::SSE, float64> : detail::BaseOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
 {

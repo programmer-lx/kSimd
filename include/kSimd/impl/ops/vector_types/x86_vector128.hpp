@@ -6,7 +6,8 @@
 #include <tmmintrin.h> // SSSE3
 #include <smmintrin.h> // SSE4.1
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+// SSE float64 使用标量模拟
+#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
     #include "kSimd/impl/ops/base_op/scalar/base.hpp"
 #endif
 
@@ -84,7 +85,8 @@ struct BaseOpTraits<SimdInstruction::SSE, S>
 };
 
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+// SSE float64 使用标量模拟
+#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
 template<is_scalar_type S>
     requires (!std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<SimdInstruction::SSE, S>

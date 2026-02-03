@@ -137,6 +137,7 @@ TEST(dyn_dispatch, float64)
     }
     // sse
     {
+        #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
         using op = BaseOp<SimdInstruction::SSE, float64>;
         EXPECT_TRUE((std::is_same_v<op::batch_t, vector_scalar::Batch<float64, 16, alignment::Vec128>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE);
@@ -144,6 +145,7 @@ TEST(dyn_dispatch, float64)
         EXPECT_TRUE(op::ElementSize == 8);
         EXPECT_TRUE(op::Lanes == 2);
         EXPECT_TRUE(op::BatchAlignment == 16);
+        #endif
     }
     // sse2
     {

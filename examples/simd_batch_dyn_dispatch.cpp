@@ -7,7 +7,7 @@
 
 #include <kSimd/aligned_allocate.hpp>
 #include <kSimd/base_op.hpp>
-#include <kSimd_extension/math.hpp>
+#include <kSimd_extension/vmath.hpp>
 
 #include "utils.hpp"
 
