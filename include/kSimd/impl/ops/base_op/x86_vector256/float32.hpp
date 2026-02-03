@@ -230,6 +230,37 @@ struct BaseOp<SimdInstruction::AVX, float32>
         return { _mm256_rsqrt_ps(v.v) };
     }
 
+    KSIMD_OP_SIG_AVX_STATIC(batch_t, round_up, (batch_t v))
+    {
+        return { _mm256_round_ps(v.v, _MM_FROUND_TO_POS_INF |_MM_FROUND_NO_EXC) };
+    }
+
+    KSIMD_OP_SIG_AVX_STATIC(batch_t, round_down, (batch_t v))
+    {
+        return { _mm256_round_ps(v.v, _MM_FROUND_TO_NEG_INF |_MM_FROUND_NO_EXC) };
+    }
+
+    KSIMD_OP_SIG_AVX_STATIC(batch_t, round_nearest, (batch_t v))
+    {
+        return { _mm256_round_ps(v.v, _MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC) };
+    }
+
+    KSIMD_OP_SIG_AVX_STATIC(batch_t, round, (batch_t v))
+    {
+        // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
+        __m256 sign_mask = _mm256_and_ps(v.v, _mm256_set1_ps(SignBitMask<float32>));
+
+        // 构造一个具有相同符号的0.5，但是比0.5小一点，防止进位
+        __m256 half = _mm256_or_ps(_mm256_set1_ps(0.49999997f), sign_mask);
+
+        return { _mm256_round_ps(_mm256_add_ps(v.v, half), _MM_FROUND_TO_ZERO |_MM_FROUND_NO_EXC) };
+    }
+
+    KSIMD_OP_SIG_AVX_STATIC(batch_t, round_to_zero, (batch_t v))
+    {
+        return { _mm256_round_ps(v.v, _MM_FROUND_TO_ZERO |_MM_FROUND_NO_EXC) };
+    }
+
     KSIMD_OP_SIG_AVX_STATIC(batch_t, abs, (batch_t v))
     {
         // 将 sign bit 反转即可

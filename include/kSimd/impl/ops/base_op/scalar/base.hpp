@@ -689,12 +689,10 @@ namespace detail
             KSIMD_WARNING_PUSH
             KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
 
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / v.v[I])... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
 
             KSIMD_WARNING_POP
         }
@@ -704,12 +702,10 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, sqrt, (batch_t v))
         {
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
@@ -717,12 +713,68 @@ namespace detail
          */
         KSIMD_OP_SIG_SCALAR_STATIC(batch_t, rsqrt, (batch_t v))
         {
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: 向上取整
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, round_up, (batch_t v))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (std::ceil(v.v[I]))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: 向下取整
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, round_down, (batch_t v))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (std::floor(v.v[I]))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: 取最近偶数
+         * @note 2.5 -> 2.0; 3.5 -> 4.0
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, round_nearest, (batch_t v))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (std::nearbyint(v.v[I]))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: 取最近偶数
+         * @note 2.5 -> 3.0; -2.5 -> -3.0
+         * @warning 一般的计算使用round_nearest就够了，因为四舍五入并不是IEEE754的最近值，round需要多条指令模拟
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, round, (batch_t v))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (std::round(v.v[I]))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: 向最靠近0的方向取整
+         */
+        KSIMD_OP_SIG_SCALAR_STATIC(batch_t, round_to_zero, (batch_t v))
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (std::trunc(v.v[I]))... };
+            }(std::make_index_sequence<Lanes>{});
         }
         #pragma endregion
 

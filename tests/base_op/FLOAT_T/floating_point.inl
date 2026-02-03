@@ -351,6 +351,172 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(all_finite)
 #endif
 
+// ------------------------------------------ round_down ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void round_down() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        // 常规：正数向下取整
+        op::store(test, op::round_down(op::set(FLOAT_T(2.7))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
+
+        // 常规：负数向下取整 (floor(-2.1) = -3)
+        op::store(test, op::round_down(op::set(FLOAT_T(-2.1))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
+
+        // 边界：Inf 和 NaN
+        op::store(test, op::round_down(op::set(inf<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
+
+        op::store(test, op::round_down(op::set(qNaN<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(round_down)
+#endif
+
+// ------------------------------------------ round_up ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void round_up() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        // 常规：正数向上取整
+        op::store(test, op::round_up(op::set(FLOAT_T(2.1))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(3.0));
+
+        // 常规：负数向上取整 (ceil(-2.7) = -2)
+        op::store(test, op::round_up(op::set(FLOAT_T(-2.7))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-2.0));
+
+        // 边界：大数值 (超过有效尾数范围应保持原样)
+        FLOAT_T big_val = FLOAT_T(1LL << (std::is_same_v<FLOAT_T, float> ? 25 : 54));
+        op::store(test, op::round_up(op::set(big_val + FLOAT_T(0.5))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big_val + FLOAT_T(0.5));
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(round_up)
+#endif
+
+// ------------------------------------------ round_to_zero ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void round_to_zero() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        // 向零取整 (Truncate)
+        op::store(test, op::round_to_zero(op::set(FLOAT_T(2.9))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
+
+        op::store(test, op::round_to_zero(op::set(FLOAT_T(-2.9))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-2.0));
+
+        // 边界：零
+        op::store(test, op::round_to_zero(op::set(FLOAT_T(-0.0))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::signbit(test[i]));
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(round_to_zero)
+#endif
+
+// ------------------------------------------ round_nearest ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void round_nearest() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        // 最近舍入 (Ties to Even 验证)
+        // 2.5 -> 2.0 (最近偶数)
+        op::store(test, op::round_nearest(op::set(FLOAT_T(2.5))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
+
+        // 3.5 -> 4.0 (最近偶数)
+        op::store(test, op::round_nearest(op::set(FLOAT_T(3.5))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(4.0));
+
+        // 常规数值
+        op::store(test, op::round_nearest(op::set(FLOAT_T(-2.1))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-2.0));
+
+        op::store(test, op::round_nearest(op::set(FLOAT_T(-2.9))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
+
+        // 边界：NaN
+        op::store(test, op::round_nearest(op::set(qNaN<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(round_nearest)
+#endif
+
+// ------------------------------------------ round (Classic) ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void round() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(FLOAT_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
+
+        // 1. 标准 0.5 进位 (Away from zero)
+        op::store(test, op::round(op::set(FLOAT_T(2.5))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(3.0));
+
+        op::store(test, op::round(op::set(FLOAT_T(-2.5))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
+
+        // 2. 临界值测试：非常接近 0.5 但不到 0.5
+        // 0.49999997f 是 float 能表示的最大的小于 0.5 的数之一
+        op::store(test, op::round(op::set(FLOAT_T(2.499999))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
+
+        // 3. 符号位保持测试
+        op::store(test, op::round(op::set(FLOAT_T(-0.0))));
+        for (size_t i = 0; i < Lanes; ++i) {
+            EXPECT_EQ(test[i], FLOAT_T(0.0));
+            EXPECT_TRUE(std::signbit(test[i])); // 验证 -0.0 的符号位是否还在
+        }
+
+        // 4. 大数值测试 (超过有效尾数范围)
+        // 对于 float, 2^24 之后的小数位就不存在了
+        FLOAT_T big = std::is_same_v<FLOAT_T, float> ? FLOAT_T(16777216.0) : FLOAT_T(9007199254740992.0);
+        op::store(test, op::round(op::set(big)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big);
+
+        // 5. 特殊值处理
+        op::store(test, op::round(op::set(inf<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
+
+        op::store(test, op::round(op::set(qNaN<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(round)
+#endif
+
 
 // main function
 #if KSIMD_ONCE
