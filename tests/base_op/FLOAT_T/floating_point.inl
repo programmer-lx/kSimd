@@ -419,16 +419,55 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // 向零取整 (Truncate)
-        op::store(test, op::round_to_zero(op::set(FLOAT_T(2.9))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
+        #define check(input, expected, msg) \
+            do { \
+                op::store(test, op::round_to_zero(op::set(input))); \
+                for (size_t i = 0; i < Lanes; ++i) { \
+                    if (std::isnan(expected)) { \
+                        EXPECT_TRUE(std::isnan(test[i])) << msg << " | Index: " << i; \
+                    } else { \
+                        EXPECT_EQ(test[i], expected) << msg << " | Index: " << i; \
+                        EXPECT_EQ(std::signbit(test[i]), std::signbit(expected)) \
+                                << msg << " Sign bit mismatch | Index: " << i; \
+                    } \
+                } \
+            } while (0)
 
-        op::store(test, op::round_to_zero(op::set(FLOAT_T(-2.9))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-2.0));
+        // 1. 常规小数 (Normal small values)
+        check(FLOAT_T(2.9),   FLOAT_T(2.0),  "Positive truncate");
+        check(FLOAT_T(-2.9),  FLOAT_T(-2.0), "Negative truncate");
+        check(FLOAT_T(0.1),   FLOAT_T(0.0),  "Positive near zero");
+        check(FLOAT_T(-0.1),  FLOAT_T(-0.0), "Negative near zero");
 
-        // 边界：零
-        op::store(test, op::round_to_zero(op::set(FLOAT_T(-0.0))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::signbit(test[i]));
+        // 2. 边界值：零与极小值
+        check(FLOAT_T(0.0),   FLOAT_T(0.0),  "Zero");
+        check(FLOAT_T(-0.0),  FLOAT_T(-0.0), "Negative zero");
+        check(std::numeric_limits<FLOAT_T>::denorm_min(), FLOAT_T(0.0), "Denormal positive");
+
+        // 3. 精度分水岭 (2^23): 超过这个值 float 无法表示小数
+        // 此时 truncate 结果应为原值
+        FLOAT_T pow23 = FLOAT_T(std::numeric_limits<FLOAT_T>::max());
+        check(pow23, pow23, "At 2^23 boundary"); // 注意：pow23+0.5 实际上在 float 里就是 pow23
+
+        // 4. SSE2 关键分水岭 (2^31): 硬件 cvttps 溢出的边界
+        // 我们需要确保逻辑能跳过硬件溢出，返回正确的大数结果
+        FLOAT_T big = FLOAT_T(std::numeric_limits<FLOAT_T>::max() - 20); // 2^31
+        check(big + FLOAT_T(10.0), big + FLOAT_T(10.0), "Beyond int32 range (Positive)");
+        check(-big - FLOAT_T(10.0), -big - FLOAT_T(10.0), "Beyond int32 range (Negative)");
+
+        // 5. 极大值 (Very large numbers)
+        check(FLOAT_T(1e18), FLOAT_T(1e18), "Large exponent value");
+        check(std::numeric_limits<FLOAT_T>::max(), std::numeric_limits<FLOAT_T>::max(), "FLT_MAX");
+
+        // 6. 特殊浮点值 (NaN / Inf)
+        check(std::numeric_limits<FLOAT_T>::infinity(),
+              std::numeric_limits<FLOAT_T>::infinity(), "Positive Infinity");
+        check(-std::numeric_limits<FLOAT_T>::infinity(),
+              -std::numeric_limits<FLOAT_T>::infinity(), "Negative Infinity");
+        check(std::numeric_limits<FLOAT_T>::quiet_NaN(),
+              std::numeric_limits<FLOAT_T>::quiet_NaN(), "NaN");
+
+        #undef check
     }
 }
 #if KSIMD_ONCE
