@@ -18,9 +18,9 @@ KSIMD_NAMESPACE_BEGIN
 // -------------------------------- operators --------------------------------
 namespace vector_scalar
 {
-    #define KSIMD_BATCH_T Batch<S, A>
+    #define KSIMD_BATCH_T Batch<S, V, A>
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator+, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -32,7 +32,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -44,7 +44,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator*, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -56,7 +56,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator/, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         KSIMD_WARNING_PUSH
@@ -73,7 +73,7 @@ namespace vector_scalar
         KSIMD_WARNING_POP
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T v))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -84,7 +84,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator&, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -95,7 +95,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator|, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -106,7 +106,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator^, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -117,7 +117,7 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
     {
         using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
@@ -128,43 +128,43 @@ namespace vector_scalar
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator+=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs + rhs;
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator-=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs - rhs;
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator*=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs * rhs;
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator/=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs / rhs;
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator&=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs & rhs;
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator|=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs | rhs;
     }
 
-    template<is_scalar_type S, size_t A>
+    template<is_scalar_type S, size_t V, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T&, operator^=, (KSIMD_BATCH_T& lhs, KSIMD_BATCH_T rhs))
     {
         return lhs = lhs ^ rhs;

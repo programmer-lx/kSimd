@@ -6,9 +6,7 @@ KSIMD_NAMESPACE_BEGIN
 
 namespace vector_scalar
 {
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t VectorByteSize = 16;
-
-    template<is_scalar_type S, size_t Alignment>
+    template<is_scalar_type S, size_t VectorByteSize, size_t Alignment>
     struct Batch
     {
         using scalar_t = S;
@@ -20,7 +18,7 @@ namespace vector_scalar
         static_assert(sizeof(v) == VectorByteSize);
     };
 
-    template<is_scalar_type S, size_t alignment>
+    template<is_scalar_type S, size_t VectorByteSize, size_t alignment>
     struct Mask
     {
         using scalar_t = S;
@@ -37,8 +35,8 @@ struct BaseOpTraits<SimdInstruction::Scalar, S>
     : detail::SimdTraits_Base<
         SimdInstruction::Scalar,
         S,
-        vector_scalar::Batch<S, alignof(S)>,    // vector128
-        vector_scalar::Mask<S, alignof(S)>,     // vector128
+        vector_scalar::Batch<S, 16, alignof(S)>,    // vector128
+        vector_scalar::Mask<S, 16, alignof(S)>,     // vector128
         alignof(S)
     >
 {
