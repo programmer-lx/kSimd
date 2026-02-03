@@ -168,7 +168,9 @@ namespace detail
 }
 
 #define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
+    private: \
     using traits = BaseOpTraits<instruction, scalar_type>; \
+    public: \
     using batch_t = typename traits::batch_t; \
     using scalar_t = typename traits::scalar_t; \
     using mask_t = typename traits::mask_t; \
