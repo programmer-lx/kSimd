@@ -105,13 +105,13 @@ struct BaseOp<SimdInstruction::SSE, float32>
     {
         _mm_store_ps(mem, mask.m);
     }
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV test_load_mask(const float32* mem) noexcept
+    KSIMD_API(mask_t) test_load_mask(const float32* mem) noexcept
     {
         return { _mm_load_ps(mem) };
     }
 #endif
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV mask_from_lanes(unsigned int count) noexcept
+    KSIMD_API(mask_t) mask_from_lanes(unsigned int count) noexcept
     {
         __m128 idx = _mm_set_ps(3.0f, 2.0f, 1.0f, 0.0f);
         __m128 cnt = _mm_set1_ps(static_cast<float32>(count));
@@ -355,74 +355,74 @@ struct BaseOp<SimdInstruction::SSE, float32>
         return { _mm_max_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV equal(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) equal(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpeq_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV not_equal(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) not_equal(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpneq_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV greater(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) greater(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpgt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV not_greater(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) not_greater(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpngt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV greater_equal(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) greater_equal(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpge_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV not_greater_equal(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) not_greater_equal(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpnge_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV less(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) less(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmplt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV not_less(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) not_less(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpnlt_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV less_equal(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) less_equal(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmple_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV not_less_equal(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) not_less_equal(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpnle_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV any_NaN(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) any_NaN(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpunord_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV all_NaN(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) all_NaN(batch_t lhs, batch_t rhs) noexcept
     {
         __m128 l_nan = _mm_cmpunord_ps(lhs.v, lhs.v);
         __m128 r_nan = _mm_cmpunord_ps(rhs.v, rhs.v);
         return { _mm_and_ps(l_nan, r_nan) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV not_NaN(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) not_NaN(batch_t lhs, batch_t rhs) noexcept
     {
         return { _mm_cmpord_ps(lhs.v, rhs.v) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV any_finite(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) any_finite(batch_t lhs, batch_t rhs) noexcept
     {
         __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float32>);
         __m128 inf = _mm_set1_ps(Inf<float32>);
@@ -433,7 +433,7 @@ struct BaseOp<SimdInstruction::SSE, float32>
         return { _mm_cmplt_ps(_mm_and_ps(combined, abs_mask), inf) };
     }
 
-    KSIMD_OP_SSE_API static mask_t KSIMD_CALL_CONV all_finite(batch_t lhs, batch_t rhs) noexcept
+    KSIMD_API(mask_t) all_finite(batch_t lhs, batch_t rhs) noexcept
     {
         __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float32>);
         __m128 inf = _mm_set1_ps(Inf<float32>);
