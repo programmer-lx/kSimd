@@ -340,6 +340,92 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(mask_loadu_mask_storeu)
 #endif
 
+// ------------------------------------------ mask_load_default ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mask_load_default() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        using mask_t = typename op::mask_t;
+        using batch_t = typename op::batch_t;
+        constexpr size_t Lanes = op::Lanes;
+
+        alignas(ALIGNMENT) TYPE_T src[Lanes];
+        alignas(ALIGNMENT) TYPE_T def_vals[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
+
+        for (size_t i = 0; i < Lanes; ++i) {
+            src[i] = TYPE_T(i + 1);          // 1, 2, 3, 4...
+            def_vals[i] = TYPE_T(100 + i);   // 100, 101, 102...
+        }
+        batch_t default_v = op::load(def_vals);
+
+        // 1. 部分加载测试 (Partial Merging)
+        // 掩码前一半为真，后一半为假
+        {
+            mask_t mask = op::mask_from_lanes(Lanes / 2);
+            batch_t data = op::mask_load(src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                if (i < Lanes / 2) {
+                    // 掩码有效：从 src 加载
+                    EXPECT_EQ(res[i], src[i]);
+                } else {
+                    // 掩码无效：保留 default_v 的值
+                    EXPECT_EQ(res[i], def_vals[i]);
+                }
+            }
+        }
+
+        // 2. 零掩码测试 (Zero Mask - 应该全部返回默认值)
+        {
+            mask_t mask = op::mask_from_lanes(0);
+            batch_t data = op::mask_load(src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                EXPECT_EQ(res[i], def_vals[i]);
+            }
+        }
+
+        // 3. 全掩码测试 (Full Mask - 应该全部从内存加载)
+        {
+            mask_t mask = op::mask_from_lanes(Lanes);
+            batch_t data = op::mask_load(src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                EXPECT_EQ(res[i], src[i]);
+            }
+        }
+
+        // 4. 动态掩码对比测试 (Comparison Mask)
+        // 比如：只加载 src 中大于 2 的元素，其余位置使用默认值
+        {
+            batch_t src_v = op::load(src);
+            batch_t threshold = op::set(TYPE_T(2));
+            mask_t mask = op::greater(src_v, threshold);
+
+            batch_t data = op::mask_load(src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                if (src[i] > TYPE_T(2)) {
+                    EXPECT_EQ(res[i], src[i]);
+                } else {
+                    EXPECT_EQ(res[i], def_vals[i]);
+                }
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(mask_load_default)
+#endif
+
 // ------------------------------------------ mask_from_lanes ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {

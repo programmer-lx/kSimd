@@ -267,6 +267,18 @@ namespace detail
         }
 
         /**
+         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
+         */
+        KSIMD_API(batch_t) mask_load(const scalar_t* mem, mask_t mask, batch_t default_value) noexcept
+        {
+            using uint = same_bits_uint_t<scalar_t>;
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : default_value.v[I])... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
          * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
          */
         KSIMD_API(batch_t) mask_loadu(const scalar_t* mem, mask_t mask) noexcept
@@ -276,14 +288,6 @@ namespace detail
             {
                 return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : ZeroBlock<scalar_t>)... };
             }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
-         */
-        KSIMD_API(batch_t) mask_load(const scalar_t* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            return {}; // TODO
         }
 
         /**

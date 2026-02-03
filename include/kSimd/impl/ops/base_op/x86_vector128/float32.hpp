@@ -177,6 +177,12 @@ struct BaseOp<SimdInstruction::SSE, float32>
         return { _mm_movelh_ps(lane01, lane23) };
     }
 
+    KSIMD_API(batch_t) mask_load(const float32* mem, mask_t mask, batch_t default_value) noexcept
+    {
+        batch_t loaded = mask_load(mem, mask);
+        return { _mm_or_ps(loaded.v, _mm_andnot_ps(mask.m, default_value.v)) };
+    }
+
     KSIMD_API(batch_t) mask_loadu(const float32* mem, mask_t mask) noexcept
     {
         __m128 lane0 = _mm_setzero_ps();
