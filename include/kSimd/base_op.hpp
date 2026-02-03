@@ -6,8 +6,8 @@
 
 // Scalar
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-    #include "impl/ops/Scalar/float32.hpp"
-    #include "impl/ops/Scalar/float64.hpp"
+    #include "impl/ops/scalar/float32.hpp"
+    #include "impl/ops/scalar/float64.hpp"
 #endif
 
 

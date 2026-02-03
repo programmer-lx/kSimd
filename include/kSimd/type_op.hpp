@@ -5,7 +5,7 @@
 // clang-format off
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-    #include "impl/ops/Scalar/TypeOp.hpp"
+    #include "impl/ops/scalar/TypeOp.hpp"
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY)

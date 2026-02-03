@@ -7,7 +7,7 @@
 #include <smmintrin.h> // SSE4.1
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-    #include "kSimd/impl/ops/Scalar/base.hpp"
+    #include "kSimd/impl/ops/scalar/base.hpp"
 #endif
 
 #include "kSimd/impl/traits.hpp"
