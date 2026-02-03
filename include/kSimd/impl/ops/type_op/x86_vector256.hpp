@@ -6,9 +6,9 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<SimdInstruction Instruction>
-    requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
-struct TypeOp<Instruction>
+template<SimdInstruction I>
+    requires (I > SimdInstruction::AVX_Start && I < SimdInstruction::AVX_End)
+struct TypeOp<I>
 {
     // self <- self
     template<is_batch_type To, is_batch_type From>

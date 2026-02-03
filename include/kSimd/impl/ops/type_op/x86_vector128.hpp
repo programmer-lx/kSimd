@@ -54,9 +54,9 @@ struct TypeOp<SimdInstruction::SSE>
     }
 };
 
-template<SimdInstruction Instruction>
-    requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End)
-struct TypeOp<Instruction>
+template<SimdInstruction I>
+    requires (I >= SimdInstruction::SSE2 && I < SimdInstruction::SSE_End)
+struct TypeOp<I>
 {
     // self <- self
     template<is_batch_type To, is_batch_type From>

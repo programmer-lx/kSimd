@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bit> // std::bit_cast
-#include <utility> // index_sequence
 
 #include "kSimd/impl/traits.hpp"
 #include "kSimd/impl/ops/type_op/TypeOp.hpp"
