@@ -11,8 +11,6 @@ KSIMD_NAMESPACE_BEGIN
 #define KSIMD_API(ret) KSIMD_OP_SSE_API static ret KSIMD_CALL_CONV
 namespace x86_vector128
 {
-#define KSIMD_BATCH_T Batch<float32>
-
     KSIMD_API(Batch<float32>) operator+(Batch<float32> lhs, Batch<float32> rhs) noexcept
     {
         return { _mm_add_ps(lhs.v, rhs.v) };
@@ -92,8 +90,6 @@ namespace x86_vector128
     {
         return lhs = lhs ^ rhs;
     }
-
-#undef KSIMD_BATCH_T
 } // namespace x86_vector128
 #undef KSIMD_API
 
