@@ -931,11 +931,11 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(all_operators)
 #endif
 
-// ------------------------------------------ reduce_sum ------------------------------------------
+// ------------------------------------------ reduce_add ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void reduce_sum() noexcept
+    void reduce_add() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         constexpr size_t Lanes = op::Lanes;
@@ -947,23 +947,23 @@ namespace KSIMD_DYN_INSTRUCTION
             expected += data[i];
         }
 
-        TYPE_T res = op::reduce_sum(op::load(data));
+        TYPE_T res = op::reduce_add(op::load(data));
         EXPECT_NEAR(res, expected, std::numeric_limits<TYPE_T>::epsilon());
 
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // Inf in sum
             data[0] = inf<TYPE_T>;
-            EXPECT_TRUE(std::isinf(op::reduce_sum(op::load(data))));
+            EXPECT_TRUE(std::isinf(op::reduce_add(op::load(data))));
 
             // NaN in sum
             data[0] = qNaN<TYPE_T>;
-            EXPECT_TRUE(std::isnan(op::reduce_sum(op::load(data))));
+            EXPECT_TRUE(std::isnan(op::reduce_add(op::load(data))));
         }
     }
 }
 
 #if KSIMD_ONCE
-TEST_ONCE_DYN(reduce_sum)
+TEST_ONCE_DYN(reduce_add)
 #endif
 
 // ------------------------------------------ mul_add ------------------------------------------

@@ -403,7 +403,7 @@ namespace detail
         /**
          * @return lane[0] + lane[1] + ... + lane[N]
          */
-        KSIMD_OP_SIG_SCALAR_STATIC(scalar_t, reduce_sum, (batch_t v))
+        KSIMD_OP_SIG_SCALAR_STATIC(scalar_t, reduce_add, (batch_t v))
         {
             constexpr auto lanes = traits::Lanes;
 

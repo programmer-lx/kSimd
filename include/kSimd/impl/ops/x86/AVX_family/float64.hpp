@@ -197,7 +197,7 @@ struct BaseOp<SimdInstruction::AVX, float64>
         return { _mm256_div_pd(_mm256_set1_pd(1.0), v.v) };
     }
 
-    KSIMD_OP_SIG_AVX_STATIC(float64, reduce_sum, (batch_t v))
+    KSIMD_OP_SIG_AVX_STATIC(float64, reduce_add, (batch_t v))
     {
         // [4,3] + [2,1] = [2+4, 1+3]
         __m128d low = _mm256_castpd256_pd128(v.v);

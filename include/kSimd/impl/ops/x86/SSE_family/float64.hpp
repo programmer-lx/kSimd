@@ -223,7 +223,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
         return { _mm_div_pd(_mm_set1_pd(1.0), v.v) };
     }
 
-    KSIMD_OP_SIG_SSE2_STATIC(float64, reduce_sum, (batch_t v))
+    KSIMD_OP_SIG_SSE2_STATIC(float64, reduce_add, (batch_t v))
     {
         // [b, a]
         //   +
@@ -396,7 +396,7 @@ struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, fl
 {
     KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float64)
 
-    KSIMD_OP_SIG_SSE3_STATIC(float64, reduce_sum, (batch_t v))
+    KSIMD_OP_SIG_SSE3_STATIC(float64, reduce_add, (batch_t v))
     {
         // input: [b, a]
         // hadd: [a+b]
