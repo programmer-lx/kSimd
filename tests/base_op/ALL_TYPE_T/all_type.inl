@@ -426,6 +426,91 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(mask_load_default)
 #endif
 
+// ------------------------------------------ mask_loadu_default ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void mask_loadu_default() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        using mask_t = typename op::mask_t;
+        using batch_t = typename op::batch_t;
+        constexpr size_t Lanes = op::Lanes;
+
+        // 1. 准备非对齐源数据
+        // 分配比 Lanes 大的空间，以便我们可以从偏移位置开始读取
+        alignas(ALIGNMENT) TYPE_T raw_src[Lanes * 2];
+        alignas(ALIGNMENT) TYPE_T def_vals[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
+
+        for (size_t i = 0; i < Lanes * 2; ++i) raw_src[i] = TYPE_T(i + 1);
+        for (size_t i = 0; i < Lanes; ++i) def_vals[i] = TYPE_T(-10.0); // 明显的默认值
+
+        // 构造一个非对齐指针 (例如偏移 1 个元素)
+        const TYPE_T* unaligned_src = raw_src + 1;
+        batch_t default_v = op::load(def_vals);
+
+        // 2. 部分加载测试 (Partial Merging + Unaligned)
+        {
+            FILL_ARRAY(res, TYPE_T(0));
+            // 加载前一半有效，后一半默认
+            mask_t mask = op::mask_from_lanes(Lanes / 2);
+            batch_t data = op::mask_loadu(unaligned_src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                if (i < Lanes / 2) {
+                    // 应从 unaligned_src[i] 加载，即 raw_src[i+1]
+                    EXPECT_EQ(res[i], unaligned_src[i]);
+                } else {
+                    // 应保留默认值
+                    EXPECT_EQ(res[i], def_vals[i]);
+                }
+            }
+        }
+
+        // 3. 边界与零掩码测试 (Zero Mask + Unaligned)
+        // 即使掩码为 0，且地址是非对齐的，也不应有内存错误
+        {
+            mask_t mask = op::mask_from_lanes(0);
+            batch_t data = op::mask_loadu(unaligned_src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                EXPECT_EQ(res[i], def_vals[i]);
+            }
+        }
+
+        // 4. 任意掩码模式测试 (Arbitrary Mask + Unaligned)
+        // 验证非连续掩码在非对齐地址下的正确性
+        {
+            // 构造一个 1010... 模式的掩码
+            alignas(ALIGNMENT) TYPE_T pattern[Lanes];
+            alignas(ALIGNMENT) TYPE_T zero[Lanes];
+            for(size_t i=0; i<Lanes; ++i) {
+                pattern[i] = TYPE_T(i % 2);
+                zero[i] = TYPE_T(0);
+            }
+            mask_t mask = op::greater(op::load(pattern), op::load(zero));
+
+            batch_t data = op::mask_loadu(unaligned_src, mask, default_v);
+            op::store(res, data);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                if (i % 2 != 0) { // pattern[i] > 0
+                    EXPECT_EQ(res[i], unaligned_src[i]);
+                } else {
+                    EXPECT_EQ(res[i], def_vals[i]);
+                }
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(mask_loadu_default)
+#endif
+
 // ------------------------------------------ mask_from_lanes ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {

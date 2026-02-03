@@ -171,14 +171,12 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 
     KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask) noexcept
     {
-        __m128d result = _mm_setzero_pd();
+        return mask_load(mem, mask);
+    }
 
-        const int32 m = _mm_movemask_pd(mask.m); // 仅 [1:0] 有效
-        if (m & 0b01)
-            result = _mm_load_sd(mem);
-        if (m & 0b10)
-            result = _mm_loadh_pd(result, mem + 1);
-        return { result };
+    KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask, batch_t default_value) noexcept
+    {
+        return mask_load(mem, mask, default_value);
     }
 
     KSIMD_API(void) mask_store(float64* mem, batch_t v, mask_t mask) noexcept

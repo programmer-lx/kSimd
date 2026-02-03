@@ -202,8 +202,6 @@ namespace detail
          */
         KSIMD_API(mask_t) mask_from_lanes(unsigned int count) noexcept
         {
-            count = count > Lanes ? Lanes : count;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (I < count ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
@@ -283,11 +281,7 @@ namespace detail
          */
         KSIMD_API(batch_t) mask_loadu(const scalar_t* mem, mask_t mask) noexcept
         {
-            using uint = same_bits_uint_t<scalar_t>;
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            return mask_load(mem, mask);
         }
 
         /**
@@ -295,7 +289,7 @@ namespace detail
          */
         KSIMD_API(batch_t) mask_loadu(const scalar_t* mem, mask_t mask, batch_t default_value) noexcept
         {
-            return {}; // TODO
+            return mask_load(mem, mask, default_value);
         }
 
         /**
@@ -316,12 +310,7 @@ namespace detail
          */
         KSIMD_API(void) mask_storeu(scalar_t* mem, batch_t v, mask_t mask) noexcept
         {
-            using uint = same_bits_uint_t<scalar_t>;
-
-            [&]<size_t... I>(std::index_sequence<I...>)
-            {
-                (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0 ? (mem[I] = v.v[I], void()) : void()), ...);
-            }(std::make_index_sequence<Lanes>{});
+            mask_store(mem, v, mask);
         }
 #pragma endregion
 

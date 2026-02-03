@@ -154,6 +154,11 @@ struct BaseOp<SimdInstruction::AVX, float64>
         return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m)) };
     }
 
+    KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask, batch_t default_value) noexcept
+    {
+        return mask_load(mem, mask, default_value);
+    }
+
     KSIMD_API(void) mask_store(float64* mem, batch_t v, mask_t mask) noexcept
     {
         _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m), v.v);

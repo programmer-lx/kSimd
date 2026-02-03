@@ -185,41 +185,12 @@ struct BaseOp<SimdInstruction::SSE, float32>
 
     KSIMD_API(batch_t) mask_loadu(const float32* mem, mask_t mask) noexcept
     {
-        __m128 lane0 = _mm_setzero_ps();
-        __m128 lane1 = _mm_setzero_ps();
-        __m128 lane2 = _mm_setzero_ps();
-        __m128 lane3 = _mm_setzero_ps();
+        return mask_load(mem, mask);
+    }
 
-        const int32 m = _mm_movemask_ps(mask.m); // [3:0] 有效
-
-        if (m & 0b0001)
-        {
-            // [ 0, 0, 0, mem[0] ]
-            lane0 = _mm_load_ss(mem);
-        }
-        if (m & 0b0010)
-        {
-            // [ 0, 0, 0, mem[1] ]
-            lane1 = _mm_load_ss(mem + 1);
-        }
-        if (m & 0b0100)
-        {
-            // [ 0, 0, 0, mem[2] ]
-            lane2 = _mm_load_ss(mem + 2);
-        }
-        if (m & 0b1000)
-        {
-            // [ 0, 0, 0, mem[3] ]
-            lane3 = _mm_load_ss(mem + 3);
-        }
-
-        // lane0 + lane1 = [ 0, 0, mem[1], mem[0] ]
-        __m128 lane01 = _mm_unpacklo_ps(lane0, lane1);
-
-        // lane2 + lane3 = [ 0, 0, mem[3], mem[2] ]
-        __m128 lane23 = _mm_unpacklo_ps(lane2, lane3);
-
-        return { _mm_movelh_ps(lane01, lane23) };
+    KSIMD_API(batch_t) mask_loadu(const float32* mem, mask_t mask, batch_t default_value) noexcept
+    {
+        return mask_load(mem, mask, default_value);
     }
 
     KSIMD_API(void) mask_store(float32* mem, batch_t v, mask_t mask) noexcept
