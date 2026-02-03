@@ -8,7 +8,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace AVX_family
+namespace vector256_x86
 {
     #define KSIMD_BATCH_T Batch<float32>
 
@@ -98,7 +98,7 @@ namespace AVX_family
 template<>
 struct BaseOp<SimdInstruction::AVX, float32>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX, float32)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX, float32)
 
     #if defined(KSIMD_IS_TESTING)
     KSIMD_OP_SIG_AVX_STATIC(void, test_store_mask, (float32* mem, mask_t mask))
@@ -373,14 +373,14 @@ struct BaseOp<SimdInstruction::AVX, float32>
 template<>
 struct BaseOp<SimdInstruction::AVX2, float32> : BaseOp<SimdInstruction::AVX, float32>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2, float32)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2, float32)
 };
 
 // AVX2 + FMA指令特化
 template<>
 struct BaseOp<SimdInstruction::AVX2_FMA3_F16C, float32> : BaseOp<SimdInstruction::AVX2, float32>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::AVX2_FMA3_F16C, float32)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2_FMA3_F16C, float32)
 
     KSIMD_OP_SIG_AVX2_FMA3_F16C_STATIC(batch_t, mul_add, (batch_t a, batch_t b, batch_t c))
     {

@@ -4,7 +4,7 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace Scalar_family
+namespace vector_scalar
 {
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t FullByteSize = 16;
 
@@ -33,12 +33,12 @@ namespace Scalar_family
 }
 
 template<is_scalar_type S>
-struct SimdTraits<SimdInstruction::Scalar, S>
+struct BaseOpTraits<SimdInstruction::Scalar, S>
     : detail::SimdTraits_Base<
         SimdInstruction::Scalar,
         S,
-        Scalar_family::Batch<S, alignof(S)>,
-        Scalar_family::Mask<S, alignof(S)>,
+        vector_scalar::Batch<S, alignof(S)>,
+        vector_scalar::Mask<S, alignof(S)>,
         alignof(S)
     >
 {

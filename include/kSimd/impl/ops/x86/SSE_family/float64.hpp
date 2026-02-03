@@ -8,7 +8,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace SSE_family::SSE2_up
+namespace vector128_x86::SSE2_up
 {
     #define KSIMD_BATCH_T Batch<float64>
 
@@ -101,7 +101,7 @@ template<>
 struct BaseOp<SimdInstruction::SSE, float64>
     : detail::BaseOp_Scalar_FloatingPoint_Base<SimdInstruction::SSE, float64>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE, float64)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE, float64)
 };
 #endif
 
@@ -109,7 +109,7 @@ struct BaseOp<SimdInstruction::SSE, float64>
 template<>
 struct BaseOp<SimdInstruction::SSE2, float64>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE2, float64)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE2, float64)
     
     #if defined(KSIMD_IS_TESTING)
     KSIMD_OP_SIG_SSE2_STATIC(void, test_store_mask, (float64* mem, mask_t mask))
@@ -394,7 +394,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 template<>
 struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, float64>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE3, float64)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE3, float64)
 
     KSIMD_OP_SIG_SSE3_STATIC(float64, reduce_add, (batch_t v))
     {
@@ -409,7 +409,7 @@ struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, fl
 template<>
 struct BaseOp<SimdInstruction::SSE4_1, float64> : BaseOp<SimdInstruction::SSE3, float64>
 {
-    KSIMD_DETAIL_SIMD_OP_TRAITS(SimdInstruction::SSE4_1, float64)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE4_1, float64)
 
     KSIMD_OP_SIG_SSE4_1_STATIC(batch_t, mask_select, (mask_t mask, batch_t a, batch_t b))
     {

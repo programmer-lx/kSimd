@@ -16,14 +16,14 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace Scalar_family
+namespace vector_scalar
 {
     #define KSIMD_BATCH_T Batch<S, A>
 
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator+, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
@@ -35,7 +35,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
@@ -47,7 +47,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator*, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
@@ -62,7 +62,7 @@ namespace Scalar_family
         KSIMD_WARNING_PUSH
         KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
 
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
@@ -76,7 +76,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator-, (KSIMD_BATCH_T v))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
@@ -87,7 +87,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator&, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
@@ -98,7 +98,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator|, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
@@ -109,7 +109,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator^, (KSIMD_BATCH_T lhs, KSIMD_BATCH_T rhs))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
@@ -120,7 +120,7 @@ namespace Scalar_family
     template<is_scalar_type S, size_t A>
     KSIMD_OP_SIG_SCALAR(KSIMD_BATCH_T, operator~, (KSIMD_BATCH_T v))
     {
-        using traits = SimdTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
         {
@@ -181,7 +181,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_type Scalar>
     struct BaseOp_Scalar_Base
     {
-        KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, Scalar)
+        KSIMD_DETAIL_BASE_OP_TRAITS(Instruction, Scalar)
 
         #if defined(KSIMD_IS_TESTING)
         KSIMD_OP_SIG_SCALAR_STATIC(void, test_store_mask, (scalar_t* mem, mask_t mask))
@@ -670,7 +670,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_floating_point FloatingPoint>
     struct BaseOp_Scalar_FloatingPoint_Base : BaseOp_Scalar_Base<Instruction, FloatingPoint>
     {
-        KSIMD_DETAIL_SIMD_OP_TRAITS(Instruction, FloatingPoint)
+        KSIMD_DETAIL_BASE_OP_TRAITS(Instruction, FloatingPoint)
 
         #pragma region arithmetic 算术
         /**

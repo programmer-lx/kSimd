@@ -146,7 +146,7 @@ concept is_mask_type = requires(T v)
 };
 
 template<SimdInstruction Instruction, is_scalar_type ScalarType>
-struct SimdTraits;
+struct BaseOpTraits;
 
 namespace detail
 {
@@ -166,8 +166,8 @@ namespace detail
     };
 }
 
-#define KSIMD_DETAIL_SIMD_OP_TRAITS(instruction, scalar_type) \
-    using traits = SimdTraits<instruction, scalar_type>; \
+#define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
+    using traits = BaseOpTraits<instruction, scalar_type>; \
     using batch_t = typename traits::batch_t; \
     using scalar_t = typename traits::scalar_t; \
     using mask_t = typename traits::mask_t; \

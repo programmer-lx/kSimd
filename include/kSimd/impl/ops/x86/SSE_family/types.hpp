@@ -3,6 +3,7 @@
 #include <xmmintrin.h> // SSE
 #include <emmintrin.h> // SSE2
 #include <pmmintrin.h> // SSE3
+#include <tmmintrin.h> // SSSE3
 #include <smmintrin.h> // SSE4.1
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
@@ -13,7 +14,7 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace SSE_family
+namespace vector128_x86
 {
     namespace SSE
     {
@@ -95,8 +96,8 @@ namespace SSE_family
 // SSE
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
-struct SimdTraits<SimdInstruction::SSE, S>
-    : detail::SimdTraits_Base<SimdInstruction::SSE, S, SSE_family::SSE::Batch<S>, SSE_family::SSE::Mask<S>, alignment::SSE_Family>
+struct BaseOpTraits<SimdInstruction::SSE, S>
+    : detail::SimdTraits_Base<SimdInstruction::SSE, S, vector128_x86::SSE::Batch<S>, vector128_x86::SSE::Mask<S>, alignment::SSE_Family>
 {
 };
 
@@ -104,9 +105,9 @@ struct SimdTraits<SimdInstruction::SSE, S>
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
 template<is_scalar_type S>
     requires (!std::is_same_v<float32, S>) // NOT float32
-struct SimdTraits<SimdInstruction::SSE, S>
+struct BaseOpTraits<SimdInstruction::SSE, S>
     : detail::SimdTraits_Base<
-        SimdInstruction::SSE, S, Scalar_family::Batch<S, alignment::SSE_Family>, Scalar_family::Mask<S, alignment::SSE_Family>, alignment::SSE_Family>
+        SimdInstruction::SSE, S, vector_scalar::Batch<S, alignment::SSE_Family>, vector_scalar::Mask<S, alignment::SSE_Family>, alignment::SSE_Family>
 {
 };
 #endif
@@ -114,15 +115,15 @@ struct SimdTraits<SimdInstruction::SSE, S>
 // SSE2+
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && std::is_same_v<float32, S>) // float32 only
-struct SimdTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, SSE_family::SSE::Batch<S>, SSE_family::SSE::Mask<S>, alignment::SSE_Family>
+struct BaseOpTraits<Instruction, S>
+    : detail::SimdTraits_Base<Instruction, S, vector128_x86::SSE::Batch<S>, vector128_x86::SSE::Mask<S>, alignment::SSE_Family>
 {
 };
 
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && !std::is_same_v<float32, S>) // NOT float32
-struct SimdTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, SSE_family::SSE2_up::Batch<S>, SSE_family::SSE2_up::Mask<S>, alignment::SSE_Family>
+struct BaseOpTraits<Instruction, S>
+    : detail::SimdTraits_Base<Instruction, S, vector128_x86::SSE2_up::Batch<S>, vector128_x86::SSE2_up::Mask<S>, alignment::SSE_Family>
 {
 };
 
