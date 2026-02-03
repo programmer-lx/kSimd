@@ -509,7 +509,7 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(round_nearest)
 #endif
 
-// ------------------------------------------ round (Classic) ------------------------------------------
+// ------------------------------------------ round ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
@@ -519,35 +519,75 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::Lanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
-        // 1. 标准 0.5 进位 (Away from zero)
+        // --- 1. 标准四舍五入 (Rounding away from zero) ---
+        // 正数 0.5 进位
         op::store(test, op::round(op::set(FLOAT_T(2.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(3.0));
 
+        // 负数 0.5 进位 (远离零方向)
         op::store(test, op::round(op::set(FLOAT_T(-2.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
 
-        // 2. 临界值测试：非常接近 0.5 但不到 0.5
-        // 0.49999997f 是 float 能表示的最大的小于 0.5 的数之一
-        op::store(test, op::round(op::set(FLOAT_T(2.499999))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
 
-        // 3. 符号位保持测试
+        // --- 2. 临界值测试 (Precision Boundary) ---
+        // 使用 epsilon 确保测试的是该类型能表示的最小差异
+        const FLOAT_T eps = std::numeric_limits<FLOAT_T>::epsilon();
+
+        // 测试略小于 0.5 的情况 (应舍向 0)
+        op::store(test, op::round(op::set(FLOAT_T(0.5) - eps)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(0.0));
+
+        // 测试略大于 0.5 的情况 (应舍向 1)
+        op::store(test, op::round(op::set(FLOAT_T(0.5) + eps)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(1.0));
+
+
+        // --- 3. 符号位与零 (Signbit preservation) ---
+        // -0.0 经过 round 后依然应该是 -0.0
         op::store(test, op::round(op::set(FLOAT_T(-0.0))));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(test[i], FLOAT_T(0.0));
-            EXPECT_TRUE(std::signbit(test[i])); // 验证 -0.0 的符号位是否还在
+            EXPECT_TRUE(std::signbit(test[i]));
         }
 
-        // 4. 大数值测试 (超过有效尾数范围)
-        // 对于 float, 2^24 之后的小数位就不存在了
-        FLOAT_T big = std::is_same_v<FLOAT_T, float> ? FLOAT_T(16777216.0) : FLOAT_T(9007199254740992.0);
-        op::store(test, op::round(op::set(big)));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big);
+        // 负的小数 (未达进位点) 应该保持负零符号
+        op::store(test, op::round(op::set(FLOAT_T(-0.1))));
+        for (size_t i = 0; i < Lanes; ++i) {
+            EXPECT_EQ(test[i], FLOAT_T(0.0));
+            EXPECT_TRUE(std::signbit(test[i]));
+        }
 
-        // 5. 特殊值处理
+
+        // --- 4. 大数值测试 (Integer range overflow) ---
+        // 跨越有效尾数范围的边界测试
+        FLOAT_T big_val;
+        if constexpr (std::is_same_v<FLOAT_T, float>) {
+            big_val = FLOAT_T(8388608.0); // 2^23: float 精度消失点
+        } else {
+            big_val = FLOAT_T(4503599627370496.0); // 2^52: double 精度消失点
+        }
+
+        // 大值本身就是整数，round 之后不应改变
+        op::store(test, op::round(op::set(big_val)));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big_val);
+
+        // 大值 + 1.0 同样
+        op::store(test, op::round(op::set(big_val + FLOAT_T(1.0))));
+        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big_val + FLOAT_T(1.0));
+
+
+        // --- 5. 特殊值处理 ---
+        // 正负无穷
         op::store(test, op::round(op::set(inf<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
 
+        op::store(test, op::round(op::set(-inf<FLOAT_T>)));
+        for (size_t i = 0; i < Lanes; ++i) {
+            EXPECT_TRUE(std::isinf(test[i]));
+            EXPECT_TRUE(std::signbit(test[i]));
+        }
+
+        // NaN 处理
         op::store(test, op::round(op::set(qNaN<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
     }

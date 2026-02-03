@@ -541,8 +541,8 @@ struct BaseOp<SimdInstruction::SSE4_1, float32> : BaseOp<SimdInstruction::SSE3, 
         // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
         __m128 sign_mask = _mm_and_ps(v.v, _mm_set1_ps(SignBitMask<float32>));
 
-        // 构造一个具有相同符号的0.5，但是比0.5小一点，防止进位
-        __m128 half = _mm_or_ps(_mm_set1_ps(0.49999997f), sign_mask);
+        // 构造一个具有相同符号的0.5 (0x1.0p-1f == 0.5f 16进制精确表示)
+        __m128 half = _mm_or_ps(_mm_set1_ps(0x1.0p-1f), sign_mask);
 
         return { _mm_round_ps(_mm_add_ps(v.v, half), _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
     }
