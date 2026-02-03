@@ -3,9 +3,8 @@
 #include <bit> // std::bit_cast
 #include <utility> // index_sequence
 
-#include "types.hpp"
 #include "kSimd/impl/traits.hpp"
-#include "kSimd/impl/ops/TypeOp.hpp"
+#include "kSimd/impl/ops/type_op/TypeOp.hpp"
 #include "kSimd/impl/func_attr.hpp"
 
 KSIMD_NAMESPACE_BEGIN

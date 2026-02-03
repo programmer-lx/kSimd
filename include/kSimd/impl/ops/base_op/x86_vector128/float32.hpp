@@ -1,14 +1,14 @@
 #pragma once
 
-#include "types.hpp"
-#include "kSimd/impl/ops/BaseOp.hpp"
+#include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
+#include "kSimd/impl/ops/base_op/BaseOp.hpp"
 #include "kSimd/impl/utils.hpp"
 #include "kSimd/impl/func_attr.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace base_vector128_x86
+namespace x86_vector128
 {
     #define KSIMD_BATCH_T Batch<float32>
 

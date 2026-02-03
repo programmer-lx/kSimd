@@ -9,14 +9,14 @@
 #include <utility> // std::index_sequence
 
 #include "kSimd/impl/func_attr.hpp"
-#include "kSimd/impl/ops/BaseOp.hpp"
+#include "kSimd/impl/ops/base_op/BaseOp.hpp"
 #include "kSimd/impl/utils.hpp"
-#include "types.hpp"
+#include "kSimd/impl/ops/vector_types/scalar.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-namespace base_vector_scalar
+namespace vector_scalar
 {
     #define KSIMD_BATCH_T Batch<S, A>
 

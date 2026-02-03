@@ -7,14 +7,14 @@
 #include <smmintrin.h> // SSE4.1
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-    #include "kSimd/impl/ops/scalar/base.hpp"
+    #include "kSimd/impl/ops/base_op/scalar/base.hpp"
 #endif
 
 #include "kSimd/impl/traits.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace base_vector128_x86
+namespace x86_vector128
 {
     template<is_scalar_type scalar_type>
     struct Batch
@@ -79,7 +79,7 @@ namespace base_vector128_x86
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
 struct BaseOpTraits<SimdInstruction::SSE, S>
-    : detail::SimdTraits_Base<SimdInstruction::SSE, S, base_vector128_x86::Batch<S>, base_vector128_x86::Mask<S>, alignment::Vec128>
+    : detail::SimdTraits_Base<SimdInstruction::SSE, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
 {
 };
 
@@ -89,7 +89,7 @@ template<is_scalar_type S>
     requires (!std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<SimdInstruction::SSE, S>
     : detail::SimdTraits_Base<
-        SimdInstruction::SSE, S, base_vector_scalar::Batch<S, alignment::Vec128>, base_vector_scalar::Mask<S, alignment::Vec128>, alignment::Vec128>
+        SimdInstruction::SSE, S, vector_scalar::Batch<S, alignment::Vec128>, vector_scalar::Mask<S, alignment::Vec128>, alignment::Vec128>
 {
 };
 #endif
@@ -98,14 +98,14 @@ struct BaseOpTraits<SimdInstruction::SSE, S>
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && std::is_same_v<float32, S>) // float32 only
 struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, base_vector128_x86::Batch<S>, base_vector128_x86::Mask<S>, alignment::Vec128>
+    : detail::SimdTraits_Base<Instruction, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
 {
 };
 
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && !std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, base_vector128_x86::Batch<S>, base_vector128_x86::Mask<S>, alignment::Vec128>
+    : detail::SimdTraits_Base<Instruction, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
 {
 };
 

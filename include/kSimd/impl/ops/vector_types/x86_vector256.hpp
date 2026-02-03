@@ -6,7 +6,7 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace base_vector256_x86
+namespace x86_vector256
 {
     template<is_scalar_type scalar_type>
     struct Batch
@@ -70,7 +70,7 @@ namespace base_vector256_x86
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
 struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, base_vector256_x86::Batch<S>, base_vector256_x86::Mask<S>, alignment::Vec256>
+    : detail::SimdTraits_Base<Instruction, S, x86_vector256::Batch<S>, x86_vector256::Mask<S>, alignment::Vec256>
 {
 };
 

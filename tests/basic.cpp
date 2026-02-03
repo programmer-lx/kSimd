@@ -38,7 +38,7 @@ TEST(dyn_dispatch, float32)
         using batch_t = op::batch_t;
         EXPECT_TRUE(alignof(batch_t) == alignof(float32));
 
-        EXPECT_TRUE((std::is_same_v<batch_t, base_vector_scalar::Batch<float32, alignof(float32)>>));
+        EXPECT_TRUE((std::is_same_v<batch_t, vector_scalar::Batch<float32, alignof(float32)>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::Scalar);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -48,7 +48,7 @@ TEST(dyn_dispatch, float32)
     // sse
     {
         using op = BaseOp<SimdInstruction::SSE, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -58,7 +58,7 @@ TEST(dyn_dispatch, float32)
     // sse2
     {
         using op = BaseOp<SimdInstruction::SSE2, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE2);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -68,7 +68,7 @@ TEST(dyn_dispatch, float32)
     // sse3
     {
         using op = BaseOp<SimdInstruction::SSE3, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE3);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -78,7 +78,7 @@ TEST(dyn_dispatch, float32)
     // sse4.1
     {
         using op = BaseOp<SimdInstruction::SSE4_1, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE4_1);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -89,7 +89,7 @@ TEST(dyn_dispatch, float32)
     // avx
     {
         using op = BaseOp<SimdInstruction::AVX, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector256_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector256::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX);
         EXPECT_TRUE(op::BatchSize == 32);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -99,7 +99,7 @@ TEST(dyn_dispatch, float32)
     // avx2
     {
         using op = BaseOp<SimdInstruction::AVX2, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector256_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector256::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX2);
         EXPECT_TRUE(op::BatchSize == 32);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -109,7 +109,7 @@ TEST(dyn_dispatch, float32)
     // avx2+fma3
     {
         using op = BaseOp<SimdInstruction::AVX2_FMA3_F16C, float32>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector256_x86::Batch<float32>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector256::Batch<float32>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX2_FMA3_F16C);
         EXPECT_TRUE(op::BatchSize == 32);
         EXPECT_TRUE(op::ElementSize == 4);
@@ -128,7 +128,7 @@ TEST(dyn_dispatch, float64)
         using batch_t = op::batch_t;
         EXPECT_TRUE(alignof(batch_t) == alignof(float64));
 
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector_scalar::Batch<float64, alignof(float64)>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, vector_scalar::Batch<float64, alignof(float64)>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::Scalar);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -138,7 +138,7 @@ TEST(dyn_dispatch, float64)
     // sse
     {
         using op = BaseOp<SimdInstruction::SSE, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector_scalar::Batch<float64, alignment::Vec128>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, vector_scalar::Batch<float64, alignment::Vec128>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -148,7 +148,7 @@ TEST(dyn_dispatch, float64)
     // sse2
     {
         using op = BaseOp<SimdInstruction::SSE2, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float64>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float64>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE2);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -158,7 +158,7 @@ TEST(dyn_dispatch, float64)
     // sse3
     {
         using op = BaseOp<SimdInstruction::SSE3, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float64>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float64>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE3);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -168,7 +168,7 @@ TEST(dyn_dispatch, float64)
     // sse4.1
     {
         using op = BaseOp<SimdInstruction::SSE4_1, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector128_x86::Batch<float64>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float64>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE4_1);
         EXPECT_TRUE(op::BatchSize == 16);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -179,7 +179,7 @@ TEST(dyn_dispatch, float64)
     // avx
     {
         using op = BaseOp<SimdInstruction::AVX, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector256_x86::Batch<float64>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector256::Batch<float64>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX);
         EXPECT_TRUE(op::BatchSize == 32);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -189,7 +189,7 @@ TEST(dyn_dispatch, float64)
     // avx2
     {
         using op = BaseOp<SimdInstruction::AVX2, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector256_x86::Batch<float64>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector256::Batch<float64>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX2);
         EXPECT_TRUE(op::BatchSize == 32);
         EXPECT_TRUE(op::ElementSize == 8);
@@ -199,7 +199,7 @@ TEST(dyn_dispatch, float64)
     // avx2+fma3
     {
         using op = BaseOp<SimdInstruction::AVX2_FMA3_F16C, float64>;
-        EXPECT_TRUE((std::is_same_v<op::batch_t, base_vector256_x86::Batch<float64>>));
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector256::Batch<float64>>));
         EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX2_FMA3_F16C);
         EXPECT_TRUE(op::BatchSize == 32);
         EXPECT_TRUE(op::ElementSize == 8);

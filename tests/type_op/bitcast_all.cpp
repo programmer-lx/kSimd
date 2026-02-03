@@ -13,30 +13,20 @@ namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR void kernel() noexcept
     {
-        using f32_op = KSIMD_DYN_BASE_OP(float32);
-        using f32 = f32_op::traits;
-
-        using f64_op = KSIMD_DYN_BASE_OP(float64);
-        using f64 = f64_op::traits;
-
-        // using i32 = KSIMD_DYN_SIMD_TRAITS(int32_t);
-        // using i32_op = KSIMD_DYN_SIMD_OP(int32_t);
-        //
-        // using u32 = KSIMD_DYN_SIMD_TRAITS(uint32_t);
-        // using u32_op = KSIMD_DYN_SIMD_OP(uint32_t);
-
+        using f32 = KSIMD_DYN_BASE_OP(float32);
+        using f64 = KSIMD_DYN_BASE_OP(float64);
         using type_op = KSIMD_DYN_TYPE_OP();
 
         // -------------------- self -> self --------------------
         // f32 -> f32
         {
-            f32::batch_t a = f32_op::set(5);
+            f32::batch_t a = f32::set(5);
             f32::batch_t b = type_op::bit_cast<f32::batch_t>(a);
             EXPECT_TRUE(bit_equal(a, b));
         }
         // f64 -> f64
         {
-            f64::batch_t a = f64_op::set(5);
+            f64::batch_t a = f64::set(5);
             f64::batch_t b = type_op::bit_cast<f64::batch_t>(a);
             EXPECT_TRUE(bit_equal(a, b));
         }
@@ -44,7 +34,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // -------------------- f32 -> ? --------------------
         // f32 -> f64
         {
-            f32::batch_t a = f32_op::set(6);
+            f32::batch_t a = f32::set(6);
             f64::batch_t b = type_op::bit_cast<f64::batch_t>(a);
             EXPECT_TRUE(bit_equal(a, b));
         }
@@ -52,7 +42,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // -------------------- f64 -> ? --------------------
         // f64 -> f32
         {
-            f64::batch_t a = f64_op::set(5);
+            f64::batch_t a = f64::set(5);
             f32::batch_t b = type_op::bit_cast<f32::batch_t>(a);
             EXPECT_TRUE(bit_equal(a, b));
         }

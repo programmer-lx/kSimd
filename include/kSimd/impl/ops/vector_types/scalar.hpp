@@ -4,20 +4,20 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-namespace base_vector_scalar
+namespace vector_scalar
 {
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t FullByteSize = 16;
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t VectorByteSize = 16;
 
-    template<is_scalar_type S, size_t alignment>
+    template<is_scalar_type S, size_t Alignment>
     struct Batch
     {
         using scalar_t = S;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::ScalarArray;
-        static constexpr size_t byte_size = FullByteSize;
+        static constexpr size_t byte_size = VectorByteSize;
 
-        alignas(alignment) S v[FullByteSize / sizeof(S)];
+        alignas(Alignment) S v[VectorByteSize / sizeof(S)];
 
-        static_assert(sizeof(v) == FullByteSize, "Scalar type is 128bits vector");
+        static_assert(sizeof(v) == VectorByteSize);
     };
 
     template<is_scalar_type S, size_t alignment>
@@ -26,9 +26,9 @@ namespace base_vector_scalar
         using scalar_t = S;
         static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::ScalarArray;
 
-        alignas(alignment) S m[FullByteSize / sizeof(S)];
+        alignas(alignment) S m[VectorByteSize / sizeof(S)];
 
-        static_assert(sizeof(m) == FullByteSize, "Scalar type is 128bits vector");
+        static_assert(sizeof(m) == VectorByteSize);
     };
 }
 
@@ -37,8 +37,8 @@ struct BaseOpTraits<SimdInstruction::Scalar, S>
     : detail::SimdTraits_Base<
         SimdInstruction::Scalar,
         S,
-        base_vector_scalar::Batch<S, alignof(S)>,
-        base_vector_scalar::Mask<S, alignof(S)>,
+        vector_scalar::Batch<S, alignof(S)>,    // vector128
+        vector_scalar::Mask<S, alignof(S)>,     // vector128
         alignof(S)
     >
 {
