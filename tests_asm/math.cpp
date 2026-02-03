@@ -3,7 +3,7 @@
 #include <kSimd/dispatch_this_file.hpp>
 
 #include <kSimd/base_op.hpp>
-#include <kSimd_extension/math.hpp>
+#include <kSimd_extension/vmath.hpp>
 
 namespace MyNamespace
 {

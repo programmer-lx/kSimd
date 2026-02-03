@@ -6,7 +6,7 @@
 
 // 下面这两个文件一定要放在dispatch_this_file.hpp之后
 #include <kSimd/base_op.hpp>
-#include <kSimd_extension/math.hpp>
+#include <kSimd_extension/vmath.hpp>
 
 
 // ------------------------------------------ sin ------------------------------------------
