@@ -141,12 +141,6 @@ KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float64 f) noexc
     return (bits & exp_mask) != exp_mask;
 }
 
-constexpr float16 f32_to_f16(const float32 f) noexcept
-{
-    (void)f;
-    return 0; // TODO
-}
-
 template<typename S, int index>
 KSIMD_HEADER_GLOBAL_CONSTEXPR int InverseBitIndex = detail::inverse_bit_index_impl<S, index>();
 

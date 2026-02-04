@@ -15,7 +15,7 @@
 
 #else
 
-    #define KSIMD_IDE_BASE_OP_HINT(op_name, scalar_type)
-    #define KSIMD_IDE_TYPE_OP_HINT(op_name)
+    #define KSIMD_IDE_BASE_OP_HINT(...)
+    #define KSIMD_IDE_TYPE_OP_HINT(...)
 
 #endif
