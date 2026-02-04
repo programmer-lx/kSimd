@@ -35,16 +35,16 @@ namespace MyNamespace
             {
                 f64::batch_t x = f64::load(src + i);
 
-                f64::batch_t res = ext::vmath::clamp(c10, x, c9);
-                res = ext::vmath::lerp(res, x, c8);
-                res = ext::vmath::lerp(res, x, c7);
-                res = ext::vmath::lerp(res, x, c6);
-                res = ext::vmath::lerp(res, x, c5);
-                res = ext::vmath::clamp(res, x, c4);
-                res = ext::vmath::clamp(res, x, c3);
-                res = ext::vmath::clamp(res, x, c2);
-                res = ext::vmath::clamp(res, x, c1);
-                res = ext::vmath::clamp(res, x, c0);
+                f64::batch_t res = ext::vmath::clamp<f64>(c10, x, c9);
+                res = ext::vmath::lerp<f64>(res, x, c8);
+                res = ext::vmath::lerp<f64>(res, x, c7);
+                res = ext::vmath::lerp<f64>(res, x, c6);
+                res = ext::vmath::lerp<f64>(res, x, c5);
+                res = ext::vmath::clamp<f64>(res, x, c4);
+                res = ext::vmath::clamp<f64>(res, x, c3);
+                res = ext::vmath::clamp<f64>(res, x, c2);
+                res = ext::vmath::clamp<f64>(res, x, c1);
+                res = ext::vmath::clamp<f64>(res, x, c0);
 
                 f64::store(dst + i, res);
             }
@@ -55,16 +55,16 @@ namespace MyNamespace
                 const f64::mask_t mask = f64::mask_from_lanes(static_cast<unsigned int>(tail));
                 f64::batch_t x = f64::mask_load(src + i, mask);
 
-                f64::batch_t res = ext::vmath::clamp(c10, x, c9);
-                res = ext::vmath::lerp(res, x, c8);
-                res = ext::vmath::lerp(res, x, c7);
-                res = ext::vmath::lerp(res, x, c6);
-                res = ext::vmath::lerp(res, x, c5);
-                res = ext::vmath::lerp(res, x, c4);
-                res = ext::vmath::clamp(res, x, c3);
-                res = ext::vmath::clamp(res, x, c2);
-                res = ext::vmath::clamp(res, x, c1);
-                res = ext::vmath::clamp(res, x, c0);
+                f64::batch_t res = ext::vmath::clamp<f64>(c10, x, c9);
+                res = ext::vmath::lerp<f64>(res, x, c8);
+                res = ext::vmath::lerp<f64>(res, x, c7);
+                res = ext::vmath::lerp<f64>(res, x, c6);
+                res = ext::vmath::lerp<f64>(res, x, c5);
+                res = ext::vmath::lerp<f64>(res, x, c4);
+                res = ext::vmath::clamp<f64>(res, x, c3);
+                res = ext::vmath::clamp<f64>(res, x, c2);
+                res = ext::vmath::clamp<f64>(res, x, c1);
+                res = ext::vmath::clamp<f64>(res, x, c0);
 
                 f64::mask_store(dst + i, res, mask);
             }
