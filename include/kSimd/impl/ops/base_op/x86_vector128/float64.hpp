@@ -412,8 +412,6 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 template<>
 struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE3, float64)
-
     KSIMD_API(float64) reduce_add(batch_t v) noexcept
     {
         // input: [b, a]
@@ -430,8 +428,6 @@ struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, fl
 template<>
 struct BaseOp<SimdInstruction::SSE4_1, float64> : BaseOp<SimdInstruction::SSE3, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE4_1, float64)
-
     KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
     {
         return { _mm_blendv_pd(b.v, a.v, mask.m) };

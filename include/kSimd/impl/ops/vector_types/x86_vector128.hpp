@@ -73,46 +73,42 @@ namespace x86_vector128
 
         __m128d m;
     };
-}
+} // namespace x86_vector128
 
 // traits
 // SSE
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
-struct BaseOpTraits<SimdInstruction::SSE, S>
-    : detail::SimdTraits_Base<SimdInstruction::SSE, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
-{
-};
+struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
+    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S, x86_vector128::Batch<S>,
+                              x86_vector128::Mask<S>, alignment::Vec128>
+{};
 
 
 // SSE float64 使用标量模拟
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
 template<is_scalar_type S>
-    requires (!std::is_same_v<float32, S>) // NOT float32
-struct BaseOpTraits<SimdInstruction::SSE, S>
-    : detail::SimdTraits_Base<
-        SimdInstruction::SSE, S,
-        vector_scalar::Batch<S, 16, alignment::Vec128>,
-        vector_scalar::Mask<S, 16, alignment::Vec128>,
-        alignment::Vec128
-    >
-{
-};
+    requires(!std::is_same_v<float32, S>) // NOT float32
+struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
+    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S,
+                              vector_scalar::Batch<S, 16, alignment::Vec128>,
+                              vector_scalar::Mask<S, 16, alignment::Vec128>, alignment::Vec128>
+{};
 #endif
 
 // SSE2+
 template<SimdInstruction Instruction, is_scalar_type S>
-    requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && std::is_same_v<float32, S>) // float32 only
+    requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End &&
+             std::is_same_v<float32, S>) // float32 only
 struct BaseOpTraits<Instruction, S>
     : detail::SimdTraits_Base<Instruction, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
-{
-};
+{};
 
 template<SimdInstruction Instruction, is_scalar_type S>
-    requires (Instruction >= SimdInstruction::SSE2 && Instruction < SimdInstruction::SSE_End && !std::is_same_v<float32, S>) // NOT float32
+    requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End &&
+             !std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<Instruction, S>
     : detail::SimdTraits_Base<Instruction, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
-{
-};
+{};
 
 KSIMD_NAMESPACE_END

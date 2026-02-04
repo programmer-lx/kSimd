@@ -31,9 +31,9 @@ namespace vector_scalar
 }
 
 template<is_scalar_type S>
-struct BaseOpTraits<SimdInstruction::Scalar, S>
+struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, S>
     : detail::SimdTraits_Base<
-        SimdInstruction::Scalar,
+        SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
         S,
         vector_scalar::Batch<S, 16, alignof(S)>,    // vector128
         vector_scalar::Mask<S, 16, alignof(S)>,     // vector128

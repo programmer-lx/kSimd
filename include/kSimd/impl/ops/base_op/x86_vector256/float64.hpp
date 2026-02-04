@@ -417,11 +417,11 @@ struct BaseOp<SimdInstruction::AVX2, float64> : BaseOp<SimdInstruction::AVX, flo
 };
 
 
-#define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_F16C_API static ret KSIMD_CALL_CONV
+#define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::AVX2_FMA3_F16C, float64> : BaseOp<SimdInstruction::AVX2, float64>
+struct BaseOp<SimdInstruction::AVX2_FMA3, float64> : BaseOp<SimdInstruction::AVX2, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2_FMA3_F16C, float64)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2_FMA3, float64)
 
     KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
     {

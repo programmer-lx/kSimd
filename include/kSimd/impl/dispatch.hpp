@@ -3,20 +3,9 @@
 // 该头文件编写函数分发表相关逻辑
 
 #include "platform.hpp"
+#include "dyn_instruction_name.hpp"
 
 KSIMD_NAMESPACE_BEGIN
-
-// --------------------------------- KSIMD_DYN_INSTRUCTION str ---------------------------------
-#define KSIMD_DYN_INSTRUCTION_SCALAR            Scalar
-#define KSIMD_DYN_INSTRUCTION_SSE               SSE
-#define KSIMD_DYN_INSTRUCTION_SSE2              SSE2
-#define KSIMD_DYN_INSTRUCTION_SSE3              SSE3
-#define KSIMD_DYN_INSTRUCTION_SSSE3             SSSE3
-#define KSIMD_DYN_INSTRUCTION_SSE4_1            SSE4_1
-#define KSIMD_DYN_INSTRUCTION_SSE4_2            SSE4_2
-#define KSIMD_DYN_INSTRUCTION_AVX               AVX
-#define KSIMD_DYN_INSTRUCTION_AVX2              AVX2
-#define KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C    AVX2_FMA3_F16C
 
 // instruction充当命名空间
 #define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction) \
@@ -81,17 +70,17 @@ KSIMD_NAMESPACE_BEGIN
     #define KSIMD_DETAIL_AVX2_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
-// AVX_FMA3_F16C
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C)
-    #define KSIMD_DETAIL_AVX2_FMA3_F16C_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C)
+// AVX_FMA3
+#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3)
+    #define KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_FMA3)
 #else
-    #define KSIMD_DETAIL_AVX2_FMA3_F16C_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
+    #define KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // function table
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
     /* ------------------------------------- avx family ------------------------------------- */ \
-    KSIMD_DETAIL_AVX2_FMA3_F16C_FUNC_IMPL(func_name) \
+    KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) \
     KSIMD_DETAIL_AVX2_FUNC_IMPL(func_name) \
     KSIMD_DETAIL_AVX_FUNC_IMPL(func_name) \
     /* ------------------------------------- sse family ------------------------------------- */ \
@@ -117,8 +106,8 @@ namespace detail
     {
         Invalid = -1,
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C)
-        KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C,
+    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3)
+        KSIMD_DYN_INSTRUCTION_AVX2_FMA3,
     #endif
 
     #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2)

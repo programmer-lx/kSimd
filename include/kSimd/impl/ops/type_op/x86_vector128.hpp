@@ -9,7 +9,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct TypeOp<SimdInstruction::SSE>
+struct TypeOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE>
 {
     // scalar array <- scalar array (用于转换除了float32之外的类型) (a to b or self to self)
     template<is_batch_type To, is_batch_type From>
@@ -62,7 +62,7 @@ struct TypeOp<SimdInstruction::SSE>
 };
 
 template<SimdInstruction I>
-    requires(I >= SimdInstruction::SSE2 && I < SimdInstruction::SSE_End)
+    requires(I >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && I < SimdInstruction::SSE_End)
 struct TypeOp<I>
 {
 #define KSIMD_API(ret) KSIMD_OP_SSE2_API static ret KSIMD_CALL_CONV

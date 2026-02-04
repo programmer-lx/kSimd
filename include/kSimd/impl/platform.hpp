@@ -95,7 +95,7 @@ KSIMD_INSTRUCTION_FEATURE 宏:
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
         // #define KSIMD_INSTRUCTION_FEATURE_AVX 1      // 2026 无需支持
         // #define KSIMD_INSTRUCTION_FEATURE_AVX2 1     // 2026 无需支持
-        #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C 1
+        #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3 1
     #endif
 
     // AVX-512 family

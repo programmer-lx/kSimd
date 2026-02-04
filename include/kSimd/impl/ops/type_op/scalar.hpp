@@ -9,7 +9,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct TypeOp<SimdInstruction::Scalar>
+struct TypeOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR>
 {
     // scalar array <- scalar array or self <- self
     template<is_batch_type To, is_batch_type From>

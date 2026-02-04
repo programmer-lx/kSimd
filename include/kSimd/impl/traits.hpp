@@ -8,25 +8,26 @@
 #include <type_traits>
 
 #include "platform.hpp"
+#include "dyn_instruction_name.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
 // 这个枚举用于SimdOp的模板参数
 enum class SimdInstruction : int
 {
-    Scalar,
+    KSIMD_DYN_INSTRUCTION_SCALAR,
 
     SSE_Start,
-    SSE,
-    SSE2,
-    SSE3,
-    SSE4_1,
+    KSIMD_DYN_INSTRUCTION_SSE,
+    KSIMD_DYN_INSTRUCTION_SSE2,
+    KSIMD_DYN_INSTRUCTION_SSE3,
+    KSIMD_DYN_INSTRUCTION_SSE4_1,
     SSE_End,
 
     AVX_Start,
-    AVX,
-    AVX2,
-    AVX2_FMA3_F16C,
+    KSIMD_DYN_INSTRUCTION_AVX,
+    KSIMD_DYN_INSTRUCTION_AVX2,
+    KSIMD_DYN_INSTRUCTION_AVX2_FMA3,
     AVX_End
 };
 
@@ -157,7 +158,7 @@ namespace detail
         using batch_t = BatchType;
         using scalar_t = S;
         using mask_t = MaskType;
-        static constexpr SimdInstruction CurrentInstruction = Instruction;
+        static constexpr SimdInstruction internal_instruction_ = Instruction;
         static constexpr size_t BatchSize = batch_t::byte_size;
         static constexpr size_t ElementSize = sizeof(scalar_t);
         static constexpr size_t Lanes = (BatchSize / ElementSize);
@@ -174,7 +175,7 @@ namespace detail
     using batch_t = typename traits::batch_t; \
     using scalar_t = typename traits::scalar_t; \
     using mask_t = typename traits::mask_t; \
-    static constexpr SimdInstruction CurrentInstruction = traits::CurrentInstruction; \
+    static constexpr SimdInstruction internal_instruction_ = traits::internal_instruction_; \
     static constexpr size_t BatchSize = traits::BatchSize; \
     static constexpr size_t ElementSize = traits::ElementSize; \
     static constexpr size_t Lanes = traits::Lanes; \

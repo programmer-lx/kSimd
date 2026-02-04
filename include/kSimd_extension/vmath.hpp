@@ -13,13 +13,6 @@
 
 namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
 {
-#pragma region ------------- constants -------------------------
-
-
-
-#pragma endregion ------------- constants -------------------------
-
-
 #pragma region ------------- any types -------------------------
 
     template<is_batch_type batch_t>
@@ -52,7 +45,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
     {
         using scalar_t = typename batch_t::scalar_t;
         using op = KSIMD_DYN_BASE_OP(scalar_t);
-        constexpr SimdInstruction Instruction = op::CurrentInstruction;
+        constexpr SimdInstruction Instruction = op::internal_instruction_;
         constexpr size_t Lanes = op::Lanes;
 
         if constexpr (Instruction == SimdInstruction::Scalar)
