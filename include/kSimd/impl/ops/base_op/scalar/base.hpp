@@ -696,9 +696,12 @@ namespace detail
         }
 
         /**
-         * @return foreach i in lanes: 四舍五入
-         * @note 2.5 -> 3.0; -2.5 -> -3.0
-         * @warning 一般的计算使用round_nearest就够了，因为四舍五入并不是IEEE754的最近值，round需要多条指令模拟
+         * @brief
+         * RoundingMode::Up: 向上取整 \n
+         * RoundingMode::Down: 向下取整 \n
+         * RoundingMode::Nearest: 最近偶数 \n
+         * RoundingMode::Round: 四舍五入 \n
+         * RoundingMode::ToZero: 向0取整 \n
          */
         template<RoundingMode mode>
         KSIMD_API(batch_t) round(batch_t v) noexcept
