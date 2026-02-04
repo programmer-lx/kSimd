@@ -438,17 +438,13 @@ struct BaseOp<SimdInstruction::AVX, float64>
 
 template<>
 struct BaseOp<SimdInstruction::AVX2, float64> : BaseOp<SimdInstruction::AVX, float64>
-{
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2, float64)
-};
+{};
 
 
 #define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_API static ret KSIMD_CALL_CONV
 template<>
 struct BaseOp<SimdInstruction::AVX2_FMA3, float64> : BaseOp<SimdInstruction::AVX2, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2_FMA3, float64)
-
     using BaseOp<SimdInstruction::AVX2, float64>::sequence;
 
     KSIMD_API(batch_t) sequence(float64 base, float64 stride) noexcept

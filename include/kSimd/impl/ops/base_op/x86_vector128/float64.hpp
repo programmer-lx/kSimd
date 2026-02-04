@@ -450,9 +450,14 @@ struct BaseOp<SimdInstruction::SSE3, float64> : BaseOp<SimdInstruction::SSE2, fl
 #undef KSIMD_API
 
 
+template<>
+struct BaseOp<SimdInstruction::SSSE3, float64> : BaseOp<SimdInstruction::SSE3, float64>
+{};
+
+
 #define KSIMD_API(ret) KSIMD_OP_SSE4_1_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::SSE4_1, float64> : BaseOp<SimdInstruction::SSE3, float64>
+struct BaseOp<SimdInstruction::SSE4_1, float64> : BaseOp<SimdInstruction::SSSE3, float64>
 {
     KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
     {

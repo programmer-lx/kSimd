@@ -6,27 +6,27 @@ KSIMD_NAMESPACE_BEGIN
 
 namespace vector_scalar
 {
-    template<is_scalar_type S, size_t VectorByteSize, size_t Alignment>
+    template<is_scalar_type S, size_t Lanes, size_t Alignment>
     struct Batch
     {
         using scalar_t = S;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::ScalarArray;
-        static constexpr size_t byte_size = VectorByteSize;
+        static constexpr size_t byte_size = sizeof(S) * Lanes;
 
-        alignas(Alignment) S v[VectorByteSize / sizeof(S)];
+        alignas(Alignment) S v[Lanes];
 
-        static_assert(sizeof(v) == VectorByteSize);
+        static_assert(sizeof(v) == sizeof(S) * Lanes);
     };
 
-    template<is_scalar_type S, size_t VectorByteSize, size_t alignment>
+    template<is_scalar_type S, size_t Lanes, size_t alignment>
     struct Mask
     {
         using scalar_t = S;
         static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::ScalarArray;
 
-        alignas(alignment) S m[VectorByteSize / sizeof(S)];
+        alignas(alignment) S m[Lanes];
 
-        static_assert(sizeof(m) == VectorByteSize);
+        static_assert(sizeof(m) == sizeof(S) * Lanes);
     };
 }
 
@@ -35,8 +35,8 @@ struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, S>
     : detail::SimdTraits_Base<
         SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
         S,
-        vector_scalar::Batch<S, 16, alignof(S)>,    // vector128
-        vector_scalar::Mask<S, 16, alignof(S)>,     // vector128
+        vector_scalar::Batch<S, 16 / sizeof(S), alignof(S)>,    // vector128
+        vector_scalar::Mask<S, 16 / sizeof(S), alignof(S)>,     // vector128
         alignof(S)
     >
 {

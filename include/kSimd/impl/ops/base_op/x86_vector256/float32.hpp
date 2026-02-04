@@ -442,9 +442,7 @@ struct BaseOp<SimdInstruction::AVX, float32>
 
 template<>
 struct BaseOp<SimdInstruction::AVX2, float32> : BaseOp<SimdInstruction::AVX, float32>
-{
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2, float32)
-};
+{};
 
 
 // AVX2 + FMA指令特化
@@ -452,8 +450,6 @@ struct BaseOp<SimdInstruction::AVX2, float32> : BaseOp<SimdInstruction::AVX, flo
 template<>
 struct BaseOp<SimdInstruction::AVX2_FMA3, float32> : BaseOp<SimdInstruction::AVX2, float32>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2_FMA3, float32)
-
     using BaseOp<SimdInstruction::AVX2, float32>::sequence;
 
     KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept

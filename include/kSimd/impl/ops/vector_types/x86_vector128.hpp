@@ -85,8 +85,8 @@ template<is_scalar_type S>
     requires(!std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
     : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S,
-                              vector_scalar::Batch<S, 16, alignment::Vec128>,
-                              vector_scalar::Mask<S, 16, alignment::Vec128>, alignment::Vec128>
+                              vector_scalar::Batch<S, 16 / sizeof(S), alignment::Vec128>,
+                              vector_scalar::Mask<S, 16 / sizeof(S), alignment::Vec128>, alignment::Vec128>
 {};
 #endif
 

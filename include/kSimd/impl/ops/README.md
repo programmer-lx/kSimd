@@ -12,6 +12,7 @@
 
 ## FixedOp (TODO)
 操作固定Lanes的SIMD类型，可支持多种水平操作。
+FixedOp继承自BaseOp，在垂直操作基础之上，增加水平操作
 
 # 设计原则
 ## 类继承
