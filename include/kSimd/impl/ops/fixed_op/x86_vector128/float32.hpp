@@ -32,21 +32,20 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4>
 
 
 // AVX+
-// 继承SSE4.1的BaseOp，保持 batch_t 一致
-// 对于某些函数，可以使用AVX指令重写
+// 继承SSE4.1的fixed_op，直接获取其水平和垂直指令，并且保持 batch_t 一致
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float32, 4>
-    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
+    : FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float32, 4>
-    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
+    : FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float32, 4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float32, 4>
-    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
+    : FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float32, 4>
 {};
 
 KSIMD_NAMESPACE_END
