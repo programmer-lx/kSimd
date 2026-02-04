@@ -665,7 +665,7 @@ namespace detail
         KSIMD_DETAIL_BASE_OP_TRAITS(Instruction, SignedType)
 
         /**
-         * @return foreach i in lanes: result[i] = abx(v[i])
+         * @return foreach i in lanes: result[i] = |v[i]|
          */
         KSIMD_API(batch_t) abs(batch_t v) noexcept
         {
