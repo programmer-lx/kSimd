@@ -1215,39 +1215,6 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(mul_add)
 #endif
 
-// ------------------------------------------ abs ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void abs() noexcept
-    {
-        using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
-        alignas(ALIGNMENT) TYPE_T test[Lanes]{};
-
-        // 正数与负数
-        op::store(test, op::abs(op::set(TYPE_T(-5))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(5));
-
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            // -0.0 -> 0.0
-            op::store(test, op::abs(op::set(TYPE_T(-0.0))));
-            for (size_t i = 0; i < Lanes; ++i) {
-                EXPECT_EQ(test[i], TYPE_T(0.0));
-                EXPECT_FALSE(std::signbit(test[i])); // 验证符号位已清除
-            }
-
-            // -Inf -> Inf
-            op::store(test, op::abs(op::set(-inf<TYPE_T>)));
-            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
-        }
-    }
-}
-
-#if KSIMD_ONCE
-TEST_ONCE_DYN(abs)
-#endif
-
 // ------------------------------------------ min ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {

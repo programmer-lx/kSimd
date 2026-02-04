@@ -35,7 +35,7 @@ namespace x86_vector256
 
     KSIMD_API(Batch<float32>) operator-(Batch<float32> v) noexcept
     {
-        return { _mm256_sub_ps(_mm256_setzero_ps(), v.v) };
+        return { _mm256_xor_ps(v.v, _mm256_set1_ps(SignBitMask<float32>)) };
     }
 
     KSIMD_API(Batch<float32>) operator&(Batch<float32> lhs, Batch<float32> rhs) noexcept
@@ -297,6 +297,11 @@ struct BaseOp<SimdInstruction::AVX, float32>
     {
         // 将 sign bit 反转即可
         return { _mm256_and_ps(v.v, _mm256_set1_ps(SignBitClearMask<float32>)) };
+    }
+
+    KSIMD_API(batch_t) neg(batch_t v) noexcept
+    {
+        return { _mm256_xor_ps(v.v, _mm256_set1_ps(SignBitMask<float32>)) };
     }
 
     KSIMD_API(batch_t) min(batch_t lhs, batch_t rhs) noexcept

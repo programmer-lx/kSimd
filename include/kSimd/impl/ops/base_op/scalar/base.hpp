@@ -409,12 +409,10 @@ namespace detail
          */
         KSIMD_API(scalar_t) reduce_add(batch_t v) noexcept
         {
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> scalar_t
             {
                 return (v.v[I] + ...);
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
@@ -422,25 +420,10 @@ namespace detail
          */
         KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
         {
-            constexpr auto lanes = traits::Lanes;
-
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (a.v[I] * b.v[I] + c.v[I])... };
-            }(std::make_index_sequence<lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: result[i] = abx(v[i])
-         */
-        KSIMD_API(batch_t) abs(batch_t v) noexcept
-        {
-            constexpr auto lanes = traits::Lanes;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (std::abs(v.v[I]))... };
-            }(std::make_index_sequence<lanes>{});
+            }(std::make_index_sequence<Lanes>{});
         }
 
         /**
@@ -674,10 +657,41 @@ namespace detail
     };
 
     /**
+     * @brief 只有有符号的类型才有的函数
+     */
+    template<SimdInstruction Instruction, is_scalar_type SignedType>
+    struct BaseOp_Scalar_Signed_Base : BaseOp_Scalar_Base<Instruction, SignedType>
+    {
+        KSIMD_DETAIL_BASE_OP_TRAITS(Instruction, SignedType)
+
+        /**
+         * @return foreach i in lanes: result[i] = abx(v[i])
+         */
+        KSIMD_API(batch_t) abs(batch_t v) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (std::abs(v.v[I]))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return foreach i in lanes: result[i] = -v[i]
+         */
+        KSIMD_API(batch_t) neg(batch_t v) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (-v.v[I])... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+    };
+
+    /**
      * @brief 只有 float32, float64 数据类型才有的函数
      */
     template<SimdInstruction Instruction, is_scalar_floating_point FloatingPoint>
-    struct BaseOp_Scalar_FloatingPoint_Base : BaseOp_Scalar_Base<Instruction, FloatingPoint>
+    struct BaseOp_Scalar_FloatingPoint_Base : BaseOp_Scalar_Signed_Base<Instruction, FloatingPoint>
     {
         KSIMD_DETAIL_BASE_OP_TRAITS(Instruction, FloatingPoint)
 

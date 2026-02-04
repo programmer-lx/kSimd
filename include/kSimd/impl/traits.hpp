@@ -73,6 +73,12 @@ concept is_scalar_type =
 template<typename T, typename... Ts>
 concept is_scalar_type_includes = is_scalar_type<T> && (std::is_same_v<T, Ts> || ...);
 
+template<typename T>
+concept is_scalar_signed = is_scalar_type<T> && std::is_signed_v<T>;
+
+template<typename T, typename... Ts>
+concept is_scalar_signed_includes = is_scalar_signed<T> && (std::is_same_v<T, Ts> || ...);
+
 // ----------------- batch type -----------------
 namespace detail
 {
