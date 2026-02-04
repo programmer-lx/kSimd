@@ -6,45 +6,40 @@
 #include <cmath>
 #include <utility>
 
-#include "kSimd/base_op.hpp"
+#include "kSimd_IDE/IDE_macros.hpp"
 
-#define KSIMD_EXT_MATH_INLINE_API(ret)   KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE ret KSIMD_CALL_CONV
-#define KSIMD_EXT_MATH_FLATTEN_API(ret)  KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN ret KSIMD_CALL_CONV
+#define KSIMD_API(ret) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN ret KSIMD_CALL_CONV
+
+// 由于模板参数op没有代码提示，所以给IDE一个默认值提示，之后一定要注释掉
+#ifdef KSIMD_IDE
+    // #define op BaseOp<SimdInstruction::AVX, float32>
+#endif
 
 namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
 {
-#pragma region ------------- any types -------------------------
+#pragma region------------- any types -------------------------
 
-    template<is_batch_type batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) clamp(batch_t v, batch_t min, batch_t max) noexcept
+    template<typename op, is_batch_type batch_t>
+    KSIMD_API(batch_t) clamp(batch_t v, batch_t min, batch_t max) noexcept
     {
-        using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_BASE_OP(scalar_t);
-
         return op::min(max, op::max(v, min));
     }
 
-#pragma endregion ------------- any types -------------------------
+#pragma endregion
 
 
-#pragma region ------------- floating point -------------------------
+#pragma region------------- floating point -------------------------
 
-    template<is_batch_type_includes<float32, float64> batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) lerp(batch_t a, batch_t b, batch_t t) noexcept
+    template<typename op, is_batch_type_includes<float32, float64> batch_t>
+    KSIMD_API(batch_t) lerp(batch_t a, batch_t b, batch_t t) noexcept
     {
-        using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_BASE_OP(scalar_t);
-
         // result = (b - a) * t + a
-        // mul_add
         return op::mul_add(op::sub(b, a), t, a);
     }
 
-    template<is_batch_type_includes<float32, float64> batch_t>
-    KSIMD_EXT_MATH_FLATTEN_API(batch_t) sin(batch_t v) noexcept
+    template<typename op, is_batch_type_includes<float32, float64> batch_t>
+    KSIMD_API(batch_t) sin(batch_t v) noexcept
     {
-        using scalar_t = typename batch_t::scalar_t;
-        using op = KSIMD_DYN_BASE_OP(scalar_t);
         constexpr SimdInstruction Instruction = op::internal_instruction_;
         constexpr size_t Lanes = op::Lanes;
 
@@ -58,7 +53,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
         else
         {
             // TODO
-            alignas(op::BatchAlignment) scalar_t V[Lanes]{};
+            alignas(op::BatchAlignment) typename op::scalar_t V[Lanes]{};
             op::store(V, v);
             for (size_t i = 0; i < Lanes; ++i)
             {
@@ -68,8 +63,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
         }
     }
 
-#pragma endregion ------------- floating point -------------------------
-} // namespace ksimd::math
+#pragma endregion
+} // namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
 
-#undef KSIMD_EXT_MATH_INLINE_API
-#undef KSIMD_EXT_MATH_FLATTEN_API
+#undef KSIMD_API
