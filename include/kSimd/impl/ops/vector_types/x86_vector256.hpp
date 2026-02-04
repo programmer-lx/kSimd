@@ -1,7 +1,5 @@
 #pragma once
 
-#include <immintrin.h> // AVX
-
 #include "kSimd/impl/traits.hpp"
 
 KSIMD_NAMESPACE_BEGIN

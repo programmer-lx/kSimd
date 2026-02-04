@@ -47,6 +47,7 @@ using int64  = int64_t  ;
 using uint64 = uint64_t ;
 
 // floating point
+using float16 = uint16; // 不定义 enum class，只定义宽度
 using float32 = float;
 using float64 = double;
 static_assert(sizeof(float32) == 4 && std::numeric_limits<float32>::is_iec559);

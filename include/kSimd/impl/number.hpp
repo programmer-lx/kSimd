@@ -77,6 +77,15 @@ namespace detail
     }
 } // namespace detail
 
+enum class RoundingMode : int
+{
+    Nearest,    // 最近偶数
+    Up,         // 向上取整
+    Down,       // 向下取整
+    ToZero,     // 向0取整
+    Round       // 四舍五入
+};
+
 template<is_scalar_type S>
 using same_bits_uint_t = detail::uint_from_bytes_t<sizeof(S)>;
 
@@ -130,6 +139,12 @@ KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float64 f) noexc
     const uint64 bits = std::bit_cast<uint64>(f);
     constexpr uint64 exp_mask = static_cast<uint64>(0b111'1111'1111u) << 52;
     return (bits & exp_mask) != exp_mask;
+}
+
+constexpr float16 f32_to_f16(const float32 f) noexcept
+{
+    (void)f;
+    return 0; // TODO
 }
 
 template<typename S, int index>

@@ -11,7 +11,7 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"
 #include "kSimd/impl/ops/vector_types/scalar.hpp"
-#include "kSimd/impl/utils.hpp"
+#include "kSimd/impl/number.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

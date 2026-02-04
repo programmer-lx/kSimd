@@ -1,6 +1,6 @@
 #include "kSimd/impl/dispatch.hpp"
 
-#include "kSimd/impl/utils.hpp"
+#include "kSimd/impl/number.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 

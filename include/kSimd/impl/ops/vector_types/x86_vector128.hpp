@@ -1,11 +1,5 @@
 #pragma once
 
-#include <xmmintrin.h> // SSE
-#include <emmintrin.h> // SSE2
-#include <pmmintrin.h> // SSE3
-#include <tmmintrin.h> // SSSE3
-#include <smmintrin.h> // SSE4.1
-
 // SSE float64 使用标量模拟
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
     #include "kSimd/impl/ops/base_op/scalar/base.hpp"
