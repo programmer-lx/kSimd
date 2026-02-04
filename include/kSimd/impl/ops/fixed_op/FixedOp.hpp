@@ -10,5 +10,21 @@ struct FixedOp;
 #define KSIMD_DYN_FIXED_OP(scalar_type, lanes) \
     KSIMD_NAMESPACE_NAME::FixedOp<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, scalar_type, lanes>
 
+// helper类，提供各种辅助操作(掩码等)，由最顶层FixedOp继承他
+template<size_t Lanes>
+struct FixedOpHelper;
+
+template<>
+struct FixedOpHelper<4>
+{
+    // masks
+    static constexpr uint8 All  = 0b1111;
+    static constexpr uint8 None = 0b0000;
+
+    static constexpr uint8 X    = 0b0001;
+    static constexpr uint8 Y    = 0b0010;
+    static constexpr uint8 Z    = 0b0100;
+    static constexpr uint8 W    = 0b1000;
+};
 
 KSIMD_NAMESPACE_END

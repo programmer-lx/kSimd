@@ -5,7 +5,7 @@
 KSIMD_NAMESPACE_BEGIN
 
 template<>
-struct BaseOp<SimdInstruction::Scalar, float64>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64>
     : detail::BaseOp_Scalar_FloatingPoint_Base<
         SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
         vector_scalar::Batch<float64, 2, alignof(float64)>,

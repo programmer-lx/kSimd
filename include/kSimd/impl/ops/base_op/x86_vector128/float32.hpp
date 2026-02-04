@@ -98,9 +98,9 @@ namespace x86_vector128
 
 #define KSIMD_API(ret) KSIMD_OP_SSE_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::SSE, float32>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE, float32)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float32* mem, mask_t mask) noexcept
@@ -486,13 +486,15 @@ struct BaseOp<SimdInstruction::SSE, float32>
 
 
 template<>
-struct BaseOp<SimdInstruction::SSE2, float32> : BaseOp<SimdInstruction::SSE, float32>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32>
+    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>
 {};
 
 
 #define KSIMD_API(ret) KSIMD_OP_SSE3_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::SSE3, float32> : BaseOp<SimdInstruction::SSE2, float32>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32>
+    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32>
 {
     KSIMD_API(float32) reduce_add(batch_t v) noexcept
     {
@@ -509,13 +511,15 @@ struct BaseOp<SimdInstruction::SSE3, float32> : BaseOp<SimdInstruction::SSE2, fl
 #undef KSIMD_API
 
 template<>
-struct BaseOp<SimdInstruction::SSSE3, float32> : BaseOp<SimdInstruction::SSE3, float32>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32>
+    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32>
 {};
 
 
 #define KSIMD_API(ret) KSIMD_OP_SSE4_1_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::SSE4_1, float32> : BaseOp<SimdInstruction::SSSE3, float32>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
+    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32>
 {
     KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
     {

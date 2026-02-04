@@ -8,27 +8,43 @@ KSIMD_NAMESPACE_BEGIN
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>
+    , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32>
+    , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32>
+    , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32>
+    , FixedOpHelper<4>
 {};
 
+
+#define KSIMD_API(ret) KSIMD_OP_SSE4_1_API static ret KSIMD_CALL_CONV
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
-{};
+    , FixedOpHelper<4>
+{
+    template<uint8 src_mask, uint8 dst_mask>
+    KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
+    {
+        (void)a;
+        (void)b;
+        return { _mm_undefined_ps() };
+    }
+};
+#undef KSIMD_API
 
 
 // AVX+

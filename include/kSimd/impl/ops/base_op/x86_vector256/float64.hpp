@@ -98,9 +98,9 @@ namespace x86_vector256
 
 #define KSIMD_API(ret) KSIMD_OP_AVX_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::AVX, float64>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX, float64)
+    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
@@ -437,15 +437,21 @@ struct BaseOp<SimdInstruction::AVX, float64>
 
 
 template<>
-struct BaseOp<SimdInstruction::AVX2, float64> : BaseOp<SimdInstruction::AVX, float64>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float64>
+    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 {};
 
 
 #define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::AVX2_FMA3, float64> : BaseOp<SimdInstruction::AVX2, float64>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float64>
+    : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float64>
 {
-    using BaseOp<SimdInstruction::AVX2, float64>::sequence;
+private:
+    using base = BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float64>;
+
+public:
+    using base::sequence;
 
     KSIMD_API(batch_t) sequence(float64 base, float64 stride) noexcept
     {
