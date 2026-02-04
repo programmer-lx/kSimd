@@ -156,7 +156,7 @@ template<typename T, typename... Ts>
 concept is_mask_type_includes = is_mask_type<T> && (std::is_same_v<typename T::scalar_t, Ts> || ...);
 
 template<SimdInstruction Instruction, is_scalar_type ScalarType>
-struct OpTraits;
+struct BaseOpTraits;
 
 namespace detail
 {
@@ -176,9 +176,9 @@ namespace detail
     };
 }
 
-#define KSIMD_DETAIL_OP_TRAITS(instruction, scalar_type) \
+#define KSIMD_DETAIL_OP_TRAITS(...) \
     private: \
-    using traits = OpTraits<instruction, scalar_type>; \
+    using traits = __VA_ARGS__; \
     public: \
     using batch_t = typename traits::batch_t; \
     using scalar_t = typename traits::scalar_t; \

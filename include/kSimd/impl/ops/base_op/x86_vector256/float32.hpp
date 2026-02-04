@@ -100,7 +100,7 @@ namespace x86_vector256
 template<>
 struct BaseOp<SimdInstruction::AVX, float32>
 {
-    KSIMD_DETAIL_OP_TRAITS(SimdInstruction::AVX, float32)
+    KSIMD_DETAIL_OP_TRAITS(BaseOpTraits<SimdInstruction::AVX, float32>)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float32* mem, mask_t mask) noexcept

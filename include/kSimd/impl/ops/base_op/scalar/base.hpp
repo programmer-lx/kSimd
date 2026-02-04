@@ -23,7 +23,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator+(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
@@ -35,7 +35,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator-(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
@@ -47,7 +47,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator*(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
@@ -62,7 +62,7 @@ namespace vector_scalar
         KSIMD_WARNING_PUSH
         KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
 
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
@@ -76,7 +76,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator-(Batch<S, V, A> v) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
         {
@@ -87,7 +87,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator&(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
         {
@@ -98,7 +98,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator|(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
         {
@@ -109,7 +109,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator^(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
         {
@@ -120,7 +120,7 @@ namespace vector_scalar
     template<is_scalar_type S, size_t V, size_t A>
     KSIMD_API(Batch<S, V, A>) operator~(Batch<S, V, A> v) noexcept
     {
-        using traits = OpTraits<SimdInstruction::Scalar, S>;
+        using traits = BaseOpTraits<SimdInstruction::Scalar, S>;
         constexpr auto Lanes = traits::Lanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
         {
@@ -179,7 +179,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_type Scalar>
     struct BaseOp_Scalar_Base
     {
-        KSIMD_DETAIL_OP_TRAITS(Instruction, Scalar)
+        KSIMD_DETAIL_OP_TRAITS(BaseOpTraits<Instruction, Scalar>)
 
 #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(scalar_t* mem, mask_t mask) noexcept
@@ -662,7 +662,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_type SignedType>
     struct BaseOp_Scalar_Signed_Base : BaseOp_Scalar_Base<Instruction, SignedType>
     {
-        KSIMD_DETAIL_OP_TRAITS(Instruction, SignedType)
+        KSIMD_DETAIL_OP_TRAITS(BaseOpTraits<Instruction, SignedType>)
 
         /**
          * @return foreach i in lanes: result[i] = |v[i]|
@@ -693,7 +693,7 @@ namespace detail
     template<SimdInstruction Instruction, is_scalar_floating_point FloatingPoint>
     struct BaseOp_Scalar_FloatingPoint_Base : BaseOp_Scalar_Signed_Base<Instruction, FloatingPoint>
     {
-        KSIMD_DETAIL_OP_TRAITS(Instruction, FloatingPoint)
+        KSIMD_DETAIL_OP_TRAITS(BaseOpTraits<Instruction, FloatingPoint>)
 
 #pragma region arithmetic 算术
         /**
