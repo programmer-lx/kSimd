@@ -1,6 +1,6 @@
 #pragma once
 
-// SSE float64 使用标量模拟
+// SSE 除了float32的类型 使用标量模拟
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
     #include "kSimd/impl/ops/base_op/scalar/base.hpp"
 #endif
@@ -69,17 +69,17 @@ namespace x86_vector128
     };
 } // namespace x86_vector128
 
-// traits
+// base op traits
 // SSE
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
-struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
+struct OpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
     : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, x86_vector128::Batch<S>,
                               x86_vector128::Mask<S>, alignment::Vec128>
 {};
 
 
-// SSE float64 使用标量模拟
+// SSE 其他类型 使用标量模拟
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
 template<is_scalar_type S>
     requires(!std::is_same_v<float32, S>) // NOT float32
@@ -92,16 +92,8 @@ struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
 
 // SSE2+
 template<SimdInstruction Instruction, is_scalar_type S>
-    requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End &&
-             std::is_same_v<float32, S>) // float32 only
-struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
-{};
-
-template<SimdInstruction Instruction, is_scalar_type S>
-    requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End &&
-             !std::is_same_v<float32, S>) // NOT float32
-struct BaseOpTraits<Instruction, S>
+    requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End)
+struct OpTraits<Instruction, S>
     : detail::SimdTraits_Base<Instruction, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
 {};
 
