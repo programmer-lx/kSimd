@@ -5,7 +5,7 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 7, 6, 5, 4, 3, 2, 1, 0
+#define KSIMD_IOTA 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f
 
 KSIMD_NAMESPACE_BEGIN
 

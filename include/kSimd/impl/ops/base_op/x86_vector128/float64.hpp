@@ -5,7 +5,7 @@
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 1, 0
+#define KSIMD_IOTA 1.0, 0.0
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -129,7 +129,7 @@ struct BaseOp<SimdInstruction::SSE2, float64>
 
     KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
     {
-        __m128d idx = _mm_set_pd(1.0, 0.0);
+        __m128d idx = _mm_set_pd(KSIMD_IOTA);
         __m128d cnt = _mm_set1_pd(static_cast<float64>(count));
         return { _mm_cmplt_pd(idx, cnt) };
     }

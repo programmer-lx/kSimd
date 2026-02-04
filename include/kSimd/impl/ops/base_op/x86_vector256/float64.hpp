@@ -5,7 +5,7 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 3, 2, 1, 0
+#define KSIMD_IOTA 3.0, 2.0, 1.0, 0.0
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -115,7 +115,7 @@ struct BaseOp<SimdInstruction::AVX, float64>
 
     KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
     {
-        __m256d idx = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
+        __m256d idx = _mm256_set_pd(KSIMD_IOTA);
         __m256d cnt = _mm256_set1_pd(static_cast<float64>(count));
         return { _mm256_cmp_pd(idx, cnt, _CMP_LT_OQ) };
     }
