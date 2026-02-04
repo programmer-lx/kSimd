@@ -238,35 +238,35 @@ struct BaseOp<SimdInstruction::AVX, float64>
         return { _mm256_div_pd(_mm256_set1_pd(1.0), _mm256_sqrt_pd(v.v)) };
     }
 
-    KSIMD_API(batch_t) round_up(batch_t v) noexcept
-    {
-        return { _mm256_round_pd(v.v, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) };
-    }
-
-    KSIMD_API(batch_t) round_down(batch_t v) noexcept
-    {
-        return { _mm256_round_pd(v.v, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) };
-    }
-
-    KSIMD_API(batch_t) round_nearest(batch_t v) noexcept
-    {
-        return { _mm256_round_pd(v.v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) };
-    }
-
+    template<RoundingMode mode>
     KSIMD_API(batch_t) round(batch_t v) noexcept
     {
-        // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
-        __m256d sign_mask = _mm256_and_pd(v.v, _mm256_set1_pd(SignBitMask<float64>));
+        if constexpr (mode == RoundingMode::Up)
+        {
+            return { _mm256_round_pd(v.v, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) };
+        }
+        else if constexpr (mode == RoundingMode::Down)
+        {
+            return { _mm256_round_pd(v.v, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) };
+        }
+        else if constexpr (mode == RoundingMode::Nearest)
+        {
+            return { _mm256_round_pd(v.v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) };
+        }
+        else if constexpr (mode == RoundingMode::Round)
+        {
+            // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
+            __m256d sign_mask = _mm256_and_pd(v.v, _mm256_set1_pd(SignBitMask<float32>));
 
-        // 构造一个具有相同符号的0.5
-        __m256d half = _mm256_or_pd(_mm256_set1_pd(0x1.0p-1), sign_mask);
+            // 构造一个具有相同符号的0.5
+            __m256d half = _mm256_or_pd(_mm256_set1_pd(0x1.0p-1f), sign_mask);
 
-        return { _mm256_round_pd(_mm256_add_pd(v.v, half), _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
-    }
-
-    KSIMD_API(batch_t) round_to_zero(batch_t v) noexcept
-    {
-        return { _mm256_round_pd(v.v, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
+            return { _mm256_round_pd(_mm256_add_pd(v.v, half), _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
+        }
+        else /* if constexpr (mode == RoundingMode::ToZero) */
+        {
+            return { _mm256_round_pd(v.v, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
+        }
     }
 
     KSIMD_API(batch_t) abs(batch_t v) noexcept

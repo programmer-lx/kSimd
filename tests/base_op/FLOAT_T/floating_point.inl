@@ -362,18 +362,18 @@ namespace KSIMD_DYN_INSTRUCTION
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 常规：正数向下取整
-        op::store(test, op::round_down(op::set(FLOAT_T(2.7))));
+        op::store(test, op::round<ksimd::RoundingMode::Down>(op::set(FLOAT_T(2.7))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
 
         // 常规：负数向下取整 (floor(-2.1) = -3)
-        op::store(test, op::round_down(op::set(FLOAT_T(-2.1))));
+        op::store(test, op::round<ksimd::RoundingMode::Down>(op::set(FLOAT_T(-2.1))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
 
         // 边界：Inf 和 NaN
-        op::store(test, op::round_down(op::set(inf<FLOAT_T>)));
+        op::store(test, op::round<ksimd::RoundingMode::Down>(op::set(inf<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
 
-        op::store(test, op::round_down(op::set(qNaN<FLOAT_T>)));
+        op::store(test, op::round<ksimd::RoundingMode::Down>(op::set(qNaN<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
     }
 }
@@ -392,16 +392,16 @@ namespace KSIMD_DYN_INSTRUCTION
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 常规：正数向上取整
-        op::store(test, op::round_up(op::set(FLOAT_T(2.1))));
+        op::store(test, op::round<ksimd::RoundingMode::Up>(op::set(FLOAT_T(2.1))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(3.0));
 
         // 常规：负数向上取整 (ceil(-2.7) = -2)
-        op::store(test, op::round_up(op::set(FLOAT_T(-2.7))));
+        op::store(test, op::round<ksimd::RoundingMode::Up>(op::set(FLOAT_T(-2.7))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-2.0));
 
         // 边界：大数值 (超过有效尾数范围应保持原样)
         FLOAT_T big_val = FLOAT_T(1LL << (std::is_same_v<FLOAT_T, float> ? 25 : 54));
-        op::store(test, op::round_up(op::set(big_val + FLOAT_T(0.5))));
+        op::store(test, op::round<ksimd::RoundingMode::Up>(op::set(big_val + FLOAT_T(0.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], big_val + FLOAT_T(0.5));
     }
 }
@@ -421,7 +421,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         #define check(input, expected, msg) \
             do { \
-                op::store(test, op::round_to_zero(op::set(input))); \
+                op::store(test, op::round<ksimd::RoundingMode::ToZero>(op::set(input))); \
                 for (size_t i = 0; i < Lanes; ++i) { \
                     if (std::isnan(expected)) { \
                         EXPECT_TRUE(std::isnan(test[i])) << msg << " | Index: " << i; \
@@ -486,22 +486,22 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 最近舍入 (Ties to Even 验证)
         // 2.5 -> 2.0 (最近偶数)
-        op::store(test, op::round_nearest(op::set(FLOAT_T(2.5))));
+        op::store(test, op::round<ksimd::RoundingMode::Nearest>(op::set(FLOAT_T(2.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(2.0));
 
         // 3.5 -> 4.0 (最近偶数)
-        op::store(test, op::round_nearest(op::set(FLOAT_T(3.5))));
+        op::store(test, op::round<ksimd::RoundingMode::Nearest>(op::set(FLOAT_T(3.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(4.0));
 
         // 常规数值
-        op::store(test, op::round_nearest(op::set(FLOAT_T(-2.1))));
+        op::store(test, op::round<ksimd::RoundingMode::Nearest>(op::set(FLOAT_T(-2.1))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-2.0));
 
-        op::store(test, op::round_nearest(op::set(FLOAT_T(-2.9))));
+        op::store(test, op::round<ksimd::RoundingMode::Nearest>(op::set(FLOAT_T(-2.9))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
 
         // 边界：NaN
-        op::store(test, op::round_nearest(op::set(qNaN<FLOAT_T>)));
+        op::store(test, op::round<ksimd::RoundingMode::Nearest>(op::set(qNaN<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
     }
 }
@@ -521,11 +521,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // --- 1. 标准四舍五入 (Rounding away from zero) ---
         // 正数 0.5 进位
-        op::store(test, op::round(op::set(FLOAT_T(2.5))));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(FLOAT_T(2.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(3.0));
 
         // 负数 0.5 进位 (远离零方向)
-        op::store(test, op::round(op::set(FLOAT_T(-2.5))));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(FLOAT_T(-2.5))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(-3.0));
 
 
@@ -534,24 +534,24 @@ namespace KSIMD_DYN_INSTRUCTION
         const FLOAT_T eps = std::numeric_limits<FLOAT_T>::epsilon();
 
         // 测试略小于 0.5 的情况 (应舍向 0)
-        op::store(test, op::round(op::set(FLOAT_T(0.5) - eps)));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(FLOAT_T(0.5) - eps)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(0.0));
 
         // 测试略大于 0.5 的情况 (应舍向 1)
-        op::store(test, op::round(op::set(FLOAT_T(0.5) + eps)));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(FLOAT_T(0.5) + eps)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(1.0));
 
 
         // --- 3. 符号位与零 (Signbit preservation) ---
         // -0.0 经过 round 后依然应该是 -0.0
-        op::store(test, op::round(op::set(FLOAT_T(-0.0))));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(FLOAT_T(-0.0))));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(test[i], FLOAT_T(0.0));
             EXPECT_TRUE(std::signbit(test[i]));
         }
 
         // 负的小数 (未达进位点) 应该保持负零符号
-        op::store(test, op::round(op::set(FLOAT_T(-0.1))));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(FLOAT_T(-0.1))));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(test[i], FLOAT_T(0.0));
             EXPECT_TRUE(std::signbit(test[i]));
@@ -568,27 +568,27 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // 大值本身就是整数，round 之后不应改变
-        op::store(test, op::round(op::set(big_val)));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(big_val)));
         for (size_t i = 0; i < Lanes; ++i) FLOAT_T_EQ(test[i], big_val);
 
         // 大值 + 1.0 同样
-        op::store(test, op::round(op::set(big_val + FLOAT_T(1.0))));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(big_val + FLOAT_T(1.0))));
         for (size_t i = 0; i < Lanes; ++i) FLOAT_T_EQ(test[i], big_val + FLOAT_T(1.0));
 
 
         // --- 5. 特殊值处理 ---
         // 正负无穷
-        op::store(test, op::round(op::set(inf<FLOAT_T>)));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(inf<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
 
-        op::store(test, op::round(op::set(-inf<FLOAT_T>)));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(-inf<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_TRUE(std::isinf(test[i]));
             EXPECT_TRUE(std::signbit(test[i]));
         }
 
         // NaN 处理
-        op::store(test, op::round(op::set(qNaN<FLOAT_T>)));
+        op::store(test, op::round<ksimd::RoundingMode::Round>(op::set(qNaN<FLOAT_T>)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
     }
 }

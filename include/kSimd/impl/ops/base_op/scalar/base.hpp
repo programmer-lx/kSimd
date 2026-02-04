@@ -696,61 +696,48 @@ namespace detail
         }
 
         /**
-         * @return foreach i in lanes: 向上取整
-         */
-        KSIMD_API(batch_t) round_up(batch_t v) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (std::ceil(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: 向下取整
-         */
-        KSIMD_API(batch_t) round_down(batch_t v) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (std::floor(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: 取最近偶数
-         * @note 2.5 -> 2.0; 3.5 -> 4.0
-         */
-        KSIMD_API(batch_t) round_nearest(batch_t v) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (std::nearbyint(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: 取最近偶数
+         * @return foreach i in lanes: 四舍五入
          * @note 2.5 -> 3.0; -2.5 -> -3.0
          * @warning 一般的计算使用round_nearest就够了，因为四舍五入并不是IEEE754的最近值，round需要多条指令模拟
          */
+        template<RoundingMode mode>
         KSIMD_API(batch_t) round(batch_t v) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            if constexpr (mode == RoundingMode::Up)
             {
-                return { (std::round(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
-        }
-
-        /**
-         * @return foreach i in lanes: 向最靠近0的方向取整
-         */
-        KSIMD_API(batch_t) round_to_zero(batch_t v) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                {
+                    return { (std::ceil(v.v[I]))... };
+                }(std::make_index_sequence<Lanes>{});
+            }
+            else if constexpr (mode == RoundingMode::Down)
             {
-                return { (std::trunc(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                {
+                    return { (std::floor(v.v[I]))... };
+                }(std::make_index_sequence<Lanes>{});
+            }
+            else if constexpr (mode == RoundingMode::Nearest)
+            {
+                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                {
+                    return { (std::nearbyint(v.v[I]))... };
+                }(std::make_index_sequence<Lanes>{});
+            }
+            else if constexpr (mode == RoundingMode::Round)
+            {
+                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                {
+                    return { (std::round(v.v[I]))... };
+                }(std::make_index_sequence<Lanes>{});
+            }
+            else /* if constexpr (mode == RoundingMode::ToZero) */
+            {
+                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                {
+                    return { (std::trunc(v.v[I]))... };
+                }(std::make_index_sequence<Lanes>{});
+            }
         }
 #pragma endregion
 
