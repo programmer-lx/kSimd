@@ -5,6 +5,8 @@
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 #include "kSimd/impl/number.hpp"
 
+#define KSIMD_IOTA 3, 2, 1, 0
+
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
@@ -256,6 +258,25 @@ struct BaseOp<SimdInstruction::SSE, float32>
     KSIMD_API(batch_t) set(float32 x) noexcept
     {
         return { _mm_set1_ps(x) };
+    }
+
+    KSIMD_API(batch_t) sequence() noexcept
+    {
+        return { _mm_set_ps(KSIMD_IOTA) };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base) noexcept
+    {
+        __m128 iota = _mm_set_ps(KSIMD_IOTA);
+        return { _mm_add_ps(iota, _mm_set1_ps(base)) };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
+    {
+        __m128 iota = _mm_set_ps(KSIMD_IOTA);
+        __m128 stride_v = _mm_set1_ps(stride);
+        __m128 base_v = _mm_set1_ps(base);
+        return { _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v) };
     }
 
     KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
@@ -528,3 +549,5 @@ struct BaseOp<SimdInstruction::SSE4_1, float32> : BaseOp<SimdInstruction::SSE3, 
 #undef KSIMD_API
 
 KSIMD_NAMESPACE_END
+
+#undef KSIMD_IOTA

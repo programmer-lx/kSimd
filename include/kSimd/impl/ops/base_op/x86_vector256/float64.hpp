@@ -5,6 +5,8 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
+#define KSIMD_IOTA 3, 2, 1, 0
+
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
@@ -182,6 +184,25 @@ struct BaseOp<SimdInstruction::AVX, float64>
     KSIMD_API(batch_t) set(float64 x) noexcept
     {
         return { _mm256_set1_pd(x) };
+    }
+    
+    KSIMD_API(batch_t) sequence() noexcept
+    {
+        return { _mm256_set_pd(KSIMD_IOTA) };
+    }
+
+    KSIMD_API(batch_t) sequence(float64 base) noexcept
+    {
+        __m256d iota = _mm256_set_pd(KSIMD_IOTA);
+        return { _mm256_add_pd(iota, _mm256_set1_pd(base)) };
+    }
+
+    KSIMD_API(batch_t) sequence(float64 base, float64 stride) noexcept
+    {
+        __m256d iota = _mm256_set_pd(KSIMD_IOTA);
+        __m256d stride_v = _mm256_set1_pd(stride);
+        __m256d base_v = _mm256_set1_pd(base);
+        return { _mm256_add_pd(_mm256_mul_pd(stride_v, iota), base_v) };
     }
 
     KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
@@ -431,3 +452,5 @@ struct BaseOp<SimdInstruction::AVX2_FMA3, float64> : BaseOp<SimdInstruction::AVX
 #undef KSIMD_API
 
 KSIMD_NAMESPACE_END
+
+#undef KSIMD_IOTA

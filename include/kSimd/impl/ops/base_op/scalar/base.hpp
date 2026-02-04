@@ -344,6 +344,39 @@ namespace detail
                 return { ((void)I, x)... };
             }(std::make_index_sequence<Lanes>{});
         }
+
+        /**
+         * @return [ 0, 1, 2, ... , Lanes - 1 ]
+         */
+        KSIMD_API(batch_t) sequence() noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { static_cast<scalar_t>(I)... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return [ base + 0, base + 1, base + 2, ... , base + Lanes - 1 ]
+         */
+        KSIMD_API(batch_t) sequence(scalar_t base) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (base + static_cast<scalar_t>(I))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
+
+        /**
+         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((Lanes - 1) * stride) ]
+         */
+        KSIMD_API(batch_t) sequence(scalar_t base, scalar_t stride) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            {
+                return { (base + (static_cast<scalar_t>(I) * stride))... };
+            }(std::make_index_sequence<Lanes>{});
+        }
 #pragma endregion
 
 #pragma region arithmetic 算术

@@ -77,6 +77,54 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(set)
 #endif
 
+// ------------------------------------------ sequence ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void sequence() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        constexpr size_t Lanes = op::Lanes;
+        alignas(ALIGNMENT) TYPE_T test_val[Lanes];
+
+        // 1. 测试无参 sequence(): [0, 1, 2, ...]
+        op::store(test_val, op::sequence());
+        for (size_t i = 0; i < Lanes; ++i) {
+            EXPECT_EQ(test_val[i], static_cast<TYPE_T>(i));
+        }
+
+        // 2. 测试带 base 的 sequence(base): [base, base + 1, ...]
+        TYPE_T base = TYPE_T(10);
+        op::store(test_val, op::sequence(base));
+        for (size_t i = 0; i < Lanes; ++i) {
+            EXPECT_EQ(test_val[i], static_cast<TYPE_T>(base + static_cast<TYPE_T>(i)));
+        }
+
+        // 3. 测试带 base 和 stride 的 sequence(base, stride): [base, base + stride, ...]
+        TYPE_T base_v = TYPE_T(5);
+        TYPE_T stride = TYPE_T(2);
+        op::store(test_val, op::sequence(base_v, stride));
+        for (size_t i = 0; i < Lanes; ++i) {
+            EXPECT_EQ(test_val[i], static_cast<TYPE_T>(base_v + static_cast<TYPE_T>(i) * stride));
+        }
+
+        // 4. 针对浮点数的特殊测试（如负步长或小数步长）
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            TYPE_T f_base = TYPE_T(1.5);
+            TYPE_T f_stride = TYPE_T(-0.5);
+            op::store(test_val, op::sequence(f_base, f_stride));
+            for (size_t i = 0; i < Lanes; ++i) {
+                // 使用预期值进行比较，浮点数在此类简单加法中通常是精确的
+                EXPECT_NEAR(test_val[i], f_base + static_cast<TYPE_T>(i) * f_stride, TYPE_T(1e-6));
+            }
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(sequence)
+#endif
+
 // ------------------------------------------ load_store ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {

@@ -5,6 +5,8 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
+#define KSIMD_IOTA 7, 6, 5, 4, 3, 2, 1, 0
+
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
@@ -113,7 +115,7 @@ struct BaseOp<SimdInstruction::AVX, float32>
 
     KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
     {
-        __m256 idx = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+        __m256 idx = _mm256_set_ps(KSIMD_IOTA);
         __m256 cnt = _mm256_set1_ps(static_cast<float32>(count));
         return { _mm256_cmp_ps(idx, cnt, _CMP_LT_OQ) };
     }
@@ -182,6 +184,25 @@ struct BaseOp<SimdInstruction::AVX, float32>
     KSIMD_API(batch_t) set(float32 x) noexcept
     {
         return { _mm256_set1_ps(x) };
+    }
+    
+    KSIMD_API(batch_t) sequence() noexcept
+    {
+        return { _mm256_set_ps(KSIMD_IOTA) };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base) noexcept
+    {
+        __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+        return { _mm256_add_ps(iota, _mm256_set1_ps(base)) };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
+    {
+        __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+        __m256 stride_v = _mm256_set1_ps(stride);
+        __m256 base_v = _mm256_set1_ps(base);
+        return { _mm256_add_ps(_mm256_mul_ps(stride_v, iota), base_v) };
     }
 
     KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
@@ -436,3 +457,5 @@ struct BaseOp<SimdInstruction::AVX2_FMA3, float32> : BaseOp<SimdInstruction::AVX
 #undef KSIMD_API
 
 KSIMD_NAMESPACE_END
+
+#undef KSIMD_IOTA
