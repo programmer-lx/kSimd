@@ -7,6 +7,7 @@
 #include <kSimd/dispatch_this_file.hpp>
 
 #include <kSimd/base_op.hpp>
+#include <kSimd/fixed_op.hpp>
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
@@ -28,7 +29,7 @@ TEST(dyn_dispatch, pfn_table_size)
     EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), (size_t)ksimd::detail::SimdInstructionIndex::Num);
 }
 
-TEST(dyn_dispatch, float32)
+TEST(base_op, float32)
 {
     using namespace ksimd;
 
@@ -118,7 +119,7 @@ TEST(dyn_dispatch, float32)
     }
 }
 
-TEST(dyn_dispatch, float64)
+TEST(base_op, float64)
 {
     using namespace ksimd;
 
@@ -207,6 +208,96 @@ TEST(dyn_dispatch, float64)
         EXPECT_TRUE(op::ElementSize == 8);
         EXPECT_TRUE(op::Lanes == 4);
         EXPECT_TRUE(op::BatchAlignment == 32);
+    }
+}
+
+TEST(fixed_op_x4, float32)
+{
+    using namespace ksimd;
+
+    // scalar
+    {
+        using op = FixedOp<SimdInstruction::Scalar, float32, 4>;
+        using batch_t = op::batch_t;
+        EXPECT_TRUE(alignof(batch_t) == alignof(float32));
+
+        EXPECT_TRUE((std::is_same_v<batch_t, vector_scalar::Batch<float32, 4, alignof(float32)>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::Scalar);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == alignof(float32));
+    }
+    // sse
+    {
+        using op = FixedOp<SimdInstruction::SSE, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
+    }
+    // sse2
+    {
+        using op = FixedOp<SimdInstruction::SSE2, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE2);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
+    }
+    // sse3
+    {
+        using op = FixedOp<SimdInstruction::SSE3, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE3);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
+    }
+    // sse4.1
+    {
+        using op = FixedOp<SimdInstruction::SSE4_1, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::SSE4_1);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
+    }
+
+    // avx
+    {
+        using op = FixedOp<SimdInstruction::AVX, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
+    }
+    // avx2
+    {
+        using op = FixedOp<SimdInstruction::AVX2, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX2);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
+    }
+    // avx2+fma3
+    {
+        using op = FixedOp<SimdInstruction::AVX2_FMA3, float32, 4>;
+        EXPECT_TRUE((std::is_same_v<op::batch_t, x86_vector128::Batch<float32>>));
+        // EXPECT_TRUE(op::CurrentInstruction == SimdInstruction::AVX2_FMA3);
+        EXPECT_TRUE(op::BatchSize == 16);
+        EXPECT_TRUE(op::ElementSize == 4);
+        EXPECT_TRUE(op::Lanes == 4);
+        EXPECT_TRUE(op::BatchAlignment == 16);
     }
 }
 
