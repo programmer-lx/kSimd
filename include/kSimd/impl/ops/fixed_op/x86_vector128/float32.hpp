@@ -36,10 +36,10 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
     , FixedOpHelper<4>
 {
-    template<uint8 src_mask, uint8 dst_mask>
+    template<int src_mask, int dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
     {
-        constexpr int32 imm8 = (src_mask << 4) | dst_mask;
+        constexpr int imm8 = (src_mask << 4) | dst_mask;
         return { _mm_dp_ps(a.v, b.v, imm8) };
     }
 };

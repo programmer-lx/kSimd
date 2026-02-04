@@ -12,7 +12,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4>
     : BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32>
     , FixedOpHelper<4>
 {
-    template<uint8 src_mask, uint8 dst_mask>
+    template<int src_mask, int dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
     {
         // 先求和

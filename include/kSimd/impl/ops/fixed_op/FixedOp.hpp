@@ -18,13 +18,13 @@ template<>
 struct FixedOpHelper<4>
 {
     // masks
-    static constexpr uint8 All  = 0b1111;
-    static constexpr uint8 None = 0b0000;
+    static constexpr int All  = 0b1111;
+    static constexpr int None = 0b0000;
 
-    static constexpr uint8 X    = 0b0001;
-    static constexpr uint8 Y    = 0b0010;
-    static constexpr uint8 Z    = 0b0100;
-    static constexpr uint8 W    = 0b1000;
+    static constexpr int X    = 0b0001;
+    static constexpr int Y    = 0b0010;
+    static constexpr int Z    = 0b0100;
+    static constexpr int W    = 0b1000;
 };
 
 KSIMD_NAMESPACE_END
