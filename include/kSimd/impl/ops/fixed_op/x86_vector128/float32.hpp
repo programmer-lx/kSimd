@@ -39,9 +39,8 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4>
     template<uint8 src_mask, uint8 dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
     {
-        (void)a;
-        (void)b;
-        return { _mm_undefined_ps() };
+        constexpr int32 imm8 = (src_mask << 4) | dst_mask;
+        return { _mm_dp_ps(a.v, b.v, imm8) };
     }
 };
 #undef KSIMD_API
