@@ -8,7 +8,7 @@ namespace
 {
     int dyn_func_index_impl() noexcept
     {
-        const CpuSupportInfo supports = get_cpu_support_info();
+        const CpuSupportInfo& supports = get_cpu_support_info();
 
         // 从最高级的指令往下判断
 #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3)

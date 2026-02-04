@@ -152,6 +152,6 @@ struct CpuSupportInfo
     unsigned AVX512_F   : 1 = 0; // AVX512F支持FMA运算，不需要单独划分FMA3支持
 };
 
-CpuSupportInfo get_cpu_support_info() noexcept;
+const CpuSupportInfo& get_cpu_support_info() noexcept;
 
 KSIMD_NAMESPACE_END
