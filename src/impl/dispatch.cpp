@@ -67,11 +67,12 @@ namespace
         }
 #endif
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-        return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SCALAR);
-#else
-        return -1; // 某些平台可能不需要提供标量fallback
-#endif
+// #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+//         return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SCALAR);
+// #endif
+
+        // 返回实际的 fallback index 即可，某些平台，标量可能不是 fallback
+        return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
     }
 }
 

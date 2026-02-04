@@ -10,13 +10,6 @@
 
 #define KSIMD_API(ret) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN ret KSIMD_CALL_CONV
 
-// 由于模板参数op没有代码提示，所以给IDE一个默认值提示
-#ifdef KSIMD_IDE
-    #define KSIMD_IDE_HINT using op = BaseOp<SimdInstruction::AVX, float32>;
-#else
-    #define KSIMD_IDE_HINT
-#endif
-
 namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
 {
 #pragma region------------- any types -------------------------
@@ -24,7 +17,8 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
     template<typename op, is_batch_type batch_t>
     KSIMD_API(batch_t) clamp(batch_t v, batch_t min, batch_t max) noexcept
     {
-        KSIMD_IDE_HINT
+        KSIMD_IDE_BASE_OP_HINT(op, float32)
+
         return op::min(max, op::max(v, min));
     }
 
@@ -36,7 +30,8 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
     template<typename op, is_batch_type_includes<float32, float64> batch_t>
     KSIMD_API(batch_t) lerp(batch_t a, batch_t b, batch_t t) noexcept
     {
-        KSIMD_IDE_HINT
+        KSIMD_IDE_BASE_OP_HINT(op, float32)
+
         // result = (b - a) * t + a
         return op::mul_add(op::sub(b, a), t, a);
     }
@@ -44,7 +39,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
     template<typename op, is_batch_type_includes<float32, float64> batch_t>
     KSIMD_API(batch_t) sin(batch_t v) noexcept
     {
-        KSIMD_IDE_HINT
+        KSIMD_IDE_BASE_OP_HINT(op, float32)
 
         constexpr SimdInstruction Instruction = op::internal_instruction_;
         constexpr size_t Lanes = op::Lanes;
