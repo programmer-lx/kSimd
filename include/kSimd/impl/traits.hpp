@@ -156,15 +156,15 @@ template<typename T, typename... Ts>
 concept is_mask_type_includes = is_mask_type<T> && (std::is_same_v<typename T::scalar_t, Ts> || ...);
 
 template<SimdInstruction Instruction, is_scalar_type ScalarType>
-struct BaseOpTraits;
+struct OpTraits;
 
 namespace detail
 {
-    template<SimdInstruction Instruction, is_scalar_type S, typename BatchType, typename MaskType, size_t Alignment>
+    template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
     struct SimdTraits_Base
     {
         using batch_t = BatchType;
-        using scalar_t = S;
+        using scalar_t = typename BatchType::scalar_t;
         using mask_t = MaskType;
         static constexpr SimdInstruction internal_instruction_ = Instruction;
         static constexpr size_t BatchSize = batch_t::byte_size;
@@ -176,9 +176,9 @@ namespace detail
     };
 }
 
-#define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
+#define KSIMD_DETAIL_OP_TRAITS(instruction, scalar_type) \
     private: \
-    using traits = BaseOpTraits<instruction, scalar_type>; \
+    using traits = OpTraits<instruction, scalar_type>; \
     public: \
     using batch_t = typename traits::batch_t; \
     using scalar_t = typename traits::scalar_t; \

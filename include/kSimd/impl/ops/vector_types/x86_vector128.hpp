@@ -73,8 +73,8 @@ namespace x86_vector128
 // SSE
 template<is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
-struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
-    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S, x86_vector128::Batch<S>,
+struct OpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
+    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, x86_vector128::Batch<S>,
                               x86_vector128::Mask<S>, alignment::Vec128>
 {};
 
@@ -84,7 +84,7 @@ struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
 template<is_scalar_type S>
     requires(!std::is_same_v<float32, S>) // NOT float32
 struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
-    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S,
+    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE,
                               vector_scalar::Batch<S, 16 / sizeof(S), alignment::Vec128>,
                               vector_scalar::Mask<S, 16 / sizeof(S), alignment::Vec128>, alignment::Vec128>
 {};
@@ -94,15 +94,15 @@ struct BaseOpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, S>
 template<SimdInstruction Instruction, is_scalar_type S>
     requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End &&
              std::is_same_v<float32, S>) // float32 only
-struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
+struct OpTraits<Instruction, S>
+    : detail::SimdTraits_Base<Instruction, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
 {};
 
 template<SimdInstruction Instruction, is_scalar_type S>
     requires(Instruction >= SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2 && Instruction < SimdInstruction::SSE_End &&
              !std::is_same_v<float32, S>) // NOT float32
-struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
+struct OpTraits<Instruction, S>
+    : detail::SimdTraits_Base<Instruction, x86_vector128::Batch<S>, x86_vector128::Mask<S>, alignment::Vec128>
 {};
 
 KSIMD_NAMESPACE_END

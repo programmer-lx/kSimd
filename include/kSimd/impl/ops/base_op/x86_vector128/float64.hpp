@@ -114,7 +114,7 @@ struct BaseOp<SimdInstruction::SSE, float64> : detail::BaseOp_Scalar_FloatingPoi
 template<>
 struct BaseOp<SimdInstruction::SSE2, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE2, float64)
+    KSIMD_DETAIL_OP_TRAITS(SimdInstruction::SSE2, float64)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept

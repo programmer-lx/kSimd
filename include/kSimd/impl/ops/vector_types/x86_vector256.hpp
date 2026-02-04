@@ -67,8 +67,8 @@ namespace x86_vector256
 // traits
 template<SimdInstruction Instruction, is_scalar_type S>
     requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
-struct BaseOpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, S, x86_vector256::Batch<S>, x86_vector256::Mask<S>, alignment::Vec256>
+struct OpTraits<Instruction, S>
+    : detail::SimdTraits_Base<Instruction, x86_vector256::Batch<S>, x86_vector256::Mask<S>, alignment::Vec256>
 {
 };
 

@@ -100,7 +100,7 @@ namespace x86_vector128
 template<>
 struct BaseOp<SimdInstruction::SSE, float32>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE, float32)
+    KSIMD_DETAIL_OP_TRAITS(SimdInstruction::SSE, float32)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float32* mem, mask_t mask) noexcept
@@ -517,7 +517,7 @@ struct BaseOp<SimdInstruction::SSSE3, float32> : BaseOp<SimdInstruction::SSE3, f
 template<>
 struct BaseOp<SimdInstruction::SSE4_1, float32> : BaseOp<SimdInstruction::SSSE3, float32>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::SSE4_1, float32)
+    KSIMD_DETAIL_OP_TRAITS(SimdInstruction::SSE4_1, float32)
 
     KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
     {
