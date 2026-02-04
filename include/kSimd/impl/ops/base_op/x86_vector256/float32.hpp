@@ -449,6 +449,16 @@ struct BaseOp<SimdInstruction::AVX2_FMA3, float32> : BaseOp<SimdInstruction::AVX
 {
     KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::AVX2_FMA3, float32)
 
+    using BaseOp<SimdInstruction::AVX2, float32>::sequence;
+
+    KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
+    {
+        __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+        __m256 stride_v = _mm256_set1_ps(stride);
+        __m256 base_v = _mm256_set1_ps(base);
+        return { _mm256_fmadd_ps(stride_v, iota, base_v) };
+    }
+
     KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
     {
         return { _mm256_fmadd_ps(a.v, b.v, c.v) };
