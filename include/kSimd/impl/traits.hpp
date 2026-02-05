@@ -163,13 +163,20 @@ namespace detail
         using batch_t = BatchType;
         using scalar_t = typename BatchType::scalar_t;
         using mask_t = MaskType;
-        static constexpr SimdInstruction internal_instruction_ = Instruction;
-        static constexpr size_t BatchSize = batch_t::byte_size;
-        static constexpr size_t ElementSize = sizeof(scalar_t);
-        static constexpr size_t Lanes = (BatchSize / ElementSize);
-        static constexpr size_t BatchAlignment = Alignment;
+        static constexpr SimdInstruction internal_instruction_ = Instruction; // 当前所分发的指令集，不是准确值，一般是最低值
+        static constexpr size_t BatchSize = batch_t::byte_size;    // 向量的字节长度
+        static constexpr size_t ElementSize = sizeof(scalar_t);    // 每个元素的字节长度
+        static constexpr size_t Lanes = (BatchSize / ElementSize); // 总通道数
+        static constexpr size_t BatchAlignment = Alignment;        // 对齐
+        static constexpr size_t RegCount = batch_t::reg_count;     // 寄存器的数量，对于标量来说，就是变量的数量
+        static constexpr size_t RegSize = BatchSize / RegCount;    // 每个寄存器所占用的字节数
+        static constexpr size_t RegStride = RegSize / ElementSize; // 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算)
 
-        static_assert(BatchSize % ElementSize == 0); // 必须能整除
+        static_assert(
+            BatchSize % ElementSize == 0 &&
+            BatchSize % RegSize == 0 &&
+            RegSize % RegStride == 0
+        ); // 必须能整除
     };
 }
 
@@ -184,7 +191,10 @@ namespace detail
     static constexpr size_t BatchSize = traits::BatchSize; \
     static constexpr size_t ElementSize = traits::ElementSize; \
     static constexpr size_t Lanes = traits::Lanes; \
-    static constexpr size_t BatchAlignment = traits::BatchAlignment;
+    static constexpr size_t BatchAlignment = traits::BatchAlignment; \
+    static constexpr size_t RegCount = traits::RegCount; \
+    static constexpr size_t RegSize = traits::RegSize; \
+    static constexpr size_t RegStride = traits::RegStride;
 
 #define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
     KSIMD_DETAIL_TRAITS(OpTraits<instruction, scalar_type>)

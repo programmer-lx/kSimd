@@ -9,14 +9,14 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<is_scalar_type S>
+template<SimdInstruction I, is_scalar_type S>
 struct BaseOpTraits_SSE;
 
 // SSE
-template<is_scalar_type S>
+template<SimdInstruction I, is_scalar_type S>
     requires std::is_same_v<float32, S> // float32 only
-struct BaseOpTraits_SSE<S>
-    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, x86_vector128::Batch<S, 1>,
+struct BaseOpTraits_SSE<I, S>
+    : detail::SimdTraits_Base<I, x86_vector128::Batch<S, 1>,
                               x86_vector128::Mask<S, 1>, alignment::Vec128>
 {};
 
