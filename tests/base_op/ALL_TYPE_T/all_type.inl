@@ -30,7 +30,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void zero() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T arr[Lanes]{};
 
         op::batch_t z = op::zero();
@@ -52,7 +52,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void set() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test_val[Lanes];
 
         // 测试常规数值广播
@@ -84,7 +84,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void sequence() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test_val[Lanes];
 
         // 1. 测试无参 sequence(): [0, 1, 2, ...]
@@ -132,7 +132,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void load_store() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T in[Lanes];
         alignas(ALIGNMENT) TYPE_T out[Lanes];
@@ -161,7 +161,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void loadu_storeu() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         // 分配比 Lanes 稍大的空间，用于模拟非对齐起始地址
         alignas(ALIGNMENT) TYPE_T buffer_in[Lanes + 1];
@@ -196,7 +196,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using mask_t = typename op::mask_t;
         using batch_t = typename op::batch_t;
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         // 准备源数据和测试缓冲区
         alignas(ALIGNMENT) TYPE_T src[Lanes];
@@ -298,7 +298,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using mask_t = typename op::mask_t;
         using batch_t = typename op::batch_t;
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         // 为了测试真正的非对齐（Unaligned），我们分配比 Lanes 大的空间
         // 并从 offset=1 的地方开始读写
@@ -397,7 +397,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using mask_t = typename op::mask_t;
         using batch_t = typename op::batch_t;
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T src[Lanes];
         alignas(ALIGNMENT) TYPE_T def_vals[Lanes];
@@ -483,7 +483,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using mask_t = typename op::mask_t;
         using batch_t = typename op::batch_t;
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         // 1. 准备非对齐源数据
         // 分配比 Lanes 大的空间，以便我们可以从偏移位置开始读取
@@ -567,7 +567,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using mask_t = op::mask_t;
-        constexpr size_t lanes = op::Lanes;
+        constexpr size_t lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T arr[lanes] = {};
         alignas(ALIGNMENT) TYPE_T dst[lanes]{};
@@ -619,7 +619,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using uint_t = same_bits_uint_t<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // 严格遵循你的实现：(mask & a) | (~mask & b)
@@ -690,7 +690,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void mask_select() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -752,7 +752,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void bit_not() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -806,7 +806,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void bit_and() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -838,7 +838,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void bit_and_not() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -870,7 +870,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void bit_or() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -902,7 +902,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void bit_xor() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -934,7 +934,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void add() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -971,7 +971,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void sub() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -1003,7 +1003,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void mul() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -1035,7 +1035,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void div() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -1084,7 +1084,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
         using batch_t = typename op::batch_t;
         using int_t = same_bits_uint_t<TYPE_T>; // 对应浮点大小的整数类型
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         // 准备基础数据
         batch_t a = op::set(TYPE_T(100));
@@ -1157,7 +1157,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void reduce_add() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         alignas(ALIGNMENT) TYPE_T data[Lanes];
         TYPE_T expected = 0;
@@ -1192,7 +1192,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void mul_add() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // (2 * 3) + 4 = 10
@@ -1222,7 +1222,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void min() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         op::store(test, op::min(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
@@ -1259,7 +1259,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void max() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         op::store(test, op::max(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
@@ -1291,7 +1291,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void equal() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 基础测试: 1 == 1 (True), 1 == 2 (False)
@@ -1316,7 +1316,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void not_equal() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 基础测试: 1 != 2 (True)
@@ -1343,7 +1343,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void greater() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 2 > 1 (True), 1 > 2 (False)
@@ -1369,7 +1369,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void greater_equal() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 2 >= 2 (True)
@@ -1390,7 +1390,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void less() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 1 < 2 (True)
@@ -1415,7 +1415,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void less_equal() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 5 <= 5 (True)

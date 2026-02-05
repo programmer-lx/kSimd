@@ -16,8 +16,8 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         using op = KSIMD_DYN_FIXED_OP(FLOAT_T, LANES, COUNT);
 
-        constexpr size_t TOTAL = op::Lanes;
-        constexpr size_t STRIDE = op::RegStride; // 此时标量模式下也应为 4
+        constexpr size_t TOTAL = op::TotalLanes;
+        constexpr size_t STRIDE = op::RegWidth;
 
         alignas(op::BatchAlignment) FLOAT_T res[TOTAL]{};
         // 针对点积累加放大，使用更稳健的容差

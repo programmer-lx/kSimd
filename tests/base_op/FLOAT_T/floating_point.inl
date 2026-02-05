@@ -15,7 +15,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void one_div() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 常规数值
@@ -43,7 +43,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void sqrt() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         op::store(test, op::sqrt(op::set(FLOAT_T(16))));
@@ -66,7 +66,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void rsqrt() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         op::store(test, op::rsqrt(op::set(FLOAT_T(4))));
@@ -90,7 +90,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void not_greater() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 1 > 2 为假 -> true
@@ -114,7 +114,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void not_greater_equal() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 1 >= 1 为真 -> false
@@ -138,7 +138,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void not_less() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 3 < 2 为假 -> true
@@ -162,7 +162,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void not_less_equal() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 1 <= 2 为真 -> false
@@ -186,7 +186,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void any_NaN() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
@@ -219,7 +219,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void all_NaN() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
@@ -252,7 +252,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void not_NaN() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
@@ -284,7 +284,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void any_finite() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         using uint_t = std::conditional_t<sizeof(FLOAT_T) == 4, uint32_t, uint64_t>;
@@ -321,7 +321,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void all_finite() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         using uint_t = ksimd::same_bits_uint_t<FLOAT_T>;
@@ -358,7 +358,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void round_down() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 常规：正数向下取整
@@ -388,7 +388,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void round_up() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 常规：正数向上取整
@@ -416,7 +416,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void round_to_zero() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         #define check(input, expected, msg) \
@@ -481,7 +481,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void round_nearest() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // 最近舍入 (Ties to Even 验证)
@@ -516,7 +516,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void round() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) FLOAT_T test[Lanes]{};
 
         // --- 1. 标准四舍五入 (Rounding away from zero) ---

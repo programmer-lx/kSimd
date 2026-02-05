@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void abs() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
         // 正数与负数
@@ -47,7 +47,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void neg() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T src[Lanes];
         alignas(ALIGNMENT) TYPE_T dst[Lanes];
 

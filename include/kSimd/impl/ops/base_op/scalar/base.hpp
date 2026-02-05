@@ -31,12 +31,12 @@ namespace detail
 #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(scalar_t* mem, mask_t mask) noexcept
         {
-            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             memcpy(mem, mask.m, size);
         }
         KSIMD_API(mask_t) test_load_mask(const scalar_t* mem) noexcept
         {
-            constexpr size_t size = Lanes * sizeof(scalar_t);
+            constexpr size_t size = TotalLanes * sizeof(scalar_t);
             mask_t result{};
             memcpy(result.m, mem, size);
             return result;
@@ -52,7 +52,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (I < count ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 #pragma endregion
 
@@ -63,7 +63,7 @@ namespace detail
          */
         KSIMD_API(batch_t) load(const scalar_t* mem) noexcept
         {
-            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             batch_t result{};
             memcpy(result.v, mem, size);
             return result;
@@ -74,7 +74,7 @@ namespace detail
          */
         KSIMD_API(batch_t) loadu(const scalar_t* mem) noexcept
         {
-            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             batch_t result{};
             memcpy(result.v, mem, size);
             return result;
@@ -86,7 +86,7 @@ namespace detail
          */
         KSIMD_API(void) store(scalar_t* mem, batch_t v) noexcept
         {
-            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             memcpy(mem, v.v, size);
         }
 
@@ -95,7 +95,7 @@ namespace detail
          */
         KSIMD_API(void) storeu(scalar_t* mem, batch_t v) noexcept
         {
-            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             memcpy(mem, v.v, size);
         }
 
@@ -108,7 +108,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -120,7 +120,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : default_value.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -149,7 +149,7 @@ namespace detail
             [&]<size_t... I>(std::index_sequence<I...>)
             {
                 (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0 ? (mem[I] = v.v[I], void()) : void()), ...);
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -175,7 +175,7 @@ namespace detail
          */
         KSIMD_API(batch_t) zero() noexcept
         {
-            constexpr size_t size = traits::Lanes * sizeof(scalar_t);
+            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             batch_t result{};
             memset(result.v, 0x00, size);
             return result;
@@ -189,40 +189,40 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { ((void)I, x)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
-         * @return [ 0, 1, 2, ... , Lanes - 1 ]
+         * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
          */
         KSIMD_API(batch_t) sequence() noexcept
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { static_cast<scalar_t>(I)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
-         * @return [ base + 0, base + 1, base + 2, ... , base + Lanes - 1 ]
+         * @return [ base + 0, base + 1, base + 2, ... , base + TotalLanes - 1 ]
          */
         KSIMD_API(batch_t) sequence(scalar_t base) noexcept
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (base + static_cast<scalar_t>(I))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
-         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((Lanes - 1) * stride) ]
+         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((TotalLanes - 1) * stride) ]
          */
         KSIMD_API(batch_t) sequence(scalar_t base, scalar_t stride) noexcept
         {
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (base + (static_cast<scalar_t>(I) * stride))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 #pragma endregion
 
@@ -259,7 +259,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> scalar_t
             {
                 return (v.v[I] + ...);
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -270,7 +270,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (a.v[I] * b.v[I] + c.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -281,7 +281,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (KSIMD_NAMESPACE_NAME::min(lhs.v[I], rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -292,7 +292,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (KSIMD_NAMESPACE_NAME::max(lhs.v[I], rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 #pragma endregion
 
@@ -306,7 +306,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] == rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -318,7 +318,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] != rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -330,7 +330,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] > rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -342,7 +342,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] >= rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -354,7 +354,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] < rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -366,7 +366,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (lhs.v[I] <= rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 #pragma endregion
 
@@ -382,7 +382,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { std::bit_cast<scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -397,7 +397,7 @@ namespace detail
             {
                 return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) &
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -412,7 +412,7 @@ namespace detail
             {
                 return { std::bit_cast<scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) &
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -427,7 +427,7 @@ namespace detail
             {
                 return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) |
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -442,7 +442,7 @@ namespace detail
             {
                 return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) ^
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -467,7 +467,7 @@ namespace detail
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(a.v[I])) |
                                                   (~KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[I]) &
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(b.v[I]))))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -484,7 +484,7 @@ namespace detail
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(a.v[I])) |
                                                   (~KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[I]) &
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(b.v[I]))))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 #pragma endregion
     };
@@ -505,7 +505,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (std::abs(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -516,7 +516,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (-v.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
     };
 
@@ -548,7 +548,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / v.v[I])... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
 
             KSIMD_WARNING_POP
         }
@@ -561,7 +561,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -572,7 +572,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
             {
                 return { (static_cast<scalar_t>(1) / std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -591,35 +591,35 @@ namespace detail
                 return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
                 {
                     return { (std::ceil(v.v[I]))... };
-                }(std::make_index_sequence<Lanes>{});
+                }(std::make_index_sequence<TotalLanes>{});
             }
             else if constexpr (mode == RoundingMode::Down)
             {
                 return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
                 {
                     return { (std::floor(v.v[I]))... };
-                }(std::make_index_sequence<Lanes>{});
+                }(std::make_index_sequence<TotalLanes>{});
             }
             else if constexpr (mode == RoundingMode::Nearest)
             {
                 return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
                 {
                     return { (std::nearbyint(v.v[I]))... };
-                }(std::make_index_sequence<Lanes>{});
+                }(std::make_index_sequence<TotalLanes>{});
             }
             else if constexpr (mode == RoundingMode::Round)
             {
                 return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
                 {
                     return { (std::round(v.v[I]))... };
-                }(std::make_index_sequence<Lanes>{});
+                }(std::make_index_sequence<TotalLanes>{});
             }
             else /* if constexpr (mode == RoundingMode::ToZero) */
             {
                 return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
                 {
                     return { (std::trunc(v.v[I]))... };
-                }(std::make_index_sequence<Lanes>{});
+                }(std::make_index_sequence<TotalLanes>{});
             }
         }
 #pragma endregion
@@ -634,7 +634,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (!(lhs.v[I] > rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -646,7 +646,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (!(lhs.v[I] >= rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -658,7 +658,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (!(lhs.v[I] < rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -670,7 +670,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (!(lhs.v[I] <= rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -681,7 +681,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (is_NaN(lhs.v[I]) || is_NaN(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -692,7 +692,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (is_NaN(lhs.v[I]) && is_NaN(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -703,7 +703,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (!(is_NaN(lhs.v[I]) || is_NaN(rhs.v[I])) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -714,7 +714,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (is_finite(lhs.v[I]) || is_finite(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 
         /**
@@ -725,7 +725,7 @@ namespace detail
             return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
             {
                 return { (is_finite(lhs.v[I]) && is_finite(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<Lanes>{});
+            }(std::make_index_sequence<TotalLanes>{});
         }
 #pragma endregion
     };
@@ -738,36 +738,36 @@ namespace vector_scalar
     KSIMD_API(Batch<S, reg_count, alignment>) operator+(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] + rhs.v[I])... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
     KSIMD_API(Batch<S, reg_count, alignment>) operator-(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] - rhs.v[I])... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
     KSIMD_API(Batch<S, reg_count, alignment>) operator*(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] * rhs.v[I])... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
@@ -777,12 +777,12 @@ namespace vector_scalar
         KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
 
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
 
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] / rhs.v[I])... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
 
         KSIMD_WARNING_POP
     }
@@ -791,55 +791,55 @@ namespace vector_scalar
     KSIMD_API(Batch<S, reg_count, alignment>) operator-(Batch<S, reg_count, alignment> v) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (-v.v[I])... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
     KSIMD_API(Batch<S, reg_count, alignment>) operator&(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(bitcast_to_uint(lhs.v[I]) & bitcast_to_uint(rhs.v[I]))... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
     KSIMD_API(Batch<S, reg_count, alignment>) operator|(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(bitcast_to_uint(lhs.v[I]) | bitcast_to_uint(rhs.v[I]))... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
     KSIMD_API(Batch<S, reg_count, alignment>) operator^(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(bitcast_to_uint(lhs.v[I]) ^ bitcast_to_uint(rhs.v[I]))... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>
     KSIMD_API(Batch<S, reg_count, alignment>) operator~(Batch<S, reg_count, alignment> v) noexcept
     {
         using traits = BaseOpTraits_Scalar<S, reg_count>;
-        constexpr auto Lanes = traits::Lanes;
+        constexpr auto TotalLanes = traits::TotalLanes;
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(~bitcast_to_uint(v.v[I]))... };
-        }(std::make_index_sequence<Lanes>{});
+        }(std::make_index_sequence<TotalLanes>{});
     }
 
     template<is_scalar_type S, size_t reg_count, size_t alignment>

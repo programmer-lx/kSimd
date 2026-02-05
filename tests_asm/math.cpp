@@ -31,7 +31,7 @@ namespace MyNamespace
             const f64::batch_t c0 = f64::set(-0.777);
 
             size_t i = 0;
-            for (; i + f64::Lanes <= size; i += f64::Lanes)
+            for (; i + f64::TotalLanes <= size; i += f64::TotalLanes)
             {
                 f64::batch_t x = f64::load(src + i);
 

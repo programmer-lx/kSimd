@@ -16,7 +16,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void sin() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
         alignas(ALIGNMENT) FLOAT_T in_data[Lanes];
@@ -64,7 +64,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void lerp() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(FLOAT_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
         alignas(ALIGNMENT) FLOAT_T aa[Lanes], bb[Lanes], tt[Lanes], rr[Lanes];

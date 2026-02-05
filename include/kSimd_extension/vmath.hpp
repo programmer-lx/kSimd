@@ -42,7 +42,7 @@ namespace KSIMD_NAMESPACE_NAME::ext::KSIMD_DYN_INSTRUCTION::vmath
         KSIMD_IDE_BASE_OP_HINT(op, batch_t)
 
         constexpr SimdInstruction Instruction = op::internal_instruction_;
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
 
         if constexpr (Instruction == SimdInstruction::Scalar)
         {

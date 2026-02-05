@@ -15,7 +15,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void clamp() noexcept
     {
         using op = KSIMD_DYN_BASE_OP(TYPE_T);
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = op::TotalLanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 
         alignas(ALIGNMENT) TYPE_T a[Lanes], b[Lanes], c[Lanes], r[Lanes];

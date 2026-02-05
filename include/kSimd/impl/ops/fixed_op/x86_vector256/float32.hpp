@@ -46,7 +46,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4, 2>
 };
 #undef KSIMD_API
 
-// TODO 使用 m256 寄存器
+// TODO 使用 m256 类型
 // AVX+
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float32, 4, 2>
