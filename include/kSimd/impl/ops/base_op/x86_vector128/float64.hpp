@@ -1,5 +1,6 @@
 #pragma once
 
+#include "traits.hpp"
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
@@ -126,7 +127,7 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float64>
         vector_scalar::Mask<float64, 2, alignof(float64)>, alignof(float64)
     >
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float64)
+    KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE<float64>)
 };
 #endif
 
@@ -135,7 +136,7 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float64>
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64)
+    KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<float64>)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
