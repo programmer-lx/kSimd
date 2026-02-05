@@ -40,7 +40,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
     {
         constexpr int imm8 = (src_mask << 4) | dst_mask;
-        return { _mm_dp_ps(a.v, b.v, imm8) };
+        return { _mm_dp_ps(a.v[0], b.v[0], imm8) };
     }
 };
 #undef KSIMD_API

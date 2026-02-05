@@ -10,85 +10,101 @@
 KSIMD_NAMESPACE_BEGIN
 
 // -------------------------------- operators --------------------------------
-#define KSIMD_API(ret) KSIMD_OP_AVX_API ret KSIMD_CALL_CONV
+#define KSIMD_API(...) KSIMD_OP_AVX_API __VA_ARGS__ KSIMD_CALL_CONV
 namespace x86_vector256
 {
-    KSIMD_API(Batch<float64>) operator+(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator+(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_add_pd(lhs.v, rhs.v) };
+        return { _mm256_add_pd(lhs.v[0], rhs.v[0]) };
     }
 
-    KSIMD_API(Batch<float64>) operator-(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_sub_pd(lhs.v, rhs.v) };
+        return { _mm256_sub_pd(lhs.v[0], rhs.v[0]) };
     }
 
-    KSIMD_API(Batch<float64>) operator*(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator*(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_mul_pd(lhs.v, rhs.v) };
+        return { _mm256_mul_pd(lhs.v[0], rhs.v[0]) };
     }
-
-    KSIMD_API(Batch<float64>) operator/(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator/(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_div_pd(lhs.v, rhs.v) };
+        return { _mm256_div_pd(lhs.v[0], rhs.v[0]) };
     }
-
-    KSIMD_API(Batch<float64>) operator-(Batch<float64> v) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> v) noexcept
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(SignBitMask<float64>)) };
+        return { _mm256_xor_pd(v.v[0], _mm256_set1_pd(SignBitMask<float64>)) };
     }
-
-    KSIMD_API(Batch<float64>) operator&(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator&(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_and_pd(lhs.v, rhs.v) };
+        return { _mm256_and_pd(lhs.v[0], rhs.v[0]) };
     }
-
-    KSIMD_API(Batch<float64>) operator|(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator|(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_or_pd(lhs.v, rhs.v) };
+        return { _mm256_or_pd(lhs.v[0], rhs.v[0]) };
     }
-
-    KSIMD_API(Batch<float64>) operator^(Batch<float64> lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator^(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return { _mm256_xor_pd(lhs.v, rhs.v) };
+        return { _mm256_xor_pd(lhs.v[0], rhs.v[0]) };
     }
-
-    KSIMD_API(Batch<float64>) operator~(Batch<float64> v) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>) operator~(Batch<float64, reg_count> v) noexcept
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(OneBlock<float64>)) };
+        return { _mm256_xor_pd(v.v[0], _mm256_set1_pd(OneBlock<float64>)) };
     }
-
-    KSIMD_API(Batch<float64>&) operator+=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator+=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs + rhs;
     }
-
-    KSIMD_API(Batch<float64>&) operator-=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator-=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs - rhs;
     }
-
-    KSIMD_API(Batch<float64>&) operator*=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator*=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs * rhs;
     }
-
-    KSIMD_API(Batch<float64>&) operator/=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator/=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs / rhs;
     }
-
-    KSIMD_API(Batch<float64>&) operator&=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator&=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs & rhs;
     }
-
-    KSIMD_API(Batch<float64>&) operator|=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator|=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs | rhs;
     }
-
-    KSIMD_API(Batch<float64>&) operator^=(Batch<float64>& lhs, Batch<float64> rhs) noexcept
+    
+    template<size_t reg_count>
+    KSIMD_API(Batch<float64, reg_count>&) operator^=(Batch<float64, reg_count>& lhs, Batch<float64, reg_count> rhs) noexcept
     {
         return lhs = lhs ^ rhs;
     }
@@ -105,7 +121,7 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
     {
-        _mm256_store_pd(mem, mask.m);
+        _mm256_store_pd(mem, mask.m[0]);
     }
     KSIMD_API(mask_t) test_load_mask(const float64* mem) noexcept
     {
@@ -132,28 +148,28 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 
     KSIMD_API(void) store(float64* mem, batch_t v) noexcept
     {
-        _mm256_store_pd(mem, v.v);
+        _mm256_store_pd(mem, v.v[0]);
     }
 
     KSIMD_API(void) storeu(float64* mem, batch_t v) noexcept
     {
-        _mm256_storeu_pd(mem, v.v);
+        _mm256_storeu_pd(mem, v.v[0]);
     }
 
     KSIMD_API(batch_t) mask_load(const float64* mem, mask_t mask) noexcept
     {
-        return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m)) };
+        return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m[0])) };
     }
 
     KSIMD_API(batch_t) mask_load(const float64* mem, mask_t mask, batch_t default_value) noexcept
     {
         batch_t loaded = mask_load(mem, mask);
-        return { _mm256_or_pd(loaded.v, _mm256_andnot_pd(mask.m, default_value.v)) };
+        return { _mm256_or_pd(loaded.v[0], _mm256_andnot_pd(mask.m[0], default_value.v[0])) };
     }
 
     KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask) noexcept
     {
-        return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m)) };
+        return { _mm256_maskload_pd(mem, _mm256_castpd_si256(mask.m[0])) };
     }
 
     KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask, batch_t default_value) noexcept
@@ -163,12 +179,12 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 
     KSIMD_API(void) mask_store(float64* mem, batch_t v, mask_t mask) noexcept
     {
-        _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m), v.v);
+        _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m[0]), v.v[0]);
     }
 
     KSIMD_API(void) mask_storeu(float64* mem, batch_t v, mask_t mask) noexcept
     {
-        _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m), v.v);
+        _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask.m[0]), v.v[0]);
     }
 
     KSIMD_API(batch_t) undefined() noexcept
@@ -207,34 +223,34 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 
     KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_add_pd(lhs.v, rhs.v) };
+        return { _mm256_add_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) sub(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_sub_pd(lhs.v, rhs.v) };
+        return { _mm256_sub_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) mul(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_mul_pd(lhs.v, rhs.v) };
+        return { _mm256_mul_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) div(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_div_pd(lhs.v, rhs.v) };
+        return { _mm256_div_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) one_div(batch_t v) noexcept
     {
-        return { _mm256_div_pd(_mm256_set1_pd(1.0), v.v) };
+        return { _mm256_div_pd(_mm256_set1_pd(1.0), v.v[0]) };
     }
 
     KSIMD_API(float64) reduce_add(batch_t v) noexcept
     {
         // [4,3] + [2,1] = [2+4, 1+3]
-        __m128d low = _mm256_castpd256_pd128(v.v);
-        __m128d high = _mm256_extractf128_pd(v.v, 0b1);
+        __m128d low = _mm256_castpd256_pd128(v.v[0]);
+        __m128d high = _mm256_extractf128_pd(v.v[0], 0b1);
         __m128d sum128 = _mm_add_pd(low, high);
 
         // [2+4, 1+3] + [?, 2+4] = [1+2+3+4]
@@ -246,17 +262,17 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 
     KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
     {
-        return { _mm256_add_pd(_mm256_mul_pd(a.v, b.v), c.v) };
+        return { _mm256_add_pd(_mm256_mul_pd(a.v[0], b.v[0]), c.v[0]) };
     }
 
     KSIMD_API(batch_t) sqrt(batch_t v) noexcept
     {
-        return { _mm256_sqrt_pd(v.v) };
+        return { _mm256_sqrt_pd(v.v[0]) };
     }
 
     KSIMD_API(batch_t) rsqrt(batch_t v) noexcept
     {
-        return { _mm256_div_pd(_mm256_set1_pd(1.0), _mm256_sqrt_pd(v.v)) };
+        return { _mm256_div_pd(_mm256_set1_pd(1.0), _mm256_sqrt_pd(v.v[0])) };
     }
 
     template<RoundingMode mode>
@@ -264,117 +280,117 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
     {
         if constexpr (mode == RoundingMode::Up)
         {
-            return { _mm256_round_pd(v.v, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) };
+            return { _mm256_round_pd(v.v[0], _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) };
         }
         else if constexpr (mode == RoundingMode::Down)
         {
-            return { _mm256_round_pd(v.v, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) };
+            return { _mm256_round_pd(v.v[0], _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) };
         }
         else if constexpr (mode == RoundingMode::Nearest)
         {
-            return { _mm256_round_pd(v.v, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) };
+            return { _mm256_round_pd(v.v[0], _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) };
         }
         else if constexpr (mode == RoundingMode::Round)
         {
             // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
-            __m256d sign_mask = _mm256_and_pd(v.v, _mm256_set1_pd(SignBitMask<float32>));
+            __m256d sign_mask = _mm256_and_pd(v.v[0], _mm256_set1_pd(SignBitMask<float32>));
 
             // 构造一个具有相同符号的0.5
             __m256d half = _mm256_or_pd(_mm256_set1_pd(0x1.0p-1f), sign_mask);
 
-            return { _mm256_round_pd(_mm256_add_pd(v.v, half), _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
+            return { _mm256_round_pd(_mm256_add_pd(v.v[0], half), _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
         }
         else /* if constexpr (mode == RoundingMode::ToZero) */
         {
-            return { _mm256_round_pd(v.v, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
+            return { _mm256_round_pd(v.v[0], _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
         }
     }
 
     KSIMD_API(batch_t) abs(batch_t v) noexcept
     {
-        return { _mm256_and_pd(v.v, _mm256_set1_pd(SignBitClearMask<float64>)) };
+        return { _mm256_and_pd(v.v[0], _mm256_set1_pd(SignBitClearMask<float64>)) };
     }
 
     KSIMD_API(batch_t) neg(batch_t v) noexcept
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(SignBitMask<float64>)) };
+        return { _mm256_xor_pd(v.v[0], _mm256_set1_pd(SignBitMask<float64>)) };
     }
 
     KSIMD_API(batch_t) min(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_min_pd(lhs.v, rhs.v) };
+        return { _mm256_min_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) max(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_max_pd(lhs.v, rhs.v) };
+        return { _mm256_max_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(mask_t) equal(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_EQ_OQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_EQ_OQ) };
     }
 
     KSIMD_API(mask_t) not_equal(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NEQ_UQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_NEQ_UQ) };
     }
 
     KSIMD_API(mask_t) greater(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_GT_OQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_GT_OQ) };
     }
 
     KSIMD_API(mask_t) not_greater(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NGT_UQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_NGT_UQ) };
     }
 
     KSIMD_API(mask_t) greater_equal(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_GE_OQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_GE_OQ) };
     }
 
     KSIMD_API(mask_t) not_greater_equal(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NGE_UQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_NGE_UQ) };
     }
 
     KSIMD_API(mask_t) less(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_LT_OQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_LT_OQ) };
     }
 
     KSIMD_API(mask_t) not_less(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NLT_UQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_NLT_UQ) };
     }
 
     KSIMD_API(mask_t) less_equal(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_LE_OQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_LE_OQ) };
     }
 
     KSIMD_API(mask_t) not_less_equal(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_NLE_UQ) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_NLE_UQ) };
     }
 
     KSIMD_API(mask_t) any_NaN(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_UNORD_Q) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_UNORD_Q) };
     }
 
     KSIMD_API(mask_t) all_NaN(batch_t lhs, batch_t rhs) noexcept
     {
-        __m256d l_nan = _mm256_cmp_pd(lhs.v, lhs.v, _CMP_UNORD_Q);
-        __m256d r_nan = _mm256_cmp_pd(rhs.v, rhs.v, _CMP_UNORD_Q);
+        __m256d l_nan = _mm256_cmp_pd(lhs.v[0], lhs.v[0], _CMP_UNORD_Q);
+        __m256d r_nan = _mm256_cmp_pd(rhs.v[0], rhs.v[0], _CMP_UNORD_Q);
         return { _mm256_and_pd(l_nan, r_nan) };
     }
 
     KSIMD_API(mask_t) not_NaN(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_cmp_pd(lhs.v, rhs.v, _CMP_ORD_Q) };
+        return { _mm256_cmp_pd(lhs.v[0], rhs.v[0], _CMP_ORD_Q) };
     }
 
     KSIMD_API(mask_t) any_finite(batch_t lhs, batch_t rhs) noexcept
@@ -382,7 +398,7 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
         __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
         __m256d inf = _mm256_set1_pd(Inf<float64>);
 
-        __m256d combined = _mm256_and_pd(lhs.v, rhs.v);
+        __m256d combined = _mm256_and_pd(lhs.v[0], rhs.v[0]);
 
         return { _mm256_cmp_pd(_mm256_and_pd(combined, abs_mask), inf, _CMP_LT_OQ) };
     }
@@ -392,45 +408,45 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
         __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
         __m256d inf = _mm256_set1_pd(Inf<float64>);
 
-        __m256d l_finite = _mm256_cmp_pd(_mm256_and_pd(lhs.v, abs_mask), inf, _CMP_LT_OQ);
-        __m256d r_finite = _mm256_cmp_pd(_mm256_and_pd(rhs.v, abs_mask), inf, _CMP_LT_OQ);
+        __m256d l_finite = _mm256_cmp_pd(_mm256_and_pd(lhs.v[0], abs_mask), inf, _CMP_LT_OQ);
+        __m256d r_finite = _mm256_cmp_pd(_mm256_and_pd(rhs.v[0], abs_mask), inf, _CMP_LT_OQ);
 
         return { _mm256_and_pd(l_finite, r_finite) };
     }
 
     KSIMD_API(batch_t) bit_not(batch_t v) noexcept
     {
-        return { _mm256_xor_pd(v.v, _mm256_set1_pd(OneBlock<float64>)) };
+        return { _mm256_xor_pd(v.v[0], _mm256_set1_pd(OneBlock<float64>)) };
     }
 
     KSIMD_API(batch_t) bit_and(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_and_pd(lhs.v, rhs.v) };
+        return { _mm256_and_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) bit_and_not(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_andnot_pd(lhs.v, rhs.v) };
+        return { _mm256_andnot_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) bit_or(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_or_pd(lhs.v, rhs.v) };
+        return { _mm256_or_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) bit_xor(batch_t lhs, batch_t rhs) noexcept
     {
-        return { _mm256_xor_pd(lhs.v, rhs.v) };
+        return { _mm256_xor_pd(lhs.v[0], rhs.v[0]) };
     }
 
     KSIMD_API(batch_t) bit_select(batch_t mask, batch_t a, batch_t b) noexcept
     {
-        return { _mm256_or_pd(_mm256_and_pd(mask.v, a.v), _mm256_andnot_pd(mask.v, b.v)) };
+        return { _mm256_or_pd(_mm256_and_pd(mask.v[0], a.v[0]), _mm256_andnot_pd(mask.v[0], b.v[0])) };
     }
 
     KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
     {
-        return { _mm256_blendv_pd(b.v, a.v, mask.m) };
+        return { _mm256_blendv_pd(b.v[0], a.v[0], mask.m[0]) };
     }
 };
 #undef KSIMD_API
@@ -463,7 +479,7 @@ public:
 
     KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
     {
-        return { _mm256_fmadd_pd(a.v, b.v, c.v) };
+        return { _mm256_fmadd_pd(a.v[0], b.v[0], c.v[0]) };
     }
 };
 #undef KSIMD_API

@@ -30,7 +30,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec256)
 
-        return { _mm256_castps_pd(from.v) };
+        return { _mm256_castps_pd(from.v[0]) };
     }
 
     // m256i <- m256
@@ -41,7 +41,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec256)
 
-        return { _mm256_castps_si256(from.v) };
+        return { _mm256_castps_si256(from.v[0]) };
     }
 
     // m256 <- m256d
@@ -52,7 +52,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec256)
 
-        return { _mm256_castpd_ps(from.v) };
+        return { _mm256_castpd_ps(from.v[0]) };
     }
 
     // m256i <- m256d
@@ -63,7 +63,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec256)
 
-        return { _mm256_castpd_si256(from.v) };
+        return { _mm256_castpd_si256(from.v[0]) };
     }
 
     // m256 <- m256i
@@ -74,7 +74,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec256)
 
-        return { _mm256_castsi256_ps(from.v) };
+        return { _mm256_castsi256_ps(from.v[0]) };
     }
 
     // m256d <- m256i
@@ -85,7 +85,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec256)
 
-        return { _mm256_castsi256_pd(from.v) };
+        return { _mm256_castsi256_pd(from.v[0]) };
     }
 
 #undef KSIMD_API

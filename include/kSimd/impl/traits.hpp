@@ -176,7 +176,7 @@ namespace detail
     };
 }
 
-#define KSIMD_DETAIL_CUSTOM_TRAITS(...) \
+#define KSIMD_DETAIL_TRAITS(...) \
     private: \
     using traits = __VA_ARGS__; \
     public: \
@@ -190,6 +190,6 @@ namespace detail
     static constexpr size_t BatchAlignment = traits::BatchAlignment;
 
 #define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
-    KSIMD_DETAIL_CUSTOM_TRAITS(OpTraits<instruction, scalar_type>)
+    KSIMD_DETAIL_TRAITS(OpTraits<instruction, scalar_type>)
 
 KSIMD_NAMESPACE_END

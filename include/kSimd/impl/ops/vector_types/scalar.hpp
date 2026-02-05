@@ -6,16 +6,16 @@ KSIMD_NAMESPACE_BEGIN
 
 namespace vector_scalar
 {
-    template<is_scalar_type S, size_t Lanes, size_t Alignment>
+    template<is_scalar_type S, size_t RegCount, size_t Alignment>
     struct Batch
     {
         using scalar_t = S;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::ScalarArray;
-        static constexpr size_t byte_size = sizeof(S) * Lanes;
+        static constexpr size_t byte_size = sizeof(S) * RegCount;
 
-        alignas(Alignment) S v[Lanes];
+        alignas(Alignment) S v[RegCount];
 
-        static_assert(sizeof(v) == sizeof(S) * Lanes);
+        static_assert(sizeof(v) == sizeof(S) * RegCount);
     };
 
     template<is_scalar_type S, size_t Lanes, size_t alignment>
@@ -29,15 +29,5 @@ namespace vector_scalar
         static_assert(sizeof(m) == sizeof(S) * Lanes);
     };
 }
-
-template<is_scalar_type S>
-struct OpTraits<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, S>
-    : detail::SimdTraits_Base<
-        SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
-        vector_scalar::Batch<S, 16 / sizeof(S), alignof(S)>,    // vector128
-        vector_scalar::Mask<S, 16 / sizeof(S), alignof(S)>,     // vector128
-        alignof(S)
-    >
-{};
 
 KSIMD_NAMESPACE_END

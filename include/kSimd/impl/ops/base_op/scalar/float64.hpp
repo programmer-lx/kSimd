@@ -12,7 +12,7 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64>
         vector_scalar::Mask<float64, 2, alignof(float64)>, alignof(float64)
     >
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64)
+    KSIMD_DETAIL_TRAITS(BaseOpTraits_Scalar<float64>)
 };
 
 KSIMD_NAMESPACE_END

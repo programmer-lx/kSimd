@@ -43,7 +43,7 @@ struct TypeOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE>
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
         To result;
-        _mm_storeu_ps(reinterpret_cast<float32*>(result.v), from.v);
+        _mm_storeu_ps(reinterpret_cast<float32*>(result.v[0]), from.v[0]);
         return result;
     }
 
@@ -55,7 +55,7 @@ struct TypeOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_loadu_ps(reinterpret_cast<const float32*>(from.v)) };
+        return { _mm_loadu_ps(reinterpret_cast<const float32*>(from.v[0])) };
     }
 
 #undef KSIMD_API
@@ -85,7 +85,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_castps_pd(from.v) };
+        return { _mm_castps_pd(from.v[0]) };
     }
 
     // m128i <- m128
@@ -96,7 +96,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_castps_si128(from.v) };
+        return { _mm_castps_si128(from.v[0]) };
     }
 
     // m128 <- m128d
@@ -107,7 +107,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_castpd_ps(from.v) };
+        return { _mm_castpd_ps(from.v[0]) };
     }
 
     // m128i <- m128d
@@ -118,7 +118,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_castpd_si128(from.v) };
+        return { _mm_castpd_si128(from.v[0]) };
     }
 
     // m128 <- m128i
@@ -129,7 +129,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_castsi128_ps(from.v) };
+        return { _mm_castsi128_ps(from.v[0]) };
     }
 
     // m128d <- m128i
@@ -140,7 +140,7 @@ struct TypeOp<I>
     {
         KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
 
-        return { _mm_castsi128_pd(from.v) };
+        return { _mm_castsi128_pd(from.v[0]) };
     }
 
 #undef KSIMD_API
