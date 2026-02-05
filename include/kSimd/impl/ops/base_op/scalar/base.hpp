@@ -8,6 +8,7 @@
 #include <bit> // std::bit_cast
 #include <utility> // std::index_sequence
 
+#include "traits.hpp"
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"
 #include "kSimd/impl/ops/vector_types/scalar.hpp"
@@ -15,59 +16,49 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<is_scalar_type S>
-struct BaseOpTraits_Scalar
-    : detail::SimdTraits_Base<
-        SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
-        vector_scalar::Batch<S, 16 / sizeof(S), alignof(S)>,    // vector128
-        vector_scalar::Mask<S, 16 / sizeof(S), alignof(S)>,     // vector128
-        alignof(S)
-    >
-{};
-
 #define KSIMD_API(...) KSIMD_OP_SCALAR_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 // -------------------------------- operators --------------------------------
 namespace vector_scalar
 {
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator+(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator+(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
 
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] + rhs.v[I])... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator-(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator-(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
 
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] - rhs.v[I])... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator*(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator*(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
 
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] * rhs.v[I])... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator/(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator/(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         KSIMD_WARNING_PUSH
         KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
@@ -75,7 +66,7 @@ namespace vector_scalar
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
 
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (lhs.v[I] / rhs.v[I])... };
         }(std::make_index_sequence<Lanes>{});
@@ -83,99 +74,99 @@ namespace vector_scalar
         KSIMD_WARNING_POP
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator-(Batch<S, V, A> v) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator-(Batch<S, reg_count, alignment> v) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { (-v.v[I])... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator&(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator&(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(bitcast_to_uint(lhs.v[I]) & bitcast_to_uint(rhs.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator|(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator|(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(bitcast_to_uint(lhs.v[I]) | bitcast_to_uint(rhs.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator^(Batch<S, V, A> lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator^(Batch<S, reg_count, alignment> lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(bitcast_to_uint(lhs.v[I]) ^ bitcast_to_uint(rhs.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>) operator~(Batch<S, V, A> v) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>) operator~(Batch<S, reg_count, alignment> v) noexcept
     {
         using traits = BaseOpTraits_Scalar<S>;
         constexpr auto Lanes = traits::Lanes;
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, V, A>
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<S, reg_count, alignment>
         {
             return { std::bit_cast<S>(~bitcast_to_uint(v.v[I]))... };
         }(std::make_index_sequence<Lanes>{});
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator+=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator+=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs + rhs;
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator-=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator-=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs - rhs;
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator*=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator*=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs * rhs;
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator/=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator/=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs / rhs;
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator&=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator&=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs & rhs;
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator|=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator|=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs | rhs;
     }
 
-    template<is_scalar_type S, size_t V, size_t A>
-    KSIMD_API(Batch<S, V, A>&) operator^=(Batch<S, V, A>& lhs, Batch<S, V, A> rhs) noexcept
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    KSIMD_API(Batch<S, reg_count, alignment>&) operator^=(Batch<S, reg_count, alignment>& lhs, Batch<S, reg_count, alignment> rhs) noexcept
     {
         return lhs = lhs ^ rhs;
     }
