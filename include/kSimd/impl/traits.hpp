@@ -168,7 +168,7 @@ namespace detail
         static constexpr size_t ElementSize = sizeof(scalar_t);    // 每个元素的字节长度
         static constexpr size_t Lanes = (BatchSize / ElementSize); // 总通道数
         static constexpr size_t BatchAlignment = Alignment;        // 对齐
-        static constexpr size_t RegCount = batch_t::reg_count;     // 寄存器的数量，对于标量来说，就是变量的数量
+        static constexpr size_t RegCount = batch_t::reg_count;     // 寄存器的数量，标量特殊处理，视一个寄存器为128bit，跟SSE对齐
         static constexpr size_t RegSize = BatchSize / RegCount;    // 每个寄存器所占用的字节数
         static constexpr size_t RegStride = RegSize / ElementSize; // 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算)
 

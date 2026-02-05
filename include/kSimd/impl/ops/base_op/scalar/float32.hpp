@@ -4,15 +4,22 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32>
-    : detail::BaseOp_Scalar_FloatingPoint_Base<
-        SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
-        vector_scalar::Batch<float32, 4, alignof(float32)>,
-        vector_scalar::Mask<float32, 4, alignof(float32)>, alignof(float32)
-    >
+namespace detail
 {
-    KSIMD_DETAIL_TRAITS(BaseOpTraits_Scalar<float32>)
-};
+    template<size_t reg_count>
+    struct Executor_Scalar_float32
+        : detail::BaseOp_Scalar_FloatingPoint_Base<
+            SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
+            vector_scalar::Batch<float32, reg_count, alignof(float32)>,
+            vector_scalar::Mask<float32, reg_count, alignof(float32)>, alignof(float32)
+        >
+    {
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_Scalar<float32, reg_count>)
+    };
+}
+
+template<>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32> : detail::Executor_Scalar_float32<1>
+{};
 
 KSIMD_NAMESPACE_END

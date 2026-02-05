@@ -14,45 +14,72 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void dot() noexcept
     {
-        using op = KSIMD_DYN_FIXED_OP(FLOAT_T, 4);
-        alignas(ALIGNMENT) FLOAT_T res[4]{};
+        using op = KSIMD_DYN_FIXED_OP(FLOAT_T, LANES, COUNT);
 
-        // 定义一个适合当前精度的阈值
-        // dot 包含多次乘加，通常使用 epsilon 的 10 倍左右作为容差
+        constexpr size_t TOTAL = op::Lanes;
+        constexpr size_t STRIDE = op::RegStride; // 此时标量模式下也应为 4
+
+        alignas(op::BatchAlignment) FLOAT_T res[TOTAL]{};
+        // 针对点积累加放大，使用更稳健的容差
         constexpr FLOAT_T eps = std::numeric_limits<FLOAT_T>::epsilon() * FLOAT_T(10);
 
-        // 准备数据: a = [1, 2, 3, 4], b = [2, 3, 4, 5]
-        auto a = op::sequence(1);
-        auto b = op::sequence(2);
+        // 1. 准备动态数据
+        // 注意：op::sequence(start) 通常生成 [start, start+1, start+2, ...]
+        // 我们需要根据每个 Stride (4 lanes) 的实际数值来计算预期点积和
+        auto va = op::sequence(1);
+        auto vb = op::sequence(2);
 
-        // 1. 测试 src_mask: 只有 X, Y 参与计算 -> 1*2 + 2*3 = 8
-        op::store(res, op::dot<op::X | op::Y, op::All>(a, b));
-        for (int i = 0; i < 4; ++i) {
-            EXPECT_NEAR(res[i], FLOAT_T(8), eps);
+        // --- Case 1: 测试 src_mask (X|Y) -> dst_mask (All) ---
+        // 逻辑：每个寄存器单元内，取前两个通道点乘，结果广播到该单元所有通道
+        op::store(res, op::template dot<op::X | op::Y, op::All>(va, vb));
+        for (size_t r = 0; r < op::RegCount; ++r) {
+            size_t base = r * STRIDE;
+            // 动态计算该 Stride 的预期值: a0*b0 + a1*b1
+            FLOAT_T a0 = FLOAT_T(base + 1), a1 = FLOAT_T(base + 2);
+            FLOAT_T b0 = FLOAT_T(base + 2), b1 = FLOAT_T(base + 3);
+            FLOAT_T expected_sum = a0 * b0 + a1 * b1;
+
+            for (size_t l = 0; l < STRIDE; ++l) {
+                EXPECT_NEAR(res[base + l], expected_sum, eps)
+                    << "Error at Reg[" << r << "] Lane[" << l << "] (X|Y -> All)";
+            }
         }
 
-        // 2. 测试 dst_mask: 全参与 -> 40, 只存入 Z
-        op::store(res, op::dot<op::All, op::Z>(a, b));
-        EXPECT_NEAR(res[0], FLOAT_T(0), eps);
-        EXPECT_NEAR(res[1], FLOAT_T(0), eps);
-        EXPECT_NEAR(res[2], FLOAT_T(40), eps);
-        EXPECT_NEAR(res[3], FLOAT_T(0), eps);
+        // --- Case 2: 测试 dst_mask (仅存入 Z) ---
+        // 逻辑：全通道参与计算，但结果只存在索引为 2 的通道
+        op::store(res, op::template dot<op::All, op::Z>(va, vb));
+        for (size_t r = 0; r < op::RegCount; ++r) {
+            size_t base = r * STRIDE;
+            // 计算全通道 (X,Y,Z,W) 的点积和
+            FLOAT_T sum = 0;
+            for (size_t l = 0; l < 4; ++l) {
+                sum += FLOAT_T(base + l + 1) * FLOAT_T(base + l + 2);
+            }
 
-        // 3. 测试 0 掩码
-        op::store(res, op::dot<op::None, op::All>(a, b));
-        for (int i = 0; i < 4; ++i) {
+            for (size_t l = 0; l < STRIDE; ++l) {
+                FLOAT_T expected = (l == 2) ? sum : FLOAT_T(0);
+                EXPECT_NEAR(res[base + l], expected, eps)
+                    << "Error at Reg[" << r << "] Lane[" << l << "] (All -> Z)";
+            }
+        }
+
+        // --- Case 3: 边界测试 (负数与混合掩码 X|W) ---
+        auto vc = op::set(FLOAT_T(-2.5));
+        auto vd = op::set(FLOAT_T(4.0));
+        // sum = (-2.5 * 4.0) * 2 (因为 src 只有 X, W) = -20.0
+        op::store(res, op::template dot<op::X | op::W, op::X | op::W>(vc, vd));
+
+        for (size_t i = 0; i < TOTAL; ++i) {
+            size_t lane_in_reg = i % STRIDE;
+            FLOAT_T expected = (lane_in_reg == 0 || lane_in_reg == 3) ? FLOAT_T(-20) : FLOAT_T(0);
+            EXPECT_NEAR(res[i], expected, eps) << "Error at index " << i << " (Negative X|W)";
+        }
+
+        // --- Case 4: 零掩码测试 (None) ---
+        op::store(res, op::template dot<op::None, op::All>(va, vb));
+        for (size_t i = 0; i < TOTAL; ++i) {
             EXPECT_NEAR(res[i], FLOAT_T(0), eps);
         }
-
-        // 4. 边界测试: 负数与较大数值
-        auto c = op::set(FLOAT_T(-2.5));
-        auto d = op::set(FLOAT_T(4.0));
-        // sum = -2.5 * 4.0 * 4 = -40.0
-        op::store(res, op::dot<op::All, op::X | op::W>(c, d));
-        EXPECT_NEAR(res[0], FLOAT_T(-40), eps);
-        EXPECT_NEAR(res[1], FLOAT_T(0), eps);
-        EXPECT_NEAR(res[2], FLOAT_T(0), eps);
-        EXPECT_NEAR(res[3], FLOAT_T(-40), eps);
     }
 }
 

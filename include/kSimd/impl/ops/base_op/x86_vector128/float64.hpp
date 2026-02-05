@@ -136,7 +136,7 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float64>
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64>
 {
-    KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<float64>)
+    KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64, 1>)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept

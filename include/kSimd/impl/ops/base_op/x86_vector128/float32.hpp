@@ -22,7 +22,7 @@ namespace detail
     template<size_t... I>
     struct Executor_SSE_Impl_float32<std::index_sequence<I...>>
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>)
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32, sizeof...(I)>)
 
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float32* mem, mask_t mask) noexcept
@@ -447,7 +447,7 @@ namespace detail
     struct Executor_SSE3_Impl_float32<std::index_sequence<I...>>
         : Executor_SSE2_Impl_float32<std::index_sequence<I...>>
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>)
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32, sizeof...(I)>)
 
     private:
         KSIMD_API(__m128) internal_reduce_add_sse3(__m128 v) noexcept
@@ -496,7 +496,7 @@ namespace detail
     struct Executor_SSE4_1_Impl_float32<std::index_sequence<I...>>
         : Executor_SSSE3_Impl_float32<std::index_sequence<I...>>
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>)
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, sizeof...(I)>)
 
         KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
         {
