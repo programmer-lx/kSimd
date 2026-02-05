@@ -1,5 +1,6 @@
 #pragma once
 
+#include "traits.hpp"
 #include "kSimd/impl/ops/vector_types/x86_vector256.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"
 #include "kSimd/impl/func_attr.hpp"
@@ -116,7 +117,7 @@ namespace x86_vector256
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
 {
-    KSIMD_DETAIL_BASE_OP_TRAITS(SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64)
+    KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<float64>)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept

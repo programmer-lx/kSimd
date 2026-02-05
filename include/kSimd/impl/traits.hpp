@@ -155,9 +155,6 @@ concept is_mask_type = requires(T v)
 template<typename T, typename... Ts>
 concept is_mask_type_includes = is_mask_type<T> && (std::is_same_v<typename T::scalar_t, Ts> || ...);
 
-template<SimdInstruction Instruction, is_scalar_type ScalarType>
-struct OpTraits;
-
 namespace detail
 {
     template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>

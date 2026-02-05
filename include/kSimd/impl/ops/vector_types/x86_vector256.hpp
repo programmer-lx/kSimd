@@ -64,12 +64,4 @@ namespace x86_vector256
     };
 }
 
-// traits
-template<SimdInstruction Instruction, is_scalar_type S>
-    requires (Instruction > SimdInstruction::AVX_Start && Instruction < SimdInstruction::AVX_End)
-struct OpTraits<Instruction, S>
-    : detail::SimdTraits_Base<Instruction, x86_vector256::Batch<S, 1>, x86_vector256::Mask<S, 1>, alignment::Vec256>
-{
-};
-
 KSIMD_NAMESPACE_END
