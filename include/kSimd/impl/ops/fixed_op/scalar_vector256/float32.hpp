@@ -13,6 +13,24 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 2>
     , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {
+    KSIMD_API(batch_t) sequence() noexcept
+    {
+        return { 0, 1, 2, 3,
+                 0, 1, 2, 3 };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base) noexcept
+    {
+        return { base, base + 1, base + 2, base + 3,
+                 base, base + 1, base + 2, base + 3 };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
+    {
+        return { base, base + stride, base + stride * 2, base + stride * 3,
+                 base, base + stride, base + stride * 2, base + stride * 3 };
+    }
+
     template<int src_mask, int dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
     {

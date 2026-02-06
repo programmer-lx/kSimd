@@ -142,39 +142,6 @@ namespace detail
                 return { ((void)I, x)... };
             }(std::make_index_sequence<TotalLanes>{});
         }
-
-        /**
-         * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
-         */
-        KSIMD_API(batch_t) sequence() noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { static_cast<scalar_t>(I)... };
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-
-        /**
-         * @return [ base + 0, base + 1, base + 2, ... , base + TotalLanes - 1 ]
-         */
-        KSIMD_API(batch_t) sequence(scalar_t base) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (base + static_cast<scalar_t>(I))... };
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-
-        /**
-         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((TotalLanes - 1) * stride) ]
-         */
-        KSIMD_API(batch_t) sequence(scalar_t base, scalar_t stride) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (base + (static_cast<scalar_t>(I) * stride))... };
-            }(std::make_index_sequence<TotalLanes>{});
-        }
 #pragma endregion
 
 #pragma region arithmetic 算术
@@ -683,6 +650,54 @@ namespace detail
 #pragma endregion
     };
 } // namespace detail
+
+
+// mixin functions
+#define KSIMD_BATCH_T vector_scalar::Batch<S, reg_count, alignment>
+namespace detail
+{
+    template<is_scalar_type S, size_t reg_count, size_t alignment>
+    struct Base_Mixin_Scalar
+    {
+        /**
+         * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
+         */
+        KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
+        {
+            using traits = BaseOpTraits_Scalar<S, reg_count>;
+
+            return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+            {
+                return { static_cast<traits::scalar_t>(I)... };
+            }(std::make_index_sequence<traits::TotalLanes>{});
+        }
+
+        /**
+         * @return [ base + 0, base + 1, base + 2, ... , base + TotalLanes - 1 ]
+         */
+        KSIMD_API(KSIMD_BATCH_T) sequence(auto base) noexcept
+        {
+            using traits = BaseOpTraits_Scalar<S, reg_count>;
+            return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+            {
+                return { (base + static_cast<traits::scalar_t>(I))... };
+            }(std::make_index_sequence<traits::TotalLanes>{});
+        }
+
+        /**
+         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((TotalLanes - 1) * stride) ]
+         */
+        KSIMD_API(KSIMD_BATCH_T) sequence(auto base, auto stride) noexcept
+        {
+            using traits = BaseOpTraits_Scalar<S, reg_count>;
+            return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
+            {
+                return { (base + (static_cast<traits::scalar_t>(I) * stride))... };
+            }(std::make_index_sequence<traits::TotalLanes>{});
+        }
+    };
+}
+#undef KSIMD_BATCH_T
 
 // -------------------------------- operators --------------------------------
 namespace vector_scalar

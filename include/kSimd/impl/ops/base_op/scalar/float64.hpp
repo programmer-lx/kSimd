@@ -19,7 +19,9 @@ namespace detail
 }
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64> : detail::Executor_Scalar_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64>
+    : detail::Executor_Scalar_float64<1>
+    , detail::Base_Mixin_Scalar<float64, 1, alignof(float64)>
 {};
 
 KSIMD_NAMESPACE_END

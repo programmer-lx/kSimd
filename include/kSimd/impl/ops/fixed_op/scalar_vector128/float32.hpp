@@ -13,6 +13,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
     : detail::Executor_Scalar_float32<1>
     , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
+    , detail::Base_Mixin_Scalar<float32, 1, alignof(float32)>
 {
     template<int src_mask, int dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
