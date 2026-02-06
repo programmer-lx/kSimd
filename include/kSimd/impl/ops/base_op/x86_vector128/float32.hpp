@@ -39,10 +39,7 @@ namespace detail
         {
             __m128 cnt = _mm_set1_ps(static_cast<float32>(count));
             return {
-                (_mm_cmplt_ps(
-                _mm_set_ps(KSIMD_IOTA),
-                cnt
-                ))...
+                (_mm_cmplt_ps(_mm_set_ps(KSIMD_IOTA), cnt))...
             };
         }
 
@@ -67,7 +64,7 @@ namespace detail
         }
 
     private:
-        KSIMD_API(batch_t) internal_mask_load(const float32* mem, __m128 mask) noexcept
+        KSIMD_API(__m128) internal_mask_load(const float32* mem, __m128 mask) noexcept
         {
             __m128 lane0 = _mm_setzero_ps();
             __m128 lane1 = _mm_setzero_ps();
@@ -103,7 +100,7 @@ namespace detail
             // lane2 + lane3 = [ 0, 0, mem[3], mem[2] ]
             __m128 lane23 = _mm_unpacklo_ps(lane2, lane3);
 
-            return { _mm_movelh_ps(lane01, lane23) };
+            return _mm_movelh_ps(lane01, lane23);
         }
     public:
         KSIMD_API(batch_t) mask_load(const float32* mem, mask_t mask) noexcept
@@ -185,16 +182,15 @@ namespace detail
 
         KSIMD_API(batch_t) sequence(float32 base) noexcept
         {
-            return { _mm_add_ps(_mm_set_ps(KSIMD_IOTA), _mm_set1_ps(base))... };
+            __m128 base_v = _mm_set1_ps(base);
+            return { _mm_add_ps(_mm_set_ps(KSIMD_IOTA), base_v)... };
         }
 
         KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
         {
             __m128 stride_v = _mm_set1_ps(stride);
             __m128 base_v = _mm_set1_ps(base);
-            return {
-                _mm_add_ps(_mm_mul_ps(stride_v, _mm_set_ps(KSIMD_IOTA)), base_v)...
-            };
+            return { _mm_add_ps(_mm_mul_ps(stride_v, _mm_set_ps(KSIMD_IOTA)), base_v)... };
         }
 
         KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
