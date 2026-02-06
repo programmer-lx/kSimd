@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void dot() noexcept
     {
-        using op = KSIMD_DYN_FIXED_OP(FLOAT_T, LANES, COUNT);
+        using op = KSIMD_DYN_FIXED_OP_COUNT(FLOAT_T, LANES, COUNT);
 
         constexpr size_t TOTAL = op::TotalLanes;
         constexpr size_t STRIDE = op::RegWidth;

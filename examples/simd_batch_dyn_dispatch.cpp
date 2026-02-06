@@ -7,6 +7,7 @@
 
 #include <kSimd/aligned_allocate.hpp>
 #include <kSimd/base_op.hpp>
+#include <kSimd/fixed_op.hpp>
 #include <kSimd_extension/vmath.hpp>
 
 #include "utils.hpp"
@@ -21,6 +22,8 @@ namespace MyNamespace
             const size_t                 size
         ) noexcept
         {
+            // using f32x4 = KSIMD_DYN_FIXED_OP(float, 4);
+
             namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
             using f64 = KSIMD_DYN_BASE_OP(double);
 
@@ -38,7 +41,7 @@ namespace MyNamespace
             const f64::batch_t c0 = f64::set(-0.777);
 
             size_t i = 0;
-            for (; i + f64::Lanes <= size; i += f64::Lanes)
+            for (; i + f64::TotalLanes <= size; i += f64::TotalLanes)
             {
                 f64::batch_t x = f64::load(src + i);
 

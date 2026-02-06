@@ -157,6 +157,36 @@ concept is_mask_type_includes = is_mask_type<T> && (std::is_same_v<typename T::s
 
 namespace detail
 {
+    template<SimdInstruction I>
+    consteval size_t reg_width()
+    {
+        constexpr size_t lanes = []() -> size_t
+        {
+            if constexpr (I == SimdInstruction::Scalar)
+            {
+                return 4;
+            }
+            if constexpr (I > SimdInstruction::SSE_Start && I < SimdInstruction::SSE_End)
+            {
+                return 4;
+            }
+            if constexpr (I > SimdInstruction::AVX_Start && I < SimdInstruction::AVX_End)
+            {
+                return 8;
+            }
+            return SIZE_MAX;
+        }();
+        static_assert(lanes != SIZE_MAX);
+
+        return lanes;
+    }
+}
+
+template<SimdInstruction I>
+KSIMD_HEADER_GLOBAL_CONSTEXPR size_t RegWidth = detail::reg_width<I>();
+
+namespace detail
+{
     template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
     struct SimdTraits_Base
     {
@@ -176,7 +206,8 @@ namespace detail
             BatchBytes % ElementBytes == 0 &&
             BatchBytes % RegBytes == 0 &&
             RegBytes % RegWidth == 0
-        ); // 必须能整除
+            // RegWidth == KSIMD_NAMESPACE_NAME::RegWidth<Instruction> // TODO 等之后搞好 AVX2 fixed op 之后，再启用
+        );
     };
 }
 
