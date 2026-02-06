@@ -455,41 +455,41 @@ TEST(fixed_op_float32_4x2, float32)
     // avx
     {
         using op = FixedOp<SimdInstruction::AVX, float32, 4, 2>;
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 2>>));
+        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
         // static_assert(op::CurrentInstruction == SimdInstruction::AVX);
         static_assert(op::BatchBytes == 32);
         static_assert(op::ElementBytes == 4);
         static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 2);
-        static_assert(op::RegLanes == 4);
+        static_assert(op::BatchAlignment == 32);
+        static_assert(op::RegBytes == 32);
+        static_assert(op::RegCount == 1);
+        static_assert(op::RegLanes == 8);
     }
     // avx2
     {
         using op = FixedOp<SimdInstruction::AVX2, float32, 4, 2>;
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 2>>));
+        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
         // static_assert(op::CurrentInstruction == SimdInstruction::AVX2);
         static_assert(op::BatchBytes == 32);
         static_assert(op::ElementBytes == 4);
         static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 2);
-        static_assert(op::RegLanes == 4);
+        static_assert(op::BatchAlignment == 32);
+        static_assert(op::RegBytes == 32);
+        static_assert(op::RegCount == 1);
+        static_assert(op::RegLanes == 8);
     }
     // avx2+fma3
     {
         using op = FixedOp<SimdInstruction::AVX2_FMA3, float32, 4, 2>;
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 2>>));
+        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
         // static_assert(op::CurrentInstruction == SimdInstruction::AVX2_FMA3);
         static_assert(op::BatchBytes == 32);
         static_assert(op::ElementBytes == 4);
         static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 2);
-        static_assert(op::RegLanes == 4);
+        static_assert(op::BatchAlignment == 32);
+        static_assert(op::RegBytes == 32);
+        static_assert(op::RegCount == 1);
+        static_assert(op::RegLanes == 8);
     }
 
     SUCCEED();
