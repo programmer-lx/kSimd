@@ -63,8 +63,7 @@ namespace MyNamespace
             // 尾处理
             if (const size_t tail = size - i; tail > 0)
             {
-                const f64::mask_t mask = f64::mask_from_lanes(static_cast<unsigned int>(tail));
-                f64::batch_t x = f64::mask_load(src + i, mask);
+                f64::batch_t x = f64::load_partial(src + i, tail);
 
                 f64::batch_t res = f64::mul_add(c10, x, c9);
                 res = f64::mul_add(res, x, c8);
@@ -80,7 +79,7 @@ namespace MyNamespace
                 res = ext::vmath::clamp<f64>(res, c2, c3);
                 res = ext::vmath::clamp<f64>(res, c4, c5);
 
-                f64::mask_store(dst + i, res, mask);
+                f64::store_partial(dst + i, res, tail);
             }
         }
     } // namespace KSIMD_DYN_INSTRUCTION
@@ -105,7 +104,7 @@ namespace MyNamespace
 
 int main()
 {
-    constexpr size_t NUM = 1000000;
+    constexpr size_t NUM = 1000003;
 
     // 使用对齐分配器
     std::vector<double, ksimd::AlignedAllocator<double>> src(NUM);

@@ -52,8 +52,7 @@ namespace MyNamespace
             // 尾处理
             if (const size_t tail = size - i; tail > 0)
             {
-                const f32::mask_t mask = f32::mask_from_lanes(static_cast<unsigned int>(tail));
-                f32::batch_t x = f32::mask_load(src + i, mask);
+                f32::batch_t x = f32::load_partial(src + i, tail);
 
                 f32::batch_t res = ext::vmath::clamp<f32>(c10, x, c9);
                 res = ext::vmath::lerp<f32>(res, x, c8);
@@ -66,7 +65,7 @@ namespace MyNamespace
                 res = ext::vmath::clamp<f32>(res, x, c1);
                 res = ext::vmath::clamp<f32>(res, x, c0);
 
-                f32::mask_store(dst + i, res, mask);
+                f32::store_partial(dst + i, res, tail);
             }
         }
     } // namespace KSIMD_DYN_INSTRUCTION

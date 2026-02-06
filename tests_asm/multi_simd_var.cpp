@@ -66,12 +66,10 @@ namespace KSIMD_DYN_INSTRUCTION
         // 测试 Mask Load/Store 的实现质量
         if (const size_t rest = size - i; rest > 0)
         {
-            f4x2::mask_t mask = f4x2::mask_from_lanes(rest);
-
             // 安全加载 (即使越界也只读取有效部分)
-            f4x2::batch_t va = f4x2::mask_load(a + i, mask);
-            f4x2::batch_t vb = f4x2::mask_load(b + i, mask);
-            f4x2::batch_t vc = f4x2::mask_load(c + i, mask);
+            f4x2::batch_t va = f4x2::load_partial(a + i, rest);
+            f4x2::batch_t vb = f4x2::load_partial(b + i, rest);
+            f4x2::batch_t vc = f4x2::load_partial(c + i, rest);
 
             f4x2::mask_t cmp_mask = f4x2::greater(va, vb);
 
@@ -84,7 +82,7 @@ namespace KSIMD_DYN_INSTRUCTION
             res = f4x2::neg(res);
 
             // 安全存储
-            f4x2::mask_store(out + i, res, mask);
+            f4x2::store_partial(out + i, res, rest);
         }
     }
 }
