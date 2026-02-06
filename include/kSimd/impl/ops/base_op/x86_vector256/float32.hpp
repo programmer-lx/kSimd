@@ -6,7 +6,6 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f
 #define KSIMD_API(...) KSIMD_OP_AVX2_FMA3_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
@@ -18,8 +17,7 @@ namespace detail
     struct Executor_AVX2_FMA3_Impl_float32;
     
     template<size_t... I>
-    struct Executor_AVX2_FMA3_Impl_float32<std::index_sequence<I...>>
-        : BaseOpHelper
+    struct Executor_AVX2_FMA3_Impl_float32<std::index_sequence<I...>> : BaseOpHelper
     {
         KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float32, sizeof...(I)>)
         
@@ -429,29 +427,24 @@ namespace detail
     {
         KSIMD_API(float32) reduce_add(KSIMD_BATCH_T v) noexcept
         {
-            // [8,7,6,5] + [4,3,2,1] = [8+4, 7+3, 6+2, 5+1]
-            __m128 low = _mm256_castps256_ps128(v.v[0]);
-            __m128 high = _mm256_extractf128_ps(v.v[0], 1);
-            __m128 sum128 = _mm_add_ps(low, high);
+            __m128 low = _mm256_castps256_ps128(v.v[0]); // [1, 2, 3, 4]
+            __m128 high = _mm256_extractf128_ps(v.v[0], 0b1); // [5, 6, 7, 8]
+            __m128 sum = _mm_add_ps(low, high); // [1+5, 2+6, 3+7, 4+8]
 
-            // [8+4, 7+3, 8+4, 7+3] + [8+4, 7+3, 6+2, 5+1] = [?, ?, 2468, 1357]
-            __m128 sum64 = _mm_add_ps(sum128, _mm_movehl_ps(sum128, sum128));
-
-            // [?, ?, 2468, 1357] + [?, ?, 2468, 2468] = [?, ?, ?, 12345678]
-            __m128 sum32 = _mm_add_ss(sum64, _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(1, 1, 1, 1)));
-
-            return _mm_cvtss_f32(sum32);
+            sum = _mm_add_ps(sum, _mm_movehl_ps(sum, sum));
+            sum = _mm_add_ss(sum, _mm_shuffle_ps(sum, sum, 1));
+            return _mm_cvtss_f32(sum);
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
         {
-            return { _mm256_set_ps(KSIMD_IOTA) };
+            return { _mm256_set_ps(7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f) };
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence(float32 base) noexcept
         {
             __m256 base_v = _mm256_set1_ps(base);
-            __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+            __m256 iota = _mm256_set_ps(7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
             return { _mm256_add_ps(iota, base_v) };
         }
 
@@ -459,7 +452,7 @@ namespace detail
         {
             __m256 stride_v = _mm256_set1_ps(stride);
             __m256 base_v = _mm256_set1_ps(base);
-            __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+            __m256 iota = _mm256_set_ps(7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
             return { _mm256_fmadd_ps(stride_v, iota, base_v) };
         }
     };
@@ -474,5 +467,4 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float32>
 
 KSIMD_NAMESPACE_END
 
-#undef KSIMD_IOTA
 #undef KSIMD_API

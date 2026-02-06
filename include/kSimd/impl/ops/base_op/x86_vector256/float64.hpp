@@ -6,7 +6,6 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 3.0, 2.0, 1.0, 0.0
 #define KSIMD_API(...) KSIMD_OP_AVX2_FMA3_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
@@ -148,14 +147,14 @@ namespace detail
             else if constexpr (mode == RoundingMode::Round)
             {
                 // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
-                __m256d sign_bit = _mm256_set1_pd(SignBitMask<float32>);
+                __m256d sign_bit = _mm256_set1_pd(SignBitMask<float64>);
                 // __m256d sign_mask = _mm256_and_pd(v.v[I], sign_bit);
 
                 // 构造一个具有相同符号的0.5
                 // __m256d half = _mm256_or_pd(_mm256_set1_pd(0x1.0p-1f), _mm256_and_pd(v.v[I], sign_bit));
 
                 return { _mm256_round_pd(_mm256_add_pd(v.v[I],
-                    _mm256_or_pd(_mm256_set1_pd(0x1.0p-1f), _mm256_and_pd(v.v[I], sign_bit))),
+                    _mm256_or_pd(_mm256_set1_pd(0x1.0p-1), _mm256_and_pd(v.v[I], sign_bit))),
                     _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC)... };
             }
             else /* if constexpr (mode == RoundingMode::ToZero) */
@@ -257,8 +256,8 @@ namespace detail
 
         KSIMD_API(mask_t) any_finite(batch_t lhs, batch_t rhs) noexcept
         {
-            __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float32>);
-            __m256d inf = _mm256_set1_pd(Inf<float32>);
+            __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
+            __m256d inf = _mm256_set1_pd(Inf<float64>);
             return {
                 _mm256_or_pd(
                     _mm256_cmp_pd(_mm256_and_pd(lhs.v[I], abs_mask), inf, _CMP_LT_OQ),
@@ -441,13 +440,13 @@ namespace detail
 
         KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
         {
-            return { _mm256_set_pd(KSIMD_IOTA) };
+            return { _mm256_set_pd(3.0, 2.0, 1.0, 0.0) };
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence(float64 base) noexcept
         {
             __m256d base_v = _mm256_set1_pd(base);
-            __m256d iota = _mm256_set_pd(KSIMD_IOTA);
+            __m256d iota = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
             return { _mm256_add_pd(iota, base_v) };
         }
 
@@ -455,7 +454,7 @@ namespace detail
         {
             __m256d stride_v = _mm256_set1_pd(stride);
             __m256d base_v = _mm256_set1_pd(base);
-            __m256d iota = _mm256_set_pd(KSIMD_IOTA);
+            __m256d iota = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
             return { _mm256_fmadd_pd(stride_v, iota, base_v) };
         }
     };
@@ -470,5 +469,4 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float64>
 
 KSIMD_NAMESPACE_END
 
-#undef KSIMD_IOTA
 #undef KSIMD_API

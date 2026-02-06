@@ -8,7 +8,6 @@
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 1.0, 0.0
 #define KSIMD_API(...) KSIMD_OP_SSE4_1_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
@@ -303,7 +302,7 @@ namespace detail
             else if constexpr (mode == RoundingMode::Round)
             {
                 // 提取符号位，如果v是负数，则sign_mask为0b1000...，如果v是正数，则sign_mask为0b0000...
-                __m128d sign_bit = _mm_set1_pd(SignBitMask<float32>);
+                __m128d sign_bit = _mm_set1_pd(SignBitMask<float64>);
                 // __m128d sign_mask = _mm_and_pd(v.v[I], sign_bit);
 
                 // 构造一个具有相同符号的0.5 (0x1.0p-1f == 0.5f 16进制精确表示)
@@ -443,19 +442,19 @@ namespace detail
 
         KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
         {
-            return { _mm_set_pd(KSIMD_IOTA) };
+            return { _mm_set_pd(1.0, 0.0) };
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence(float64 base) noexcept
         {
-            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            __m128d iota = _mm_set_pd(1.0, 0.0);
             __m128d base_v = _mm_set1_pd(base);
             return {  _mm_add_pd(iota, base_v) };
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence(float64 base, float64 stride) noexcept
         {
-            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            __m128d iota = _mm_set_pd(1.0, 0.0);
             __m128d stride_v = _mm_set1_pd(stride);
             __m128d base_v = _mm_set1_pd(base);
             return { _mm_add_pd(_mm_mul_pd(stride_v, iota), base_v) };
@@ -472,5 +471,4 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float64>
 
 KSIMD_NAMESPACE_END
 
-#undef KSIMD_IOTA
 #undef KSIMD_API

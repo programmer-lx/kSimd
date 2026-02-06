@@ -3,7 +3,7 @@
 #include "kSimd/impl/ops/base_op/x86_vector128/float32.hpp"
 #include "kSimd/impl/ops/fixed_op/FixedOp.hpp"
 
-#define KSIMD_API(ret) KSIMD_OP_SSE4_1_API static ret KSIMD_CALL_CONV
+#define KSIMD_API(...) KSIMD_OP_SSE4_1_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
 

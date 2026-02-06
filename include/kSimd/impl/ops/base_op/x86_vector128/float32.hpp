@@ -9,8 +9,6 @@
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 3.f, 2.f, 1.f, 0.f
-
 #define KSIMD_API(...) KSIMD_OP_SSE4_1_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
@@ -445,19 +443,19 @@ namespace detail
     {
         KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
         {
-            return { _mm_set_ps(KSIMD_IOTA) };
+            return { _mm_set_ps(3.f, 2.f, 1.f, 0.f) };
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence(float32 base) noexcept
         {
-            __m128 iota = _mm_set_ps(KSIMD_IOTA);
+            __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
             __m128 base_v = _mm_set1_ps(base);
             return {  _mm_add_ps(iota, base_v) };
         }
 
         KSIMD_API(KSIMD_BATCH_T) sequence(float32 base, float32 stride) noexcept
         {
-            __m128 iota = _mm_set_ps(KSIMD_IOTA);
+            __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
             __m128 stride_v = _mm_set1_ps(stride);
             __m128 base_v = _mm_set1_ps(base);
             return { _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v) };
@@ -481,5 +479,4 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
 
 KSIMD_NAMESPACE_END
 
-#undef KSIMD_IOTA
 #undef KSIMD_API
