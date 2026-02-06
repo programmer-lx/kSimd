@@ -181,25 +181,6 @@ namespace detail
             return { _mm_div_pd(_mm_set1_pd(1.0), v.v[I])... };
         }
 
-        KSIMD_API(float64) reduce_add(batch_t v) noexcept
-        {
-            // [b, a]
-            //   +
-            // [a, b]
-            //   =
-            // [a+b]
-            // get lane[0]
-            // __m128d sum64 = _mm_add_pd(v.v[I], _mm_shuffle_pd(v.v[I], v.v[I], _MM_SHUFFLE2(0, 1)));
-            // return _mm_cvtsd_f64(sum64);
-            __m128d sum = _mm_setzero_pd();
-
-            ((sum = _mm_add_pd(
-                _mm_add_pd(v.v[I], _mm_shuffle_pd(v.v[I], v.v[I], _MM_SHUFFLE2(0, 1)))
-            )), ...);
-
-            return _mm_cvtsd_f64(sum);
-        }
-
         KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
         {
             return { _mm_add_pd(_mm_mul_pd(a.v[I], b.v[I]), c.v[I])... };
@@ -376,31 +357,10 @@ namespace detail
     template<typename = void>
     struct Executor_SSE3_Impl_float64;
 
-    #define KSIMD_API(ret) KSIMD_OP_SSE3_API static ret KSIMD_CALL_CONV
     template<size_t... I>
     struct Executor_SSE3_Impl_float64<std::index_sequence<I...>>
         : Executor_SSE2_Impl_float64<std::index_sequence<I...>>
-    {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float64, sizeof...(I)>)
-
-        KSIMD_API(float64) reduce_add(batch_t v) noexcept
-        {
-            // input: [b, a]
-            // hadd: [a+b]
-            // get lane[0]
-            // __m128d result = _mm_hadd_pd(v.v[I], v.v[I]);
-            // return _mm_cvtsd_f64(result);
-
-            __m128d sum = _mm_setzero_pd();
-
-            ((sum = _mm_add_pd(sum,
-                _mm_hadd_pd(v.v[I], v.v[I])
-            )), ...);
-
-            return _mm_cvtsd_f64(sum);
-        }
-    };
-    #undef KSIMD_API
+    {};
 
     template<size_t reg_count>
     using Executor_SSE3_float64 = Executor_SSE3_Impl_float64<std::make_index_sequence<reg_count>>;
@@ -581,6 +541,33 @@ namespace x86_vector128
 } // namespace x86_vector128
 #undef KSIMD_API
 
+// base op mixin
+#define KSIMD_BATCH_T x86_vector128::Batch<float64, 1>
+namespace detail
+{
+    #define KSIMD_API(...) KSIMD_OP_SSE2_API static __VA_ARGS__ KSIMD_CALL_CONV
+    struct Base_Mixin_SSE2_float64
+    {
+        KSIMD_API(float64) reduce_add(KSIMD_BATCH_T v) noexcept
+        {
+            __m128d sum64 = _mm_add_pd(v.v[0], _mm_shuffle_pd(v.v[0], v.v[0], _MM_SHUFFLE2(0, 1)));
+            return _mm_cvtsd_f64(sum64);
+        }
+    };
+    #undef KSIMD_API
+
+    #define KSIMD_API(...) KSIMD_OP_SSE3_API static __VA_ARGS__ KSIMD_CALL_CONV
+    struct Base_Mixin_SSE3_float64
+    {
+        KSIMD_API(float64) reduce_add(KSIMD_BATCH_T v) noexcept
+        {
+            __m128d sum64 = _mm_add_pd(v.v[0], _mm_shuffle_pd(v.v[0], v.v[0], _MM_SHUFFLE2(0, 1)));
+            return _mm_cvtsd_f64(sum64);
+        }
+    };
+    #undef KSIMD_API
+}
+#undef KSIMD_BATCH_T
 
 // SSE float64 使用标量模拟
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
@@ -597,19 +584,27 @@ struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float64>
 #endif
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64> : detail::Executor_SSE2_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64>
+    : detail::Executor_SSE2_float64<1>
+    , detail::Base_Mixin_SSE2_float64
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float64> : detail::Executor_SSE3_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float64>
+    : detail::Executor_SSE3_float64<1>
+    , detail::Base_Mixin_SSE3_float64
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float64> : detail::Executor_SSSE3_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float64>
+    : detail::Executor_SSSE3_float64<1>
+    , detail::Base_Mixin_SSE3_float64
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float64> : detail::Executor_SSE4_1_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float64>
+    : detail::Executor_SSE4_1_float64<1>
+    , detail::Base_Mixin_SSE3_float64
 {};
 
 KSIMD_NAMESPACE_END

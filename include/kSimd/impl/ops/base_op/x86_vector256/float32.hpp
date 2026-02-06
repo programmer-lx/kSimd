@@ -153,42 +153,6 @@ namespace detail
             return { _mm256_rcp_ps(v.v[I])... };
         }
 
-    private:
-        KSIMD_API(__m128) internal_reduce_add_avx(__m256 v) noexcept
-        {
-            // [8,7,6,5] + [4,3,2,1] = [8+4, 7+3, 6+2, 5+1]
-            __m128 low = _mm256_castps256_ps128(v);
-            __m128 high = _mm256_extractf128_ps(v, 1);
-            __m128 sum128 = _mm_add_ps(low, high);
-
-            // [8+4, 7+3, 8+4, 7+3] + [8+4, 7+3, 6+2, 5+1] = [?, ?, 2468, 1357]
-            __m128 sum64 = _mm_add_ps(sum128, _mm_movehl_ps(sum128, sum128));
-
-            // [?, ?, 2468, 1357] + [?, ?, 2468, 2468] = [?, ?, ?, 12345678]
-            return _mm_add_ss(sum64, _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(1, 1, 1, 1)));
-        }
-    public:
-        KSIMD_API(float32) reduce_add(batch_t v) noexcept
-        {
-            // [8,7,6,5] + [4,3,2,1] = [8+4, 7+3, 6+2, 5+1]
-            // __m128 low = _mm256_castps256_ps128(v.v[I]);
-            // __m128 high = _mm256_extractf128_ps(v.v[I], 1);
-            // __m128 sum128 = _mm_add_ps(low, high);
-            //
-            // // [8+4, 7+3, 8+4, 7+3] + [8+4, 7+3, 6+2, 5+1] = [?, ?, 2468, 1357]
-            // __m128 sum64 = _mm_add_ps(sum128, _mm_movehl_ps(sum128, sum128));
-            //
-            // // [?, ?, 2468, 1357] + [?, ?, 2468, 2468] = [?, ?, ?, 12345678]
-            // __m128 res = _mm_add_ss(sum64, _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(1, 1, 1, 1)));
-
-            // get lane[0]
-            // return _mm_cvtss_f32(res);
-
-            __m128 sum = _mm_setzero_ps();
-            ((sum = _mm_add_ps(sum, internal_reduce_add_avx(v.v[I]))), ...);
-            return _mm_cvtss_f32(sum);
-        }
-
         KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
         {
             return { _mm256_add_ps(_mm256_mul_ps(a.v[I], b.v[I]), c.v[I])... };
@@ -543,17 +507,49 @@ namespace x86_vector256
 } // namespace x86_vector256
 #undef KSIMD_API
 
+// base op mixin
+#define KSIMD_BATCH_T x86_vector256::Batch<float32, 1>
+namespace detail
+{
+    #define KSIMD_API(...) KSIMD_OP_AVX_API static __VA_ARGS__ KSIMD_CALL_CONV
+    struct Base_Mixin_AVX_float32
+    {
+        KSIMD_API(float32) reduce_add(KSIMD_BATCH_T v) noexcept
+        {
+            // [8,7,6,5] + [4,3,2,1] = [8+4, 7+3, 6+2, 5+1]
+            __m128 low = _mm256_castps256_ps128(v.v[0]);
+            __m128 high = _mm256_extractf128_ps(v.v[0], 1);
+            __m128 sum128 = _mm_add_ps(low, high);
+
+            // [8+4, 7+3, 8+4, 7+3] + [8+4, 7+3, 6+2, 5+1] = [?, ?, 2468, 1357]
+            __m128 sum64 = _mm_add_ps(sum128, _mm_movehl_ps(sum128, sum128));
+
+            // [?, ?, 2468, 1357] + [?, ?, 2468, 2468] = [?, ?, ?, 12345678]
+            __m128 sum32 = _mm_add_ss(sum64, _mm_shuffle_ps(sum64, sum64, _MM_SHUFFLE(1, 1, 1, 1)));
+
+            return _mm_cvtss_f32(sum32);
+        }
+    };
+    #undef KSIMD_API
+}
+#undef KSIMD_BATCH_T
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float32> : detail::Executor_AVX_float32<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float32>
+    : detail::Executor_AVX_float32<1>
+    , detail::Base_Mixin_AVX_float32
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float32> : detail::Executor_AVX2_float32<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float32>
+    : detail::Executor_AVX2_float32<1>
+    , detail::Base_Mixin_AVX_float32
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float32> : detail::Executor_AVX2_FMA3_float32<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float32>
+    : detail::Executor_AVX2_FMA3_float32<1>
+    , detail::Base_Mixin_AVX_float32
 {};
 
 KSIMD_NAMESPACE_END

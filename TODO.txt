@@ -1,4 +1,3 @@
 - 特化Scalar FixedOp float32 4x2 的 sequence 函数
-- 将reduce_add移除出 Executor，移动到 Base_Mixin 类中 (同理，将所有非垂直操作全部移动到独立的类中)
 - 重写mask_from_lanes，将他变为每个寄存器重复操作
 - 特化Scalar FixedOp float32 4x2 的mask_from_lanes操作，将其变为每个寄存器的重复操作

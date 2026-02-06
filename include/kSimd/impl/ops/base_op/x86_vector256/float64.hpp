@@ -153,35 +153,6 @@ namespace detail
             return { _mm256_div_pd(_mm256_set1_pd(1.0), v.v[I])... };
         }
 
-    private:
-        KSIMD_API(__m128d) internal_reduce_add_avx(__m256d v) noexcept
-        {
-            // [4,3] + [2,1] = [2+4, 1+3]
-            __m128d low = _mm256_castpd256_pd128(v);
-            __m128d high = _mm256_extractf128_pd(v, 0b1);
-            __m128d sum128 = _mm_add_pd(low, high);
-
-            // [2+4, 1+3] + [?, 2+4] = [1+2+3+4]
-            return _mm_add_pd(sum128, _mm_unpackhi_pd(sum128, sum128));
-        }
-    public:
-        KSIMD_API(float64) reduce_add(batch_t v) noexcept
-        {
-            // [4,3] + [2,1] = [2+4, 1+3]
-            // __m128d low = _mm256_castpd256_pd128(v.v[I]);
-            // __m128d high = _mm256_extractf128_pd(v.v[I], 0b1);
-            // __m128d sum128 = _mm_add_pd(low, high);
-            //
-            // // [2+4, 1+3] + [?, 2+4] = [1+2+3+4]
-            // __m128d sum64 = _mm_add_pd(sum128, _mm_unpackhi_pd(sum128, sum128));
-            //
-            // // get lane[0]
-            // return _mm_cvtsd_f64(sum64);
-            __m128d sum = _mm_setzero_pd();
-            ((sum = _mm_add_pd(sum, internal_reduce_add_avx(v.v[I]))), ...);
-            return _mm_cvtsd_f64(sum);
-        }
-
         KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
         {
             return { _mm256_add_pd(_mm256_mul_pd(a.v[I], b.v[I]), c.v[I])... };
@@ -537,17 +508,45 @@ namespace x86_vector256
 } // namespace x86_vector256
 #undef KSIMD_API
 
+// base op mixin
+#define KSIMD_BATCH_T x86_vector256::Batch<float64, 1>
+namespace detail
+{
+    #define KSIMD_API(...) KSIMD_OP_AVX_API static __VA_ARGS__ KSIMD_CALL_CONV
+    struct Base_Mixin_AVX_float64
+    {
+        KSIMD_API(float64) reduce_add(KSIMD_BATCH_T v) noexcept
+        {
+            __m128d low = _mm256_castpd256_pd128(v.v[0]);
+            __m128d high = _mm256_extractf128_pd(v.v[0], 0b1);
+            __m128d sum128 = _mm_add_pd(low, high);
+
+            // [2+4, 1+3] + [?, 2+4] = [1+2+3+4]
+            __m128d sum64 = _mm_add_pd(sum128, _mm_unpackhi_pd(sum128, sum128));
+
+            return _mm_cvtsd_f64(sum64);
+        }
+    };
+    #undef KSIMD_API
+}
+#undef KSIMD_BATCH_T
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64> : detail::Executor_AVX_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
+    : detail::Executor_AVX_float64<1>
+    , detail::Base_Mixin_AVX_float64
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float64> : detail::Executor_AVX2_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float64>
+    : detail::Executor_AVX2_float64<1>
+    , detail::Base_Mixin_AVX_float64
 {};
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float64> : detail::Executor_AVX2_FMA3_float64<1>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float64>
+    : detail::Executor_AVX2_FMA3_float64<1>
+    , detail::Base_Mixin_AVX_float64
 {};
 
 KSIMD_NAMESPACE_END
