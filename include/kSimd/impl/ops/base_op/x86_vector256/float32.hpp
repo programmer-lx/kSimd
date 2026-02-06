@@ -34,13 +34,6 @@ namespace detail
         }
         #endif
 
-        KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
-        {
-            __m256 cnt = _mm256_set1_ps(static_cast<float32>(count));
-            __m256 idx = _mm256_set_ps(KSIMD_IOTA);
-            return { ((void)I, _mm256_cmp_ps(idx, cnt, _CMP_LT_OQ))... };
-        }
-
         KSIMD_API(batch_t) load(const float32* mem) noexcept
         {
             return { _mm256_load_ps(&mem[I * RegLanes])... };
@@ -59,37 +52,6 @@ namespace detail
         KSIMD_API(void) storeu(float32* mem, batch_t v) noexcept
         {
             (_mm256_storeu_ps(&mem[I * RegLanes], v.v[I]), ...);
-        }
-
-        KSIMD_API(batch_t) mask_load(const float32* mem, mask_t mask) noexcept
-        {
-            return { _mm256_maskload_ps(mem, _mm256_castps_si256(mask.m[I]))... };
-        }
-
-        KSIMD_API(batch_t) mask_load(const float32* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            batch_t loaded = mask_load(mem, mask);
-            return { _mm256_or_ps(loaded.v[I], _mm256_andnot_ps(mask.m[I], default_value.v[I]))... };
-        }
-
-        KSIMD_API(batch_t) mask_loadu(const float32* mem, mask_t mask) noexcept
-        {
-            return mask_load(mem, mask);
-        }
-
-        KSIMD_API(batch_t) mask_loadu(const float32* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            return mask_load(mem, mask, default_value);
-        }
-
-        KSIMD_API(void) mask_store(float32* mem, batch_t v, mask_t mask) noexcept
-        {
-            (_mm256_maskstore_ps(mem, _mm256_castps_si256(mask.m[I]), v.v[I]), ...);
-        }
-
-        KSIMD_API(void) mask_storeu(float32* mem, batch_t v, mask_t mask) noexcept
-        {
-            (_mm256_maskstore_ps(mem, _mm256_castps_si256(mask.m[I]), v.v[I]), ...);
         }
 
         KSIMD_API(batch_t) undefined() noexcept

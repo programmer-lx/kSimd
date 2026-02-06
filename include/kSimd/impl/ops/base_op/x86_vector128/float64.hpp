@@ -35,13 +35,6 @@ namespace detail
         }
         #endif
 
-        KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
-        {
-            __m128d cnt = _mm_set1_pd(static_cast<float64>(count));
-            __m128d idx = _mm_set_pd(KSIMD_IOTA);
-            return { ((void)I, _mm_cmplt_pd(idx, cnt))... };
-        }
-
         KSIMD_API(batch_t) load(const float64* mem) noexcept
         {
             return { _mm_load_pd(&mem[I * RegLanes])... };
@@ -60,64 +53,6 @@ namespace detail
         KSIMD_API(void) storeu(float64* mem, batch_t v) noexcept
         {
             (_mm_storeu_pd(&mem[I * RegLanes], v.v[I]), ...);
-        }
-
-    private:
-        KSIMD_API(__m128d) internal_mask_load_sse2(const float64* mem, __m128d mask) noexcept
-        {
-            __m128d result = _mm_setzero_pd();
-
-            const int32 m = _mm_movemask_pd(mask); // 仅 [1:0] 有效
-            if (m & 0b01) result = _mm_load_sd(mem);
-            if (m & 0b10) result = _mm_loadh_pd(result, mem + 1);
-            return result;
-        }
-    public:
-        KSIMD_API(batch_t) mask_load(const float64* mem, mask_t mask) noexcept
-        {
-            // __m128d result = _mm_setzero_pd();
-            // const int32 m = _mm_movemask_pd(mask.m[I]); // 仅 [1:0] 有效
-            // if (m & 0b01) result = _mm_load_sd(mem);
-            // if (m & 0b10) result = _mm_loadh_pd(result, mem + 1);
-            // return { result };
-            return { internal_mask_load_sse2(&mem[I * RegLanes], mask.m[I])... };
-        }
-
-        KSIMD_API(batch_t) mask_load(const float64* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            batch_t loaded = mask_load(mem, mask);
-            return { _mm_or_pd(loaded.v[I], _mm_andnot_pd(mask.m[I], default_value.v[I]))... };
-        }
-
-        KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask) noexcept
-        {
-            return mask_load(mem, mask);
-        }
-
-        KSIMD_API(batch_t) mask_loadu(const float64* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            return mask_load(mem, mask, default_value);
-        }
-
-    private:
-        KSIMD_API(void) internal_mask_store_sse2(float64* mem, __m128d v, __m128d mask) noexcept
-        {
-            const int32 m = _mm_movemask_pd(mask); // [1:0]有效
-            if (m & 0b01) _mm_store_sd(mem, v);
-            if (m & 0b10) _mm_storeh_pd(mem + 1, v);
-        }
-    public:
-        KSIMD_API(void) mask_store(float64* mem, batch_t v, mask_t mask) noexcept
-        {
-            // const int32 m = _mm_movemask_pd(mask.m[I]); // [1:0]有效
-            // if (m & 0b01) _mm_store_sd(mem, v.v[I]);
-            // if (m & 0b10) _mm_storeh_pd(mem + 1, v.v[I]);
-            (internal_mask_store_sse2(&mem[I * RegLanes], v.v[I], mask.m[I]), ...);
-        }
-
-        KSIMD_API(void) mask_storeu(float64* mem, batch_t v, mask_t mask) noexcept
-        {
-            mask_store(mem, v, mask);
         }
 
         KSIMD_API(batch_t) undefined() noexcept

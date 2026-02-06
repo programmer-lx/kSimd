@@ -43,19 +43,6 @@ namespace detail
         }
 #endif
 
-#pragma region lane mask 通道掩码
-        /**
-         * @return for lane in mask, mask[0, count-1] = 1, mask[count, rest) = 0
-         */
-        KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
-            {
-                return { (I < count ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-#pragma endregion
-
 #pragma region memory 内存操作
         /**
          * @return foreach i in lanes: mem[i] = v[i]
@@ -97,67 +84,6 @@ namespace detail
         {
             constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
             memcpy(mem, v.v, size);
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
-         */
-        KSIMD_API(batch_t) mask_load(const scalar_t* mem, mask_t mask) noexcept
-        {
-            using uint = same_bits_uint_t<scalar_t>;
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
-         */
-        KSIMD_API(batch_t) mask_load(const scalar_t* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            using uint = same_bits_uint_t<scalar_t>;
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
-            {
-                return { (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0) ? mem[I] : default_value.v[I])... };
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = 0
-         */
-        KSIMD_API(batch_t) mask_loadu(const scalar_t* mem, mask_t mask) noexcept
-        {
-            return mask_load(mem, mask);
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i], else: mem[i] = default_value
-         */
-        KSIMD_API(batch_t) mask_loadu(const scalar_t* mem, mask_t mask, batch_t default_value) noexcept
-        {
-            return mask_load(mem, mask, default_value);
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
-         */
-        KSIMD_API(void) mask_store(scalar_t* mem, batch_t v, mask_t mask) noexcept
-        {
-            using uint = same_bits_uint_t<scalar_t>;
-
-            [&]<size_t... I>(std::index_sequence<I...>)
-            {
-                (((std::bit_cast<uint>(mask.m[I]) & OneBlock<uint>) != 0 ? (mem[I] = v.v[I], void()) : void()), ...);
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-
-        /**
-         * @brief foreach i in lanes|mask: if (mask[i] == 1): mem[i] = v[i]
-         */
-        KSIMD_API(void) mask_storeu(scalar_t* mem, batch_t v, mask_t mask) noexcept
-        {
-            mask_store(mem, v, mask);
         }
 #pragma endregion
 
