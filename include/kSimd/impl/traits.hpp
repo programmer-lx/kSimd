@@ -157,7 +157,7 @@ namespace detail
     {
         constexpr size_t lanes = []() -> size_t
         {
-            if constexpr (I == SimdInstruction::Scalar)
+            if constexpr (I == SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR)
             {
                 return 16 / sizeof(S);
             }
