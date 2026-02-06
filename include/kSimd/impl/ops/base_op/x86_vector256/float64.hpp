@@ -117,7 +117,7 @@ namespace x86_vector256
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64> : BaseOpHelper
 {
-    KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<float64>)
+    KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64, 1>)
 
 #if defined(KSIMD_IS_TESTING)
     KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
