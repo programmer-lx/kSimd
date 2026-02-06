@@ -157,22 +157,22 @@ concept is_mask_type_includes = is_mask_type<T> && (std::is_same_v<typename T::s
 
 namespace detail
 {
-    template<SimdInstruction I>
-    consteval size_t reg_width()
+    template<SimdInstruction I, is_scalar_type S>
+    consteval size_t reg_lanes()
     {
         constexpr size_t lanes = []() -> size_t
         {
             if constexpr (I == SimdInstruction::Scalar)
             {
-                return 4;
+                return 16 / sizeof(S);
             }
             if constexpr (I > SimdInstruction::SSE_Start && I < SimdInstruction::SSE_End)
             {
-                return 4;
+                return 16 / sizeof(S);
             }
             if constexpr (I > SimdInstruction::AVX_Start && I < SimdInstruction::AVX_End)
             {
-                return 8;
+                return 32 / sizeof(S);
             }
             return SIZE_MAX;
         }();
@@ -182,8 +182,9 @@ namespace detail
     }
 }
 
-template<SimdInstruction I>
-KSIMD_HEADER_GLOBAL_CONSTEXPR size_t RegWidth = detail::reg_width<I>();
+// 每个寄存器能够装下的标量的数量
+template<SimdInstruction I, is_scalar_type S>
+KSIMD_HEADER_GLOBAL_CONSTEXPR size_t RegLanes = detail::reg_lanes<I, S>();
 
 namespace detail
 {
@@ -197,16 +198,15 @@ namespace detail
         static constexpr size_t BatchAlignment = Alignment;                 // 对齐
         static constexpr size_t BatchBytes = batch_t::byte_size;            // 向量的字节长度
         static constexpr size_t ElementBytes = sizeof(scalar_t);            // 每个元素的字节长度
-        static constexpr size_t TotalLanes = (BatchBytes / ElementBytes);   // 总通道数
+        static constexpr size_t TotalLanes = BatchBytes / ElementBytes;     // 总通道数
         static constexpr size_t RegCount = batch_t::reg_count;              // 寄存器的数量，标量特殊处理，视一个寄存器为128bit，跟SSE对齐
         static constexpr size_t RegBytes = BatchBytes / RegCount;           // 每个寄存器所占用的字节数
-        static constexpr size_t RegWidth = RegBytes / ElementBytes;         // 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算)
+        static constexpr size_t RegLanes = RegBytes / ElementBytes;         // 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算)
 
         static_assert(
             BatchBytes % ElementBytes == 0 &&
             BatchBytes % RegBytes == 0 &&
-            RegBytes % RegWidth == 0
-            // RegWidth == KSIMD_NAMESPACE_NAME::RegWidth<Instruction> // TODO 等之后搞好 AVX2 fixed op 之后，再启用
+            RegBytes % RegLanes == 0
         );
     };
 }
@@ -225,7 +225,7 @@ namespace detail
     static constexpr size_t TotalLanes = traits::TotalLanes; /* 总通道数 */ \
     static constexpr size_t RegCount = traits::RegCount; /* 寄存器的数量，标量特殊处理，视一个寄存器为128bit，跟SSE对齐 */ \
     static constexpr size_t RegBytes = traits::RegBytes; /* 每个寄存器所占用的字节数 */ \
-    static constexpr size_t RegWidth = traits::RegWidth; /* 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算) */
+    static constexpr size_t RegLanes = traits::RegLanes; /* 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算) */
 
 #define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
     KSIMD_DETAIL_TRAITS(OpTraits<instruction, scalar_type>)

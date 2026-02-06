@@ -47,7 +47,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == alignof(float32));
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse
     {
@@ -60,7 +60,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse2
     {
@@ -73,7 +73,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse3
     {
@@ -86,7 +86,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse4.1
     {
@@ -99,7 +99,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
 
     // avx
@@ -113,7 +113,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 32);
         static_assert(op::RegBytes == 32);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 8);
+        static_assert(op::RegLanes == 8);
     }
     // avx2
     {
@@ -126,7 +126,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 32);
         static_assert(op::RegBytes == 32);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 8);
+        static_assert(op::RegLanes == 8);
     }
     // avx2+fma3
     {
@@ -139,7 +139,7 @@ TEST(base_op, float32)
         static_assert(op::BatchAlignment == 32);
         static_assert(op::RegBytes == 32);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 8);
+        static_assert(op::RegLanes == 8);
     }
 
     SUCCEED();
@@ -163,7 +163,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == alignof(float64));
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 2);
+        static_assert(op::RegLanes == 2);
     }
     // sse
     {
@@ -177,7 +177,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 2);
+        static_assert(op::RegLanes == 2);
         #endif
     }
     // sse2
@@ -191,7 +191,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 2);
+        static_assert(op::RegLanes == 2);
     }
     // sse3
     {
@@ -204,7 +204,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 2);
+        static_assert(op::RegLanes == 2);
     }
     // sse4.1
     {
@@ -217,7 +217,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 2);
+        static_assert(op::RegLanes == 2);
     }
 
     // avx
@@ -231,7 +231,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 32);
         static_assert(op::RegBytes == 32);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // avx2
     {
@@ -244,7 +244,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 32);
         static_assert(op::RegBytes == 32);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // avx2+fma3
     {
@@ -257,7 +257,7 @@ TEST(base_op, float64)
         static_assert(op::BatchAlignment == 32);
         static_assert(op::RegBytes == 32);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
 
     SUCCEED();
@@ -281,7 +281,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == alignof(float32));
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse
     {
@@ -294,7 +294,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse2
     {
@@ -307,7 +307,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse3
     {
@@ -320,7 +320,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse4.1
     {
@@ -333,7 +333,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
 
     // avx
@@ -347,7 +347,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // avx2
     {
@@ -360,7 +360,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // avx2+fma3
     {
@@ -373,7 +373,7 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
 
     SUCCEED();
@@ -397,7 +397,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == alignof(float32));
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse
     {
@@ -410,7 +410,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse2
     {
@@ -423,7 +423,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse3
     {
@@ -436,7 +436,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // sse4.1
     {
@@ -449,7 +449,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
 
     // avx
@@ -463,7 +463,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // avx2
     {
@@ -476,7 +476,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
     // avx2+fma3
     {
@@ -489,7 +489,7 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::BatchAlignment == 16);
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
-        static_assert(op::RegWidth == 4);
+        static_assert(op::RegLanes == 4);
     }
 
     SUCCEED();

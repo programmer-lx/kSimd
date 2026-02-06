@@ -8,7 +8,7 @@
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 3.f + I * RegWidth, 2.f + I * RegWidth, 1.f + I * RegWidth, 0.f + I * RegWidth
+#define KSIMD_IOTA 3.f + I * RegLanes, 2.f + I * RegLanes, 1.f + I * RegLanes, 0.f + I * RegLanes
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -27,11 +27,11 @@ namespace detail
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float32* mem, mask_t mask) noexcept
         {
-            (_mm_store_ps(&mem[I * RegWidth], mask.m[I]), ...);
+            (_mm_store_ps(&mem[I * RegLanes], mask.m[I]), ...);
         }
         KSIMD_API(mask_t) test_load_mask(const float32* mem) noexcept
         {
-            return { (_mm_load_ps(&mem[I * RegWidth]))... };
+            return { (_mm_load_ps(&mem[I * RegLanes]))... };
         }
         #endif
 
@@ -45,22 +45,22 @@ namespace detail
 
         KSIMD_API(batch_t) load(const float32* mem) noexcept
         {
-            return { (_mm_load_ps(&mem[I * RegWidth]))... };
+            return { (_mm_load_ps(&mem[I * RegLanes]))... };
         }
 
         KSIMD_API(batch_t) loadu(const float32* mem) noexcept
         {
-            return { (_mm_loadu_ps(&mem[I * RegWidth]))... };
+            return { (_mm_loadu_ps(&mem[I * RegLanes]))... };
         }
 
         KSIMD_API(void) store(float32* mem, batch_t v) noexcept
         {
-            (_mm_store_ps(&mem[I * RegWidth], v.v[I]), ...);
+            (_mm_store_ps(&mem[I * RegLanes], v.v[I]), ...);
         }
 
         KSIMD_API(void) storeu(float32* mem, batch_t v) noexcept
         {
-            (_mm_storeu_ps(&mem[I * RegWidth], v.v[I]), ...);
+            (_mm_storeu_ps(&mem[I * RegLanes], v.v[I]), ...);
         }
 
     private:
@@ -105,7 +105,7 @@ namespace detail
     public:
         KSIMD_API(batch_t) mask_load(const float32* mem, mask_t mask) noexcept
         {
-            return { internal_mask_load(&mem[I * RegWidth], mask.m[I])... };
+            return { internal_mask_load(&mem[I * RegLanes], mask.m[I])... };
         }
 
         KSIMD_API(batch_t) mask_load(const float32* mem, mask_t mask, batch_t default_value) noexcept
@@ -152,7 +152,7 @@ namespace detail
     public:
         KSIMD_API(void) mask_store(float32* mem, batch_t v, mask_t mask) noexcept
         {
-            (internal_mask_store(&mem[I * RegWidth], v.v[I], mask.m[I]), ...);
+            (internal_mask_store(&mem[I * RegLanes], v.v[I], mask.m[I]), ...);
         }
 
         KSIMD_API(void) mask_storeu(float32* mem, batch_t v, mask_t mask) noexcept

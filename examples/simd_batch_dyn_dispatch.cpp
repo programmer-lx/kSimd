@@ -23,6 +23,7 @@ namespace MyNamespace
         ) noexcept
         {
             // using f32x4 = KSIMD_DYN_FIXED_OP(float, 4);
+            // [[maybe_unused]] auto aa = f32x4::zero();
 
             namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
             using f64 = KSIMD_DYN_BASE_OP(double);
