@@ -1,6 +1,2 @@
 - 特化Scalar FixedOp float32 4x2 的 sequence 函数
-- 重写mask_from_lanes，将他变为每个寄存器重复操作
-- 特化Scalar FixedOp float32 4x2 的mask_from_lanes操作，将其变为每个寄存器的重复操作
 - 特化AVX float32 4x2 的sequence函数，将他变为每4个float32为一组的序列
-
-- 将 mask_from_lanes 和 sequence 函数移除出 executor

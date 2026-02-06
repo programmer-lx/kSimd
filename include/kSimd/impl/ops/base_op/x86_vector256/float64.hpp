@@ -258,12 +258,14 @@ namespace detail
 
         KSIMD_API(mask_t) any_finite(batch_t lhs, batch_t rhs) noexcept
         {
-            __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
-            __m256d inf = _mm256_set1_pd(Inf<float64>);
-
-            // __m256d combined = _mm256_and_pd(lhs.v[I], rhs.v[I]);
-
-            return { _mm256_cmp_pd(_mm256_and_pd(_mm256_and_pd(lhs.v[I], rhs.v[I]), abs_mask), inf, _CMP_LT_OQ)... };
+            __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float32>);
+            __m256d inf = _mm256_set1_pd(Inf<float32>);
+            return {
+                _mm256_or_pd(
+                    _mm256_cmp_pd(_mm256_and_pd(lhs.v[I], abs_mask), inf, _CMP_LT_OQ),
+                    _mm256_cmp_pd(_mm256_and_pd(rhs.v[I], abs_mask), inf, _CMP_LT_OQ)
+                )...
+            };
         }
 
         KSIMD_API(mask_t) all_finite(batch_t lhs, batch_t rhs) noexcept

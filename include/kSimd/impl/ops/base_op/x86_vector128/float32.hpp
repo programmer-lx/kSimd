@@ -220,11 +220,12 @@ namespace detail
         {
             __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float32>);
             __m128 inf = _mm_set1_ps(Inf<float32>);
-
-            // 如果一个是有限值(指数位有0)，AND 之后结果的指数位一定会有0
-            // __m128 combined = _mm_and_ps(lhs.v[I], rhs.v[I]);
-
-            return { _mm_cmplt_ps(_mm_and_ps(_mm_and_ps(lhs.v[I], rhs.v[I]), abs_mask), inf)... };
+            return {
+                _mm_or_ps(
+                    _mm_cmplt_ps(_mm_and_ps(lhs.v[I], abs_mask), inf),
+                    _mm_cmplt_ps(_mm_and_ps(rhs.v[I], abs_mask), inf)
+                )...
+            };
         }
 
         KSIMD_API(mask_t) all_finite(batch_t lhs, batch_t rhs) noexcept

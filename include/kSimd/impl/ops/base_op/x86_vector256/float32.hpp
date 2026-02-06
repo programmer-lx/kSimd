@@ -259,10 +259,12 @@ namespace detail
         {
             __m256 abs_mask = _mm256_set1_ps(SignBitClearMask<float32>);
             __m256 inf = _mm256_set1_ps(Inf<float32>);
-
-            // __m256 combined = _mm256_and_ps(lhs.v[I], rhs.v[I]);
-
-            return { _mm256_cmp_ps(_mm256_and_ps(_mm256_and_ps(lhs.v[I], rhs.v[I]), abs_mask), inf, _CMP_LT_OQ)... };
+            return {
+                _mm256_or_ps(
+                    _mm256_cmp_ps(_mm256_and_ps(lhs.v[I], abs_mask), inf, _CMP_LT_OQ),
+                    _mm256_cmp_ps(_mm256_and_ps(rhs.v[I], abs_mask), inf, _CMP_LT_OQ)
+                )...
+            };
         }
 
         KSIMD_API(mask_t) all_finite(batch_t lhs, batch_t rhs) noexcept
