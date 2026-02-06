@@ -49,7 +49,7 @@ namespace detail
         {
             count = count > TotalLanes ? TotalLanes : count;
 
-            if (count == 0)
+            if (count == 0) [[unlikely]]
                 return zero();
 
             batch_t res = zero();

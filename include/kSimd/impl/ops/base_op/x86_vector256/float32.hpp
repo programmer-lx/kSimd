@@ -46,7 +46,7 @@ namespace detail
         {
             count = count > TotalLanes ? TotalLanes : count;
 
-            if (count == 0)
+            if (count == 0) [[unlikely]]
                 return zero();
 
             batch_t res = zero();
@@ -67,7 +67,7 @@ namespace detail
         KSIMD_API(void) store_partial(float32* mem, batch_t v, size_t count) noexcept
         {
             count = count > TotalLanes ? TotalLanes : count;
-            if (count == 0)
+            if (count == 0) [[unlikely]]
                 return;
 
             std::memcpy(mem, v.v, sizeof(float32) * count);
