@@ -24,7 +24,7 @@ namespace detail
      * @brief 所有数据类型都有的函数
      */
     template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
-    struct BaseOp_Scalar_Base
+    struct Executor_Scalar_Base
     {
         KSIMD_DETAIL_TRAITS(detail::SimdTraits_Base<Instruction, BatchType, MaskType, Alignment>)
 
@@ -493,7 +493,7 @@ namespace detail
      * @brief 只有有符号的类型才有的函数
      */
     template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
-    struct BaseOp_Scalar_Signed_Base : BaseOp_Scalar_Base<Instruction, BatchType, MaskType, Alignment>
+    struct Executor_Scalar_Signed_Base : Executor_Scalar_Base<Instruction, BatchType, MaskType, Alignment>
     {
         KSIMD_DETAIL_TRAITS(detail::SimdTraits_Base<Instruction, BatchType, MaskType, Alignment>)
 
@@ -524,7 +524,9 @@ namespace detail
      * @brief 只有 float32, float64 数据类型才有的函数
      */
     template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
-    struct BaseOp_Scalar_FloatingPoint_Base : BaseOp_Scalar_Signed_Base<Instruction, BatchType, MaskType, Alignment>
+    struct Executor_Scalar_FloatingPoint_Base
+        : Executor_Scalar_Signed_Base<Instruction, BatchType, MaskType, Alignment>
+        , BaseOpHelper
     {
         KSIMD_DETAIL_TRAITS(detail::SimdTraits_Base<Instruction, BatchType, MaskType, Alignment>)
 

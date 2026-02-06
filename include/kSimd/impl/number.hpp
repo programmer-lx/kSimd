@@ -77,15 +77,6 @@ namespace detail
     }
 } // namespace detail
 
-enum class RoundingMode : int
-{
-    Nearest,    // 最近偶数
-    Up,         // 向上取整
-    Down,       // 向下取整
-    ToZero,     // 向0取整
-    Round       // 四舍五入
-};
-
 template<is_scalar_type S>
 using same_bits_uint_t = detail::uint_from_bytes_t<sizeof(S)>;
 

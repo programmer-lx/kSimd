@@ -8,7 +8,7 @@ namespace detail
 {
     template<size_t reg_count>
     struct Executor_Scalar_float64
-        : detail::BaseOp_Scalar_FloatingPoint_Base<
+        : detail::Executor_Scalar_FloatingPoint_Base<
             SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
             vector_scalar::Batch<float64, reg_count, alignof(float64)>,
             vector_scalar::Mask<float64, reg_count, alignof(float64)>, alignof(float64)

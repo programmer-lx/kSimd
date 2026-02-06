@@ -115,7 +115,7 @@ namespace x86_vector256
 
 #define KSIMD_API(ret) KSIMD_OP_AVX_API static ret KSIMD_CALL_CONV
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float64> : BaseOpHelper
 {
     KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<float64>)
 

@@ -491,6 +491,7 @@ namespace detail
     template<size_t... I>
     struct Executor_SSE4_1_Impl_float32<std::index_sequence<I...>>
         : Executor_SSSE3_Impl_float32<std::index_sequence<I...>>
+        , BaseOpHelper
     {
         KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, sizeof...(I)>)
 
