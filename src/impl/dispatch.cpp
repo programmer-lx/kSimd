@@ -18,20 +18,6 @@ namespace
         }
 #endif
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2)
-        if (supports.AVX2)
-        {
-            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2);
-        }
-#endif
-
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX)
-        if (supports.AVX)
-        {
-            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX);
-        }
-#endif
-
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
         if (supports.SSE4_1)
         {
@@ -39,31 +25,10 @@ namespace
         }
 #endif
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSSE3)
-        if (supports.SSSE3)
-        {
-            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SSSE3);
-        }
-#endif
-
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE3)
-        if (supports.SSE3)
-        {
-            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SSE3);
-        }
-#endif
-
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE2)
         if (supports.SSE2)
         {
             return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SSE2);
-        }
-#endif
-
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-        if (supports.SSE)
-        {
-            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SSE);
         }
 #endif
 
