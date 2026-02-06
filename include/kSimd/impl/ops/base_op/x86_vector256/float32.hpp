@@ -44,6 +44,18 @@ namespace detail
             return { _mm256_loadu_ps(&mem[I * RegLanes])... };
         }
 
+        KSIMD_API(batch_t) load_partial(const float32* mem, size_t count) noexcept
+        {
+            count = count > TotalLanes ? TotalLanes : count;
+
+            if (count == 0)
+                return zero();
+
+            batch_t res = zero();
+            std::memcpy(res.v, mem, sizeof(float32) * count);
+            return res;
+        }
+
         KSIMD_API(void) store(float32* mem, batch_t v) noexcept
         {
             (_mm256_store_ps(&mem[I * RegLanes], v.v[I]), ...);
@@ -52,6 +64,15 @@ namespace detail
         KSIMD_API(void) storeu(float32* mem, batch_t v) noexcept
         {
             (_mm256_storeu_ps(&mem[I * RegLanes], v.v[I]), ...);
+        }
+
+        KSIMD_API(void) store_partial(float32* mem, batch_t v, size_t count) noexcept
+        {
+            count = count > TotalLanes ? TotalLanes : count;
+            if (count == 0)
+                return;
+
+            std::memcpy(mem, v.v, sizeof(float32) * count);
         }
 
         KSIMD_API(batch_t) undefined() noexcept

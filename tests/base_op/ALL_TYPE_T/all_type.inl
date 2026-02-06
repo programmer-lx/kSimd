@@ -187,6 +187,88 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(loadu_storeu)
 #endif
 
+// ------------------------------------------ partial_load_store ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void partial_load_store() noexcept
+    {
+        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        constexpr size_t Lanes = op::TotalLanes;
+
+        // 准备足够的空间以测试各种偏移情况
+        alignas(ALIGNMENT) TYPE_T in[Lanes * 2];
+        alignas(ALIGNMENT) TYPE_T out[Lanes];
+
+        // 初始化源数据
+        for (size_t i = 0; i < Lanes * 2; ++i) {
+            in[i] = TYPE_T(i + 1);
+        }
+
+        // --- 1. 测试 load_partial: 验证部分读取与零填充 ---
+        // 我们测试每一个可能的长度 n (从 0 到 Lanes)
+        for (size_t n = 0; n <= Lanes; ++n)
+        {
+            // 预设输出内存为干扰值
+            for (size_t i = 0; i < Lanes; ++i) out[i] = TYPE_T(-1);
+
+            auto v = op::load_partial(in, n);
+            op::store(out, v); // 使用全量 store 存出以检查补零情况
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                if (i < n) {
+                    EXPECT_EQ(out[i], in[i]);
+                } else {
+                    // 核心要求：n 之外的通道必须被清零，防止 NaN 干扰
+                    EXPECT_EQ(out[i], TYPE_T(0));
+                }
+            }
+        }
+
+        // --- 2. 测试 store_partial: 验证内存改写保护 ---
+        for (size_t n = 0; n <= Lanes; ++n)
+        {
+            // 预设目标内存为特定干扰值
+            constexpr TYPE_T sentinel = TYPE_T(88);
+            for (size_t i = 0; i < Lanes; ++i) out[i] = sentinel;
+
+            auto v = op::set(TYPE_T(99));
+            op::store_partial(out, v, n);
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                if (i < n) {
+                    EXPECT_EQ(out[i], TYPE_T(99));
+                } else {
+                    // 核心要求：n 之后的内存绝对不能被触碰
+                    EXPECT_EQ(out[i], sentinel);
+                }
+            }
+        }
+
+        // --- 3. 测试非对齐地址安全性 ---
+        // 验证从非 16/32 字节对齐的地址读取是否正常（memcpy 语义）
+        if constexpr (Lanes > 1) {
+            size_t n = 1;
+            auto v = op::load_partial(in + 1, n);
+            op::store(out, v);
+            EXPECT_EQ(out[0], in[1]);
+            EXPECT_EQ(out[1], TYPE_T(0));
+        }
+
+        // --- 4. 测试溢出容错性 (n > Lanes) ---
+        {
+            // 当传入长度超过物理寄存器总容量时，应表现为全量加载/存储，而不应崩溃
+            auto v = op::load_partial(in, Lanes + 100);
+            op::store(out, v);
+            EXPECT_EQ(out[Lanes - 1], in[Lanes - 1]);
+        }
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(partial_load_store)
+#endif
+
 // ------------------------------------------ bit_select ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {

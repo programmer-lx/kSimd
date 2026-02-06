@@ -67,6 +67,20 @@ namespace detail
             return result;
         }
 
+        KSIMD_API(batch_t) load_partial(const scalar_t* mem, size_t count) noexcept
+        {
+            count = count > TotalLanes ? TotalLanes : count;
+
+            const size_t size = count * sizeof(scalar_t);
+
+            if (size == 0)
+                return zero();
+
+            batch_t result{};
+            memcpy(result.v, mem, size);
+            return result;
+        }
+
         /**
          * @brief foreach i in lanes: mem[i] = v[i]
          * @note mem **MUST** align to sizeof(batch_t)
@@ -83,6 +97,17 @@ namespace detail
         KSIMD_API(void) storeu(scalar_t* mem, batch_t v) noexcept
         {
             constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
+            memcpy(mem, v.v, size);
+        }
+
+        KSIMD_API(void) store_partial(scalar_t* mem, batch_t v, size_t count) noexcept
+        {
+            count = count > TotalLanes ? TotalLanes : count;
+
+            if (count == 0)
+                return;
+
+            const size_t size = count * sizeof(scalar_t);
             memcpy(mem, v.v, size);
         }
 #pragma endregion
