@@ -170,17 +170,6 @@ namespace detail
         }
 
         /**
-         * @return lane[0] + lane[1] + ... + lane[N]
-         */
-        KSIMD_API(scalar_t) reduce_add(batch_t v) noexcept
-        {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> scalar_t
-            {
-                return (v.v[I] + ...);
-            }(std::make_index_sequence<TotalLanes>{});
-        }
-
-        /**
          * @return foreach i in lanes: a[i] * b[i] + c[i]
          */
         KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
@@ -657,7 +646,23 @@ namespace detail
 namespace detail
 {
     template<is_scalar_type S, size_t reg_count>
-    struct Base_Mixin_Scalar
+    struct Base_Mixin_Scalar_reduce_add
+    {
+        /**
+         * @return lane[0] + lane[1] + ... + lane[N]
+         */
+        KSIMD_API(S) reduce_add(KSIMD_BATCH_T v) noexcept
+        {
+            using traits = BaseOpTraits_Scalar<S, reg_count>;
+            return [&]<size_t... I>(std::index_sequence<I...>) -> S
+            {
+                return (v.v[I] + ...);
+            }(std::make_index_sequence<traits::TotalLanes>{});
+        }
+    };
+
+    template<is_scalar_type S, size_t reg_count>
+    struct Base_Mixin_Scalar_sequence
     {
         /**
          * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
@@ -668,7 +673,7 @@ namespace detail
 
             return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
             {
-                return { static_cast<traits::scalar_t>(I)... };
+                return { static_cast<S>(I)... };
             }(std::make_index_sequence<traits::TotalLanes>{});
         }
 
@@ -680,7 +685,7 @@ namespace detail
             using traits = BaseOpTraits_Scalar<S, reg_count>;
             return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
             {
-                return { (base + static_cast<traits::scalar_t>(I))... };
+                return { (base + static_cast<S>(I))... };
             }(std::make_index_sequence<traits::TotalLanes>{});
         }
 
@@ -692,7 +697,7 @@ namespace detail
             using traits = BaseOpTraits_Scalar<S, reg_count>;
             return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
             {
-                return { (base + (static_cast<traits::scalar_t>(I) * stride))... };
+                return { (base + (static_cast<S>(I) * stride))... };
             }(std::make_index_sequence<traits::TotalLanes>{});
         }
     };

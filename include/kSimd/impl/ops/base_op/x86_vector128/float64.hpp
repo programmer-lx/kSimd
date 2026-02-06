@@ -505,11 +505,7 @@ namespace detail
     #define KSIMD_API(...) KSIMD_OP_SSE2_API static __VA_ARGS__ KSIMD_CALL_CONV
     struct Base_Mixin_SSE2_float64
     {
-        KSIMD_API(float64) reduce_add(KSIMD_BATCH_T v) noexcept
-        {
-            __m128d sum64 = _mm_add_pd(v.v[0], _mm_shuffle_pd(v.v[0], v.v[0], _MM_SHUFFLE2(0, 1)));
-            return _mm_cvtsd_f64(sum64);
-        }
+
     };
     #undef KSIMD_API
 

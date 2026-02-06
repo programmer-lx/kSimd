@@ -92,27 +92,6 @@ namespace detail
             return { ((void)I, _mm_set1_ps(x))... };
         }
 
-        KSIMD_API(batch_t) sequence() noexcept
-        {
-            __m128 iota = _mm_set_ps(KSIMD_IOTA);
-            return { ((void)I, iota)... };
-        }
-
-        KSIMD_API(batch_t) sequence(float32 base) noexcept
-        {
-            __m128 iota = _mm_set_ps(KSIMD_IOTA);
-            __m128 base_v = _mm_set1_ps(base);
-            return { ((void)I, _mm_add_ps(iota, base_v))... };
-        }
-
-        KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
-        {
-            __m128 iota = _mm_set_ps(KSIMD_IOTA);
-            __m128 stride_v = _mm_set1_ps(stride);
-            __m128 base_v = _mm_set1_ps(base);
-            return { ((void)I, _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v))... };
-        }
-
         KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
         {
             return { _mm_add_ps(lhs.v[I], rhs.v[I])... };
@@ -523,7 +502,7 @@ namespace x86_vector128
 namespace detail
 {
     #define KSIMD_API(...) KSIMD_OP_SSE_API static __VA_ARGS__ KSIMD_CALL_CONV
-    struct Base_Mixin_SSE_float32
+    struct Base_Mixin_SSE_reduce_add_float32
     {
         KSIMD_API(float32) reduce_add(KSIMD_BATCH_T v) noexcept
         {
@@ -543,10 +522,32 @@ namespace detail
             return _mm_cvtss_f32(sum32);
         }
     };
+    struct Base_Mixin_SSE_sequence_float32
+    {
+        KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
+        {
+            return { _mm_set_ps(KSIMD_IOTA) };
+        }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence(float32 base) noexcept
+        {
+            __m128 iota = _mm_set_ps(KSIMD_IOTA);
+            __m128 base_v = _mm_set1_ps(base);
+            return {  _mm_add_ps(iota, base_v) };
+        }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence(float32 base, float32 stride) noexcept
+        {
+            __m128 iota = _mm_set_ps(KSIMD_IOTA);
+            __m128 stride_v = _mm_set1_ps(stride);
+            __m128 base_v = _mm_set1_ps(base);
+            return { _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v) };
+        }
+    };
     #undef KSIMD_API
 
     #define KSIMD_API(...) KSIMD_OP_SSE3_API static __VA_ARGS__ KSIMD_CALL_CONV
-    struct Base_Mixin_SSE3_float32
+    struct Base_Mixin_SSE3_reduce_add_float32
     {
         KSIMD_API(float32) reduce_add(KSIMD_BATCH_T v) noexcept
         {
@@ -562,31 +563,36 @@ namespace detail
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32>
     : detail::Executor_SSE_float32<1>
-    , detail::Base_Mixin_SSE_float32
+    , detail::Base_Mixin_SSE_reduce_add_float32
+    , detail::Base_Mixin_SSE_sequence_float32
 {};
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32>
     : detail::Executor_SSE2_float32<1>
-    , detail::Base_Mixin_SSE_float32
+    , detail::Base_Mixin_SSE_reduce_add_float32
+    , detail::Base_Mixin_SSE_sequence_float32
 {};
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32>
     : detail::Executor_SSE3_float32<1>
-    , detail::Base_Mixin_SSE3_float32
+    , detail::Base_Mixin_SSE3_reduce_add_float32
+    , detail::Base_Mixin_SSE_sequence_float32
 {};
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32>
     : detail::Executor_SSSE3_float32<1>
-    , detail::Base_Mixin_SSE3_float32
+    , detail::Base_Mixin_SSE3_reduce_add_float32
+    , detail::Base_Mixin_SSE_sequence_float32
 {};
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32>
     : detail::Executor_SSE4_1_float32<1>
-    , detail::Base_Mixin_SSE3_float32
+    , detail::Base_Mixin_SSE3_reduce_add_float32
+    , detail::Base_Mixin_SSE_sequence_float32
 {};
 
 KSIMD_NAMESPACE_END

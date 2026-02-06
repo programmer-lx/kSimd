@@ -21,7 +21,8 @@ namespace detail
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32>
     : detail::Executor_Scalar_float32<1>
-    , detail::Base_Mixin_Scalar<float32, 1>
+    , detail::Base_Mixin_Scalar_sequence<float32, 1>
+    , detail::Base_Mixin_Scalar_reduce_add<float32, 1>
 {};
 
 KSIMD_NAMESPACE_END

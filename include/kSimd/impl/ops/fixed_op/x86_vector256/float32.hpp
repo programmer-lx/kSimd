@@ -6,9 +6,43 @@
 
 KSIMD_NAMESPACE_BEGIN
 
+#define KSIMD_BATCH_T x86_vector128::Batch<float32, 2>
+namespace detail
+{
+    #define KSIMD_API(...) KSIMD_OP_AVX_API static __VA_ARGS__ KSIMD_CALL_CONV
+    struct Fixed_Mixin_SSE_float32_4x2
+    {
+        KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
+        {
+            return { _mm_set_ps(3, 2, 1, 0), _mm_set_ps(3, 2, 1, 0) };
+        }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence(float32 base) noexcept
+        {
+            __m128 base_v = _mm_set1_ps(base);
+            __m128 seq1 = _mm_set_ps(3, 2, 1, 0);
+            __m128 seq2 = _mm_set_ps(3, 2, 1, 0);
+            return { _mm_add_ps(seq1, base_v), _mm_add_ps(seq2, base_v) };
+        }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence(float32 base, float32 stride) noexcept
+        {
+            __m128 base_v = _mm_set1_ps(base);
+            __m128 stride_v = _mm_set1_ps(stride);
+            __m128 seq1 = _mm_set_ps(3, 2, 1, 0);
+            __m128 seq2 = _mm_set_ps(3, 2, 1, 0);
+            __m128 t = _mm_mul_ps(stride_v, base_v);
+            return { _mm_add_ps(t, seq1), _mm_add_ps(t, seq2) };
+        }
+    };
+    #undef KSIMD_API
+}
+#undef KSIMD_BATCH_T
+
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32, 4, 2>
     : detail::Executor_SSE_float32<2>
+    , detail::Fixed_Mixin_SSE_float32_4x2
     , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
@@ -16,6 +50,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32, 4, 2>
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32, 4, 2>
     : detail::Executor_SSE2_float32<2>
+    , detail::Fixed_Mixin_SSE_float32_4x2
     , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
@@ -23,6 +58,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32, 4, 2>
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32, 4, 2>
     : detail::Executor_SSE3_float32<2>
+    , detail::Fixed_Mixin_SSE_float32_4x2
     , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
@@ -30,6 +66,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32, 4, 2>
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4, 2>
     : detail::Executor_SSSE3_float32<2>
+    , detail::Fixed_Mixin_SSE_float32_4x2
     , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
@@ -39,6 +76,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4, 2>
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4, 2>
     : detail::Executor_SSE4_1_float32<2>
+    , detail::Fixed_Mixin_SSE_float32_4x2
     , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {
