@@ -646,7 +646,7 @@ namespace detail
 namespace detail
 {
     template<is_scalar_type S, size_t reg_count>
-    struct Base_Mixin_Scalar_reduce_add
+    struct Base_Mixin_Scalar
     {
         /**
          * @return lane[0] + lane[1] + ... + lane[N]
@@ -659,11 +659,7 @@ namespace detail
                 return (v.v[I] + ...);
             }(std::make_index_sequence<traits::TotalLanes>{});
         }
-    };
 
-    template<is_scalar_type S, size_t reg_count>
-    struct Base_Mixin_Scalar_sequence
-    {
         /**
          * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
          */

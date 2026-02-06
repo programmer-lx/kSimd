@@ -21,13 +21,6 @@ KSIMD_NAMESPACE_BEGIN
     #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
-// SSE
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-    #define KSIMD_DETAIL_SSE_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SSE)
-#else
-    #define KSIMD_DETAIL_SSE_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
-#endif
-
 // SSE2
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE2)
     #define KSIMD_DETAIL_SSE2_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SSE2)
@@ -35,39 +28,11 @@ KSIMD_NAMESPACE_BEGIN
     #define KSIMD_DETAIL_SSE2_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
-// SSE3
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE3)
-    #define KSIMD_DETAIL_SSE3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SSE3)
-#else
-    #define KSIMD_DETAIL_SSE3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
-#endif
-
-// SSSE3
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSSE3)
-    #define KSIMD_DETAIL_SSSE3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SSSE3)
-#else
-    #define KSIMD_DETAIL_SSSE3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
-#endif
-
 // SSE4.1
 #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
     #define KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SSE4_1)
 #else
     #define KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
-#endif
-
-// AVX
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX)
-    #define KSIMD_DETAIL_AVX_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX)
-#else
-    #define KSIMD_DETAIL_AVX_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
-#endif
-
-// AVX2
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2)
-    #define KSIMD_DETAIL_AVX2_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2)
-#else
-    #define KSIMD_DETAIL_AVX2_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // AVX_FMA3
@@ -81,14 +46,9 @@ KSIMD_NAMESPACE_BEGIN
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
     /* ------------------------------------- avx family ------------------------------------- */ \
     KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_AVX2_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_AVX_FUNC_IMPL(func_name) \
     /* ------------------------------------- sse family ------------------------------------- */ \
     KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_SSSE3_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_SSE3_FUNC_IMPL(func_name) \
     KSIMD_DETAIL_SSE2_FUNC_IMPL(func_name) \
-    KSIMD_DETAIL_SSE_FUNC_IMPL(func_name) \
     /* ------------------------------------- scalar ------------------------------------- */ \
     KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name)
 
@@ -110,32 +70,12 @@ namespace detail
         KSIMD_DYN_INSTRUCTION_AVX2_FMA3,
     #endif
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2)
-        KSIMD_DYN_INSTRUCTION_AVX2,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX)
-        KSIMD_DYN_INSTRUCTION_AVX,
-    #endif
-
     #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
         KSIMD_DYN_INSTRUCTION_SSE4_1,
     #endif
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSSE3)
-        KSIMD_DYN_INSTRUCTION_SSSE3,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE3)
-        KSIMD_DYN_INSTRUCTION_SSE3,
-    #endif
-
     #if defined(KSIMD_INSTRUCTION_FEATURE_SSE2)
         KSIMD_DYN_INSTRUCTION_SSE2,
-    #endif
-
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-        KSIMD_DYN_INSTRUCTION_SSE,
     #endif
 
     #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)

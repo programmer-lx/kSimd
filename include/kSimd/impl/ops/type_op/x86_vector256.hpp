@@ -4,14 +4,14 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/traits.hpp"
 
+#define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_API static ret KSIMD_CALL_CONV
+
 KSIMD_NAMESPACE_BEGIN
 
 template<SimdInstruction I>
     requires(I > SimdInstruction::AVX_Start && I < SimdInstruction::AVX_End)
 struct TypeOp<I>
 {
-#define KSIMD_API(ret) KSIMD_OP_AVX_API static ret KSIMD_CALL_CONV
-
     // self <- self
     template<is_batch_type To, is_batch_type From>
         requires(std::is_same_v<To, From> && From::underlying_simd_type != detail::UnderlyingSimdType::ScalarArray)
@@ -87,8 +87,8 @@ struct TypeOp<I>
 
         return { _mm256_castsi256_pd(from.v[0]) };
     }
-
-#undef KSIMD_API
 };
 
 KSIMD_NAMESPACE_END
+
+#undef KSIMD_API

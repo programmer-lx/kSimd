@@ -49,51 +49,6 @@ TEST(base_op, float32)
         static_assert(op::RegCount == 1);
         static_assert(op::RegLanes == 4);
     }
-    // sse
-    {
-        using op = BaseOp<SimdInstruction::SSE, float32>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-    }
-    // sse2
-    {
-        using op = BaseOp<SimdInstruction::SSE2, float32>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE2);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-    }
-    // sse3
-    {
-        using op = BaseOp<SimdInstruction::SSE3, float32>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE3);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-    }
     // sse4.1
     {
         using op = BaseOp<SimdInstruction::SSE4_1, float32>;
@@ -108,37 +63,6 @@ TEST(base_op, float32)
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
         static_assert(op::RegLanes == 4);
-    }
-
-    // avx
-    {
-        using op = BaseOp<SimdInstruction::AVX, float32>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 32);
-        static_assert(op::RegBytes == 32);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 8);
-    }
-    // avx2
-    {
-        using op = BaseOp<SimdInstruction::AVX2, float32>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX2);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 32);
-        static_assert(op::RegBytes == 32);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 8);
     }
     // avx2+fma3
     {
@@ -179,53 +103,6 @@ TEST(base_op, float64)
         static_assert(op::RegCount == 1);
         static_assert(op::RegLanes == 2);
     }
-    // sse
-    {
-        #if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-        using op = BaseOp<SimdInstruction::SSE, float64>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, vector_scalar::Batch<float64, 2, alignment::Vec128>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 8);
-        static_assert(op::TotalLanes == 2);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 2);
-        #endif
-    }
-    // sse2
-    {
-        using op = BaseOp<SimdInstruction::SSE2, float64>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float64, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE2);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 8);
-        static_assert(op::TotalLanes == 2);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 2);
-    }
-    // sse3
-    {
-        using op = BaseOp<SimdInstruction::SSE3, float64>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float64, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE3);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 8);
-        static_assert(op::TotalLanes == 2);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 2);
-    }
     // sse4.1
     {
         using op = BaseOp<SimdInstruction::SSE4_1, float64>;
@@ -240,37 +117,6 @@ TEST(base_op, float64)
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 1);
         static_assert(op::RegLanes == 2);
-    }
-
-    // avx
-    {
-        using op = BaseOp<SimdInstruction::AVX, float64>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float64, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 8);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 32);
-        static_assert(op::RegBytes == 32);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-    }
-    // avx2
-    {
-        using op = BaseOp<SimdInstruction::AVX2, float64>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float64, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX2);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 8);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 32);
-        static_assert(op::RegBytes == 32);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
     }
     // avx2+fma3
     {
@@ -314,60 +160,6 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::Width == 4);
         static_assert(op::Count == 1);
     }
-    // sse
-    {
-        using op = FixedOp<SimdInstruction::SSE, float32, 4, 1>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 1);
-    }
-    // sse2
-    {
-        using op = FixedOp<SimdInstruction::SSE2, float32, 4, 1>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE2);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 1);
-    }
-    // sse3
-    {
-        using op = FixedOp<SimdInstruction::SSE3, float32, 4, 1>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE3);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 1);
-    }
     // sse4.1
     {
         using op = FixedOp<SimdInstruction::SSE4_1, float32, 4, 1>;
@@ -387,42 +179,6 @@ TEST(fixed_op_float32_4x1, float32)
         static_assert(op::Count == 1);
     }
 
-    // avx
-    {
-        using op = FixedOp<SimdInstruction::AVX, float32, 4, 1>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 1);
-    }
-    // avx2
-    {
-        using op = FixedOp<SimdInstruction::AVX2, float32, 4, 1>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 16);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX2);
-        static_assert(op::BatchBytes == 16);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 4);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 1);
-    }
     // avx2+fma3
     {
         using op = FixedOp<SimdInstruction::AVX2_FMA3, float32, 4, 1>;
@@ -468,60 +224,6 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::Width == 4);
         static_assert(op::Count == 2);
     }
-    // sse
-    {
-        using op = FixedOp<SimdInstruction::SSE, float32, 4, 2>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 2>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 2);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 2);
-    }
-    // sse2
-    {
-        using op = FixedOp<SimdInstruction::SSE2, float32, 4, 2>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 2>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE2);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 2);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 2);
-    }
-    // sse3
-    {
-        using op = FixedOp<SimdInstruction::SSE3, float32, 4, 2>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector128::Batch<float32, 2>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::SSE3);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 16);
-        static_assert(op::RegBytes == 16);
-        static_assert(op::RegCount == 2);
-        static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 2);
-    }
     // sse4.1
     {
         using op = FixedOp<SimdInstruction::SSE4_1, float32, 4, 2>;
@@ -536,43 +238,6 @@ TEST(fixed_op_float32_4x2, float32)
         static_assert(op::RegBytes == 16);
         static_assert(op::RegCount == 2);
         static_assert(op::RegLanes == 4);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 2);
-    }
-
-    // avx
-    {
-        using op = FixedOp<SimdInstruction::AVX, float32, 4, 2>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 32);
-        static_assert(op::RegBytes == 32);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 8);
-
-        static_assert(op::Width == 4);
-        static_assert(op::Count == 2);
-    }
-    // avx2
-    {
-        using op = FixedOp<SimdInstruction::AVX2, float32, 4, 2>;
-        using batch_t = op::batch_t;
-        static_assert(alignof(batch_t) == 32);
-        static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
-        // static_assert(op::CurrentInstruction == SimdInstruction::AVX2);
-        static_assert(op::BatchBytes == 32);
-        static_assert(op::ElementBytes == 4);
-        static_assert(op::TotalLanes == 8);
-        static_assert(op::BatchAlignment == 32);
-        static_assert(op::RegBytes == 32);
-        static_assert(op::RegCount == 1);
-        static_assert(op::RegLanes == 8);
 
         static_assert(op::Width == 4);
         static_assert(op::Count == 2);

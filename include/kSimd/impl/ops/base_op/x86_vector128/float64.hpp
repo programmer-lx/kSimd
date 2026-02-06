@@ -9,20 +9,21 @@
 #include "kSimd/impl/number.hpp"
 
 #define KSIMD_IOTA 1.0, 0.0
+#define KSIMD_API(...) KSIMD_OP_SSE4_1_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
 
 namespace detail
 {
-    // SSE2
+    // SSE4.1
     template<typename = void>
-    struct Executor_SSE2_Impl_float64;
-
-    #define KSIMD_API(ret) KSIMD_OP_SSE2_API static ret KSIMD_CALL_CONV
+    struct Executor_SSE4_1_Impl_float64;
+    
     template<size_t... I>
-    struct Executor_SSE2_Impl_float64<std::index_sequence<I...>>
+    struct Executor_SSE4_1_Impl_float64<std::index_sequence<I...>>
+        : BaseOpHelper
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64, sizeof...(I)>)
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float64, sizeof...(I)>)
         
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
@@ -89,27 +90,6 @@ namespace detail
         KSIMD_API(batch_t) set(float64 x) noexcept
         {
             return { ((void)I, _mm_set1_pd(x))... };
-        }
-        
-        KSIMD_API(batch_t) sequence() noexcept
-        {
-            __m128d iota = _mm_set_pd(KSIMD_IOTA);
-            return { ((void)I, iota)... };
-        }
-
-        KSIMD_API(batch_t) sequence(float64 base) noexcept
-        {
-            __m128d base_v = _mm_set1_pd(base);
-            __m128d iota = _mm_set_pd(KSIMD_IOTA);
-            return { ((void)I, _mm_add_pd(iota, base_v))... };
-        }
-
-        KSIMD_API(batch_t) sequence(float64 base, float64 stride) noexcept
-        {
-            __m128d stride_v = _mm_set1_pd(stride);
-            __m128d base_v = _mm_set1_pd(base);
-            __m128d iota = _mm_set_pd(KSIMD_IOTA);
-            return { ((void)I, _mm_add_pd(_mm_mul_pd(stride_v, iota), base_v))... };
         }
 
         KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
@@ -302,52 +282,6 @@ namespace detail
 
         KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
         {
-            return { _mm_or_pd(_mm_and_pd(mask.m[I], a.v[I]), _mm_andnot_pd(mask.m[I], b.v[I]))... };
-        }
-    };
-    #undef KSIMD_API
-    
-    template<size_t reg_count>
-    using Executor_SSE2_float64 = Executor_SSE2_Impl_float64<std::make_index_sequence<reg_count>>;
-
-    // SSE3
-    template<typename = void>
-    struct Executor_SSE3_Impl_float64;
-
-    template<size_t... I>
-    struct Executor_SSE3_Impl_float64<std::index_sequence<I...>>
-        : Executor_SSE2_Impl_float64<std::index_sequence<I...>>
-    {};
-
-    template<size_t reg_count>
-    using Executor_SSE3_float64 = Executor_SSE3_Impl_float64<std::make_index_sequence<reg_count>>;
-
-    // SSSE3
-    template<typename = void>
-    struct Executor_SSSE3_Impl_float64;
-
-    template<size_t... I>
-    struct Executor_SSSE3_Impl_float64<std::index_sequence<I...>>
-        : Executor_SSE3_Impl_float64<std::index_sequence<I...>>
-    {};
-
-    template<size_t reg_count>
-    using Executor_SSSE3_float64 = Executor_SSSE3_Impl_float64<std::make_index_sequence<reg_count>>;
-
-    // SSE4.1
-    template<typename = void>
-    struct Executor_SSE4_1_Impl_float64;
-
-    #define KSIMD_API(ret) KSIMD_OP_SSE4_1_API static ret KSIMD_CALL_CONV
-    template<size_t... I>
-    struct Executor_SSE4_1_Impl_float64<std::index_sequence<I...>>
-        : Executor_SSE3_Impl_float64<std::index_sequence<I...>>
-        , BaseOpHelper
-    {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE2_Plus<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float64, sizeof...(I)>)
-
-        KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
-        {
             return { _mm_blendv_pd(b.v[I], a.v[I], mask.m[I])... };
         }
 
@@ -386,14 +320,12 @@ namespace detail
             }
         }
     };
-    #undef KSIMD_API
 
     template<size_t reg_count>
     using Executor_SSE4_1_float64 = Executor_SSE4_1_Impl_float64<std::make_index_sequence<reg_count>>;
 }
 
 // -------------------------------- operators --------------------------------
-#define KSIMD_API(...) KSIMD_OP_SSE2_API static __VA_ARGS__ KSIMD_CALL_CONV
 namespace x86_vector128
 {
 #define KSIMD_BATCH_T Batch<float64, reg_count>
@@ -401,55 +333,55 @@ namespace x86_vector128
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator+(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::add(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::add(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::sub(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::sub(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator*(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::mul(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::mul(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator/(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::div(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::div(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::neg(v);
+        return detail::Executor_SSE4_1_float64<reg_count>::neg(v);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator&(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::bit_and(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::bit_and(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator|(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::bit_or(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::bit_or(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator^(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::bit_xor(lhs, rhs);
+        return detail::Executor_SSE4_1_float64<reg_count>::bit_xor(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator~(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_SSE2_float64<reg_count>::bit_not(v);
+        return detail::Executor_SSE4_1_float64<reg_count>::bit_not(v);
     }
 
     template<size_t reg_count>
@@ -496,70 +428,49 @@ namespace x86_vector128
 
 #undef KSIMD_BATCH_T
 } // namespace x86_vector128
-#undef KSIMD_API
 
 // base op mixin
 #define KSIMD_BATCH_T x86_vector128::Batch<float64, 1>
 namespace detail
 {
-    #define KSIMD_API(...) KSIMD_OP_SSE2_API static __VA_ARGS__ KSIMD_CALL_CONV
-    struct Base_Mixin_SSE2_float64
-    {
-
-    };
-    #undef KSIMD_API
-
-    #define KSIMD_API(...) KSIMD_OP_SSE3_API static __VA_ARGS__ KSIMD_CALL_CONV
-    struct Base_Mixin_SSE3_float64
+    struct Base_Mixin_SSE4_1_float64
     {
         KSIMD_API(float64) reduce_add(KSIMD_BATCH_T v) noexcept
         {
             __m128d sum64 = _mm_add_pd(v.v[0], _mm_shuffle_pd(v.v[0], v.v[0], _MM_SHUFFLE2(0, 1)));
             return _mm_cvtsd_f64(sum64);
         }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
+        {
+            return { _mm_set_pd(KSIMD_IOTA) };
+        }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence(float64 base) noexcept
+        {
+            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            __m128d base_v = _mm_set1_pd(base);
+            return {  _mm_add_pd(iota, base_v) };
+        }
+
+        KSIMD_API(KSIMD_BATCH_T) sequence(float64 base, float64 stride) noexcept
+        {
+            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            __m128d stride_v = _mm_set1_pd(stride);
+            __m128d base_v = _mm_set1_pd(base);
+            return { _mm_add_pd(_mm_mul_pd(stride_v, iota), base_v) };
+        }
     };
-    #undef KSIMD_API
 }
 #undef KSIMD_BATCH_T
-
-// SSE float64 使用标量模拟
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float64>
-    : detail::BaseOp_Scalar_FloatingPoint_Base<
-        SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE,
-        vector_scalar::Batch<float64, 2, alignof(float64)>,
-        vector_scalar::Mask<float64, 2, alignof(float64)>, alignof(float64)
-    >
-{
-    KSIMD_DETAIL_TRAITS(BaseOpTraits_SSE<float64>)
-};
-#endif
-
-template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float64>
-    : detail::Executor_SSE2_float64<1>
-    , detail::Base_Mixin_SSE2_float64
-{};
-
-template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float64>
-    : detail::Executor_SSE3_float64<1>
-    , detail::Base_Mixin_SSE3_float64
-{};
-
-template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float64>
-    : detail::Executor_SSSE3_float64<1>
-    , detail::Base_Mixin_SSE3_float64
-{};
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float64>
     : detail::Executor_SSE4_1_float64<1>
-    , detail::Base_Mixin_SSE3_float64
+    , detail::Base_Mixin_SSE4_1_float64
 {};
 
 KSIMD_NAMESPACE_END
 
 #undef KSIMD_IOTA
+#undef KSIMD_API

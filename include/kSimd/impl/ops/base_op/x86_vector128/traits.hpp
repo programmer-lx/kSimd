@@ -3,34 +3,7 @@
 #include "kSimd/impl/traits.hpp"
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-    #include "kSimd/impl/ops/base_op/scalar/traits.hpp"
-#endif
-
 KSIMD_NAMESPACE_BEGIN
-
-template<SimdInstruction I, is_scalar_type S, size_t RegCount>
-struct BaseOpTraits_SSE;
-
-// SSE
-template<SimdInstruction I, is_scalar_type S, size_t RegCount>
-    requires std::is_same_v<float32, S> // float32 only
-struct BaseOpTraits_SSE<I, S, RegCount>
-    : detail::SimdTraits_Base<I, x86_vector128::Batch<S, RegCount>,
-                              x86_vector128::Mask<S, RegCount>, alignment::Vec128>
-{};
-
-
-// SSE 其他类型 使用标量模拟
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE)
-template<SimdInstruction I, is_scalar_type S, size_t RegCount>
-    requires(!std::is_same_v<float32, S>) // NOT float32
-struct BaseOpTraits_SSE<I, S, RegCount>
-    : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE,
-                              vector_scalar::Batch<S, RegCount, alignment::Vec128>,
-                              vector_scalar::Mask<S, RegCount, alignment::Vec128>, alignment::Vec128>
-{};
-#endif
 
 // SSE2+
 template<SimdInstruction I, is_scalar_type S, size_t RegCount>
