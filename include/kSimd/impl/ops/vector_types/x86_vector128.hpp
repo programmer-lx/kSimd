@@ -12,7 +12,7 @@ KSIMD_NAMESPACE_BEGIN
 namespace x86_vector128
 {
     template<is_scalar_type scalar_type, size_t RegCount>
-    struct Batch
+    struct alignas(alignment::clamp(alignment::Vec128 * RegCount)) Batch
     {
         using scalar_t = scalar_type;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128i;
@@ -23,7 +23,7 @@ namespace x86_vector128
     };
 
     template<size_t RegCount>
-    struct Batch<float32, RegCount>
+    struct alignas(alignment::clamp(alignment::Vec128 * RegCount)) Batch<float32, RegCount>
     {
         using scalar_t = float32;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128;
@@ -34,7 +34,7 @@ namespace x86_vector128
     };
 
     template<size_t RegCount>
-    struct Batch<float64, RegCount>
+    struct alignas(alignment::clamp(alignment::Vec128 * RegCount)) Batch<float64, RegCount>
     {
         using scalar_t = float64;
         static constexpr detail::UnderlyingSimdType underlying_simd_type = detail::UnderlyingSimdType::m128d;
@@ -45,7 +45,7 @@ namespace x86_vector128
     };
 
     template<is_scalar_type scalar_type, size_t RegCount>
-    struct Mask
+    struct alignas(alignment::clamp(alignment::Vec128 * RegCount)) Mask
     {
         using scalar_t = scalar_type;
         static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128i;
@@ -55,7 +55,7 @@ namespace x86_vector128
     };
 
     template<size_t RegCount>
-    struct Mask<float32, RegCount>
+    struct alignas(alignment::clamp(alignment::Vec128 * RegCount)) Mask<float32, RegCount>
     {
         using scalar_t = float32;
         static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128;
@@ -65,7 +65,7 @@ namespace x86_vector128
     };
 
     template<size_t RegCount>
-    struct Mask<float64, RegCount>
+    struct alignas(alignment::clamp(alignment::Vec128 * RegCount)) Mask<float64, RegCount>
     {
         using scalar_t = float64;
         static constexpr detail::UnderlyingMaskType underlying_mask_type = detail::UnderlyingMaskType::m128d;

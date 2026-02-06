@@ -9,9 +9,9 @@ template<is_scalar_type S, size_t RegCount>
 struct BaseOpTraits_Scalar
     : detail::SimdTraits_Base<
         SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR,
-        vector_scalar::Batch<S, RegCount, alignof(S)>,    // vector128
-        vector_scalar::Mask<S, RegCount, alignof(S)>,     // vector128
-        alignof(S)
+        vector_scalar::Batch<S, RegCount>,    // vector128
+        vector_scalar::Mask<S, RegCount>,     // vector128
+        alignment::Vec128
     >
 {};
 

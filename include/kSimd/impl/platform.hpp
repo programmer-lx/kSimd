@@ -118,6 +118,12 @@ namespace alignment
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128 = 16;
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256 = 32;
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512 = 64;
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Max    = Vec512;
+
+    KSIMD_HEADER_GLOBAL consteval size_t clamp(size_t a)
+    {
+        return a > Max ? Max : a;
+    }
 }
 
 struct CpuSupportInfo

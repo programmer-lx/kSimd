@@ -17,10 +17,7 @@ struct TypeOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR>
                  From::underlying_simd_type == detail::UnderlyingSimdType::ScalarArray)
     KSIMD_OP_SCALAR_API static To KSIMD_CALL_CONV bit_cast(From from) noexcept
     {
-        static_assert(sizeof(To) == sizeof(From), "sizeof(To) == sizeof(From).");
-        static_assert(sizeof(decltype(std::declval<To>().v)) == sizeof(decltype(std::declval<From>().v)),
-                      "sizeof(To.v) == sizeof(From.v).");
-
+        KSIMD_DETAIL_TYPE_OP_BITCAST_CHECK(To, From, alignment::Vec128)
         return std::bit_cast<To>(from);
     }
 };
