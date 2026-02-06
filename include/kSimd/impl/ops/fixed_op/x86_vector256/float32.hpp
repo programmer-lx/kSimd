@@ -9,24 +9,28 @@ KSIMD_NAMESPACE_BEGIN
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32, 4, 2>
     : detail::Executor_SSE_float32<2>
+    , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32, 4, 2>
     : detail::Executor_SSE2_float32<2>
+    , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32, 4, 2>
     : detail::Executor_SSE3_float32<2>
+    , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4, 2>
     : detail::Executor_SSSE3_float32<2>
+    , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {};
 
@@ -35,6 +39,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4, 2>
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4, 2>
     : detail::Executor_SSE4_1_float32<2>
+    , FixedOpInfo<4, 2>
     , FixedOpHelper<4>
 {
     template<int src_mask, int dst_mask>
@@ -51,7 +56,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4, 2>
 namespace detail
 {
     #define KSIMD_API(...) KSIMD_OP_AVX_API static __VA_ARGS__ KSIMD_CALL_CONV
-    struct H_Mixin_AVX_float32_4x2
+    struct Fixed_Mixin_AVX_float32_4x2
     {
         #define KSIMD_BATCH_T x86_vector256::Batch<float32, 1>
 
@@ -73,21 +78,24 @@ namespace detail
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX, float32, 4, 2>
     : detail::Executor_AVX_float32<1>
-    , detail::H_Mixin_AVX_float32_4x2
+    , FixedOpInfo<4, 2>
+    , detail::Fixed_Mixin_AVX_float32_4x2
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2, float32, 4, 2>
     : detail::Executor_AVX2_float32<1>
-    , detail::H_Mixin_AVX_float32_4x2
+    , FixedOpInfo<4, 2>
+    , detail::Fixed_Mixin_AVX_float32_4x2
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float32, 4, 2>
     : detail::Executor_AVX2_FMA3_float32<1>
-    , detail::H_Mixin_AVX_float32_4x2
+    , FixedOpInfo<4, 2>
+    , detail::Fixed_Mixin_AVX_float32_4x2
     , FixedOpHelper<4>
 {};
 

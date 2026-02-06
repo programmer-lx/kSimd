@@ -8,7 +8,7 @@
 #include "kSimd/impl/ops/vector_types/x86_vector128.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 1.0 + I * RegLanes, 0.0 + I * RegLanes
+#define KSIMD_IOTA 1.0, 0.0
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -38,7 +38,8 @@ namespace detail
         KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
         {
             __m128d cnt = _mm_set1_pd(static_cast<float64>(count));
-            return { _mm_cmplt_pd(_mm_set_pd(KSIMD_IOTA), cnt)... };
+            __m128d idx = _mm_set_pd(KSIMD_IOTA);
+            return { ((void)I, _mm_cmplt_pd(idx, cnt))... };
         }
 
         KSIMD_API(batch_t) load(const float64* mem) noexcept
@@ -136,20 +137,23 @@ namespace detail
         
         KSIMD_API(batch_t) sequence() noexcept
         {
-            return { _mm_set_pd(KSIMD_IOTA)... };
+            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            return { ((void)I, iota)... };
         }
 
         KSIMD_API(batch_t) sequence(float64 base) noexcept
         {
             __m128d base_v = _mm_set1_pd(base);
-            return { _mm_add_pd(_mm_set_pd(KSIMD_IOTA), base_v)... };
+            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            return { ((void)I, _mm_add_pd(iota, base_v))... };
         }
 
         KSIMD_API(batch_t) sequence(float64 base, float64 stride) noexcept
         {
             __m128d stride_v = _mm_set1_pd(stride);
             __m128d base_v = _mm_set1_pd(base);
-            return { _mm_add_pd(_mm_mul_pd(stride_v, _mm_set_pd(KSIMD_IOTA)), base_v)... };
+            __m128d iota = _mm_set_pd(KSIMD_IOTA);
+            return { ((void)I, _mm_add_pd(_mm_mul_pd(stride_v, iota), base_v))... };
         }
 
         KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept

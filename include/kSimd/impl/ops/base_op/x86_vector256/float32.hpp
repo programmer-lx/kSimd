@@ -6,8 +6,7 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_IOTA 7.f + I * RegLanes, 6.f + I * RegLanes, 5.f + I * RegLanes, 4.f + I * RegLanes \
-                 , 3.f + I * RegLanes, 2.f + I * RegLanes, 1.f + I * RegLanes, 0.f + I * RegLanes
+#define KSIMD_IOTA 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -38,7 +37,8 @@ namespace detail
         KSIMD_API(mask_t) mask_from_lanes(size_t count) noexcept
         {
             __m256 cnt = _mm256_set1_ps(static_cast<float32>(count));
-            return { _mm256_cmp_ps(_mm256_set_ps(KSIMD_IOTA), cnt, _CMP_LT_OQ)... };
+            __m256 idx = _mm256_set_ps(KSIMD_IOTA);
+            return { ((void)I, _mm256_cmp_ps(idx, cnt, _CMP_LT_OQ))... };
         }
 
         KSIMD_API(batch_t) load(const float32* mem) noexcept
@@ -109,20 +109,23 @@ namespace detail
 
         KSIMD_API(batch_t) sequence() noexcept
         {
-            return { _mm256_set_ps(KSIMD_IOTA)... };
+            __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+            return { ((void)I, iota)... };
         }
 
         KSIMD_API(batch_t) sequence(float32 base) noexcept
         {
             __m256 base_v = _mm256_set1_ps(base);
-            return { _mm256_add_ps(_mm256_set_ps(KSIMD_IOTA), base_v)... };
+            __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+            return { ((void)I, _mm256_add_ps(iota, base_v))... };
         }
 
         KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
         {
             __m256 stride_v = _mm256_set1_ps(stride);
             __m256 base_v = _mm256_set1_ps(base);
-            return { _mm256_add_ps(_mm256_mul_ps(stride_v, _mm256_set_ps(KSIMD_IOTA)), base_v)... };
+            __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+            return { ((void)I, _mm256_add_ps(_mm256_mul_ps(stride_v, iota), base_v))... };
         }
 
         KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
@@ -423,7 +426,8 @@ namespace detail
         {
             __m256 stride_v = _mm256_set1_ps(stride);
             __m256 base_v = _mm256_set1_ps(base);
-            return { _mm256_fmadd_ps(stride_v, _mm256_set_ps(KSIMD_IOTA), base_v)... };
+            __m256 iota = _mm256_set_ps(KSIMD_IOTA);
+            return { ((void)I, _mm256_fmadd_ps(stride_v, iota, base_v))... };
         }
 
         KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept

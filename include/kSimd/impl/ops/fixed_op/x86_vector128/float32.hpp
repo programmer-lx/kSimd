@@ -8,24 +8,28 @@ KSIMD_NAMESPACE_BEGIN
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE, float32, 4, 1>
     : detail::Executor_SSE_float32<1>
+    , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE2, float32, 4, 1>
     : detail::Executor_SSE2_float32<1>
+    , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE3, float32, 4, 1>
     : detail::Executor_SSE3_float32<1>
+    , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
 {};
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4, 1>
     : detail::Executor_SSSE3_float32<1>
+    , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
 {};
 
@@ -34,6 +38,7 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSSE3, float32, 4, 1>
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SSE4_1, float32, 4, 1>
     : detail::Executor_SSE4_1_float32<1>
+    , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
 {
     template<int src_mask, int dst_mask>

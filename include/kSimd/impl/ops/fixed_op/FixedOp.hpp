@@ -30,6 +30,13 @@ struct FixedOp;
 #define KSIMD_DYN_FIXED_OP(scalar_type, width) \
     KSIMD_DYN_FIXED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width))
 
+template<size_t width, size_t count>
+struct FixedOpInfo
+{
+    static constexpr size_t Width = width;
+    static constexpr size_t Count = count;
+};
+
 // helper类，提供各种辅助操作(掩码等)，由最顶层FixedOp继承他
 template<size_t Width>
 struct FixedOpHelper;
