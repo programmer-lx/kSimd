@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility> // std::index_sequence
+
 #include "traits.hpp"
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"

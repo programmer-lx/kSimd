@@ -6,11 +6,12 @@ KSIMD_NAMESPACE_BEGIN
 
 namespace detail
 {
-    template<SimdInstruction I, is_scalar_type S>
+    template<SimdInstruction I, is_scalar_type S, size_t Width>
     consteval size_t max_count_of_fixed_op()
     {
         constexpr size_t reg_lanes = RegLanes<I, S>;
-        return reg_lanes / sizeof(S);
+        static_assert(reg_lanes % Width == 0);
+        return reg_lanes / Width;
     }
 }
 
@@ -18,14 +19,16 @@ template<SimdInstruction Instruction, is_scalar_type ScalarType, size_t Width, s
 struct FixedOp;
 
 #define KSIMD_DYN_FIXED_OP_COUNT(scalar_type, width, count) \
-    KSIMD_NAMESPACE_NAME::FixedOp<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, scalar_type, width, count>
+    KSIMD_NAMESPACE_NAME::FixedOp<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, \
+        scalar_type, width, count>
 
 
-#define KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type) \
-    KSIMD_NAMESPACE_NAME::detail::max_count_of_fixed_op<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, scalar_type>()
+#define KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width) \
+    KSIMD_NAMESPACE_NAME::detail::max_count_of_fixed_op<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, \
+        scalar_type, width>()
 
 #define KSIMD_DYN_FIXED_OP(scalar_type, width) \
-    KSIMD_DYN_FIXED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type))
+    KSIMD_DYN_FIXED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width))
 
 // helper类，提供各种辅助操作(掩码等)，由最顶层FixedOp继承他
 template<size_t Width>
