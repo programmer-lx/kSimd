@@ -13,124 +13,124 @@ KSIMD_NAMESPACE_BEGIN
 namespace detail
 {
     // AVX2_FMA3_F16C
-    template<typename = void>
+    template<typename Traits, typename = void>
     struct Executor_AVX2_FMA3_F16C_Impl_float64;
 
-    template<size_t... I>
-    struct Executor_AVX2_FMA3_F16C_Impl_float64<std::index_sequence<I...>> : BaseOpHelper
+    template<typename Traits, size_t... I>
+    struct Executor_AVX2_FMA3_F16C_Impl_float64<Traits, std::index_sequence<I...>> : BaseOpHelper
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64, sizeof...(I)>)
+        // KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<float64, sizeof...(I)>)
 
         #if defined(KSIMD_IS_TESTING)
-        KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
+        KSIMD_API(void) test_store_mask(float64* mem, typename Traits::mask_t mask) noexcept
         {
-            (_mm256_store_pd(&mem[I * RegLanes], mask.m[I]), ...);
+            (_mm256_store_pd(&mem[I * Traits::RegLanes], mask.m[I]), ...);
         }
-        KSIMD_API(mask_t) test_load_mask(const float64* mem) noexcept
+        KSIMD_API(typename Traits::mask_t) test_load_mask(const float64* mem) noexcept
         {
-            return { _mm256_load_pd(&mem[I * RegLanes])... };
+            return { _mm256_load_pd(&mem[I * Traits::RegLanes])... };
         }
         #endif
 
-        KSIMD_API(batch_t) load(const float64* mem) noexcept
+        KSIMD_API(typename Traits::batch_t) load(const float64* mem) noexcept
         {
-            return { _mm256_load_pd(&mem[I * RegLanes])... };
+            return { _mm256_load_pd(&mem[I * Traits::RegLanes])... };
         }
 
-        KSIMD_API(batch_t) loadu(const float64* mem) noexcept
+        KSIMD_API(typename Traits::batch_t) loadu(const float64* mem) noexcept
         {
-            return { _mm256_loadu_pd(&mem[I * RegLanes])... };
+            return { _mm256_loadu_pd(&mem[I * Traits::RegLanes])... };
         }
 
-        KSIMD_API(batch_t) load_partial(const float64* mem, size_t count) noexcept
+        KSIMD_API(typename Traits::batch_t) load_partial(const float64* mem, size_t count) noexcept
         {
-            count = count > TotalLanes ? TotalLanes : count;
+            count = count > Traits::TotalLanes ? Traits::TotalLanes : count;
 
             if (count == 0) [[unlikely]]
                 return zero();
 
-            batch_t res = zero();
+            typename Traits::batch_t res = zero();
             std::memcpy(res.v, mem, sizeof(float64) * count);
             return res;
         }
 
-        KSIMD_API(void) store(float64* mem, batch_t v) noexcept
+        KSIMD_API(void) store(float64* mem, typename Traits::batch_t v) noexcept
         {
-            (_mm256_store_pd(&mem[I * RegLanes], v.v[I]), ...);
+            (_mm256_store_pd(&mem[I * Traits::RegLanes], v.v[I]), ...);
         }
 
-        KSIMD_API(void) storeu(float64* mem, batch_t v) noexcept
+        KSIMD_API(void) storeu(float64* mem, typename Traits::batch_t v) noexcept
         {
-            (_mm256_storeu_pd(&mem[I * RegLanes], v.v[I]), ...);
+            (_mm256_storeu_pd(&mem[I * Traits::RegLanes], v.v[I]), ...);
         }
 
-        KSIMD_API(void) store_partial(float64* mem, batch_t v, size_t count) noexcept
+        KSIMD_API(void) store_partial(float64* mem, typename Traits::batch_t v, size_t count) noexcept
         {
-            count = count > TotalLanes ? TotalLanes : count;
+            count = count > Traits::TotalLanes ? Traits::TotalLanes : count;
             if (count == 0) [[unlikely]]
                 return;
 
             std::memcpy(mem, v.v, sizeof(float64) * count);
         }
 
-        KSIMD_API(batch_t) undefined() noexcept
+        KSIMD_API(typename Traits::batch_t) undefined() noexcept
         {
             return { ((void)I, _mm256_undefined_pd())... };
         }
 
-        KSIMD_API(batch_t) zero() noexcept
+        KSIMD_API(typename Traits::batch_t) zero() noexcept
         {
             return { ((void)I, _mm256_setzero_pd())... };
         }
 
-        KSIMD_API(batch_t) set(float64 x) noexcept
+        KSIMD_API(typename Traits::batch_t) set(float64 x) noexcept
         {
             return { ((void)I, _mm256_set1_pd(x))... };
         }
 
-        KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) add(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_add_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) sub(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) sub(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_sub_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) mul(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) mul(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_mul_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) div(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) div(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_div_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) one_div(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) one_div(typename Traits::batch_t v) noexcept
         {
             return { _mm256_div_pd(_mm256_set1_pd(1.0), v.v[I])... };
         }
 
-        KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
+        KSIMD_API(typename Traits::batch_t) mul_add(typename Traits::batch_t a, typename Traits::batch_t b, typename Traits::batch_t c) noexcept
         {
             return { _mm256_fmadd_pd(a.v[I], b.v[I], c.v[I])... };
         }
 
-        KSIMD_API(batch_t) sqrt(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) sqrt(typename Traits::batch_t v) noexcept
         {
             return { _mm256_sqrt_pd(v.v[I])... };
         }
 
-        KSIMD_API(batch_t) rsqrt(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) rsqrt(typename Traits::batch_t v) noexcept
         {
             __m256d one = _mm256_set1_pd(1.0);
             return { _mm256_div_pd(one, _mm256_sqrt_pd(v.v[I]))... };
         }
 
         template<RoundingMode mode>
-        KSIMD_API(batch_t) round(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) round(typename Traits::batch_t v) noexcept
         {
             if constexpr (mode == RoundingMode::Up)
             {
@@ -163,84 +163,84 @@ namespace detail
             }
         }
 
-        KSIMD_API(batch_t) abs(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) abs(typename Traits::batch_t v) noexcept
         {
             __m256d mask = _mm256_set1_pd(SignBitClearMask<float64>);
             return { _mm256_and_pd(v.v[I], mask)... };
         }
 
-        KSIMD_API(batch_t) neg(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) neg(typename Traits::batch_t v) noexcept
         {
             __m256d mask = _mm256_set1_pd(SignBitMask<float64>);
             return { _mm256_xor_pd(v.v[I], mask)... };
         }
 
-        KSIMD_API(batch_t) min(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) min(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_min_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) max(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) max(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_max_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(mask_t) equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_EQ_OQ)... };
         }
 
-        KSIMD_API(mask_t) not_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_NEQ_UQ)... };
         }
 
-        KSIMD_API(mask_t) greater(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) greater(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_GT_OQ)... };
         }
 
-        KSIMD_API(mask_t) not_greater(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_greater(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_NGT_UQ)... };
         }
 
-        KSIMD_API(mask_t) greater_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) greater_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_GE_OQ)... };
         }
 
-        KSIMD_API(mask_t) not_greater_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_greater_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_NGE_UQ)... };
         }
 
-        KSIMD_API(mask_t) less(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) less(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_LT_OQ)... };
         }
 
-        KSIMD_API(mask_t) not_less(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_less(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_NLT_UQ)... };
         }
 
-        KSIMD_API(mask_t) less_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) less_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_LE_OQ)... };
         }
 
-        KSIMD_API(mask_t) not_less_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_less_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_NLE_UQ)... };
         }
 
-        KSIMD_API(mask_t) any_NaN(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) any_NaN(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_UNORD_Q)... };
         }
 
-        KSIMD_API(mask_t) all_NaN(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) all_NaN(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             // __m256d l_nan = _mm256_cmp_pd(lhs.v[I], lhs.v[I], _CMP_UNORD_Q);
             // __m256d r_nan = _mm256_cmp_pd(rhs.v[I], rhs.v[I], _CMP_UNORD_Q);
@@ -249,12 +249,12 @@ namespace detail
                 _mm256_cmp_pd(rhs.v[I], rhs.v[I], _CMP_UNORD_Q))... };
         }
 
-        KSIMD_API(mask_t) not_NaN(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_NaN(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_cmp_pd(lhs.v[I], rhs.v[I], _CMP_ORD_Q)... };
         }
 
-        KSIMD_API(mask_t) any_finite(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) any_finite(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
             __m256d inf = _mm256_set1_pd(Inf<float64>);
@@ -266,7 +266,7 @@ namespace detail
             };
         }
 
-        KSIMD_API(mask_t) all_finite(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) all_finite(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             __m256d abs_mask = _mm256_set1_pd(SignBitClearMask<float64>);
             __m256d inf = _mm256_set1_pd(Inf<float64>);
@@ -279,45 +279,45 @@ namespace detail
                 _mm256_cmp_pd(_mm256_and_pd(rhs.v[I], abs_mask), inf, _CMP_LT_OQ))... };
         }
 
-        KSIMD_API(batch_t) bit_not(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_not(typename Traits::batch_t v) noexcept
         {
             __m256d mask = _mm256_set1_pd(OneBlock<float64>);
             return { _mm256_xor_pd(v.v[I], mask)... };
         }
 
-        KSIMD_API(batch_t) bit_and(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_and(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_and_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) bit_and_not(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_and_not(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_andnot_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) bit_or(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_or(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_or_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) bit_xor(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_xor(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return { _mm256_xor_pd(lhs.v[I], rhs.v[I])... };
         }
 
-        KSIMD_API(batch_t) bit_select(batch_t mask, batch_t a, batch_t b) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_select(typename Traits::batch_t mask, typename Traits::batch_t a, typename Traits::batch_t b) noexcept
         {
             return { _mm256_or_pd(_mm256_and_pd(mask.v[I], a.v[I]), _mm256_andnot_pd(mask.v[I], b.v[I]))... };
         }
 
-        KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
+        KSIMD_API(typename Traits::batch_t) mask_select(typename Traits::mask_t mask, typename Traits::batch_t a, typename Traits::batch_t b) noexcept
         {
             return { _mm256_blendv_pd(b.v[I], a.v[I], mask.m[I])... };
         }
     };
 
-    template<size_t reg_count>
-    using Executor_AVX2_FMA3_F16C_float64 = Executor_AVX2_FMA3_F16C_Impl_float64<std::make_index_sequence<reg_count>>;
+    template<typename Traits, size_t reg_count>
+    using Executor_AVX2_FMA3_F16C_float64 = Executor_AVX2_FMA3_F16C_Impl_float64<Traits, std::make_index_sequence<reg_count>>;
 }
 
 // -------------------------------- operators --------------------------------
@@ -326,55 +326,55 @@ namespace x86_vector256
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator+(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::add(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::add(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::sub(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::sub(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator*(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::mul(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::mul(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator/(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::div(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::div(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::neg(v);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::neg(v);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator&(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_and(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_and(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator|(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_or(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_or(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator^(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_xor(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_xor(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator~(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_not(v);
+        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_not(v);
     }
     
     template<size_t reg_count>
@@ -463,7 +463,8 @@ namespace detail
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64>
-    : detail::Executor_AVX2_FMA3_F16C_float64<1>
+    : BaseOpTraits_AVX_Family<float64, 1>
+    , detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, 1>, 1>
     , detail::Base_Mixin_AVX2_FMA3_float64
 {};
 

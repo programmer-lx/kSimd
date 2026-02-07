@@ -19,7 +19,7 @@ namespace detail
     template<size_t... I>
     struct Executor_AVX2_FMA3_F16C_Impl_float32<std::index_sequence<I...>> : BaseOpHelper
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32, sizeof...(I)>)
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<float32, sizeof...(I)>)
         
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float32* mem, mask_t mask) noexcept
