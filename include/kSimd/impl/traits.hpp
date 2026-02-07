@@ -197,23 +197,4 @@ namespace detail
     };
 }
 
-#define KSIMD_DETAIL_TRAITS(...) \
-    private: \
-    using traits = __VA_ARGS__; \
-    public: \
-    using batch_t = typename traits::batch_t; \
-    using scalar_t = typename traits::scalar_t; \
-    using mask_t = typename traits::mask_t; \
-    static constexpr SimdInstruction internal_instruction_ = traits::internal_instruction_; \
-    static constexpr size_t BatchAlignment = traits::BatchAlignment; /* 对齐 */\
-    static constexpr size_t BatchBytes = traits::BatchBytes; /* 向量的字节长度 */ \
-    static constexpr size_t ElementBytes = traits::ElementBytes; /* 每个元素的字节长度 */ \
-    static constexpr size_t TotalLanes = traits::TotalLanes; /* 总通道数 */ \
-    static constexpr size_t RegCount = traits::RegCount; /* 寄存器的数量，标量特殊处理，视一个寄存器为128bit，跟SSE对齐 */ \
-    static constexpr size_t RegBytes = traits::RegBytes; /* 每个寄存器所占用的字节数 */ \
-    static constexpr size_t RegLanes = traits::RegLanes; /* 每个寄存器能够装下的标量的数量(可用于index展开时的步长计算) */
-
-#define KSIMD_DETAIL_BASE_OP_TRAITS(instruction, scalar_type) \
-    KSIMD_DETAIL_TRAITS(OpTraits<instruction, scalar_type>)
-
 KSIMD_NAMESPACE_END

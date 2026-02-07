@@ -23,21 +23,19 @@ namespace detail
     /**
      * @brief 所有数据类型都有的函数
      */
-    template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
+    template<typename Traits>
     struct Executor_Scalar_Base
     {
-        KSIMD_DETAIL_TRAITS(detail::SimdTraits_Base<Instruction, BatchType, MaskType, Alignment>)
-
 #if defined(KSIMD_IS_TESTING)
-        KSIMD_API(void) test_store_mask(scalar_t* mem, mask_t mask) noexcept
+        KSIMD_API(void) test_store_mask(typename Traits::scalar_t* mem, typename Traits::mask_t mask) noexcept
         {
-            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
             memcpy(mem, mask.m, size);
         }
-        KSIMD_API(mask_t) test_load_mask(const scalar_t* mem) noexcept
+        KSIMD_API(typename Traits::mask_t) test_load_mask(const typename Traits::scalar_t* mem) noexcept
         {
-            constexpr size_t size = TotalLanes * sizeof(scalar_t);
-            mask_t result{};
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
+            typename Traits::mask_t result{};
             memcpy(result.m, mem, size);
             return result;
         }
@@ -46,12 +44,12 @@ namespace detail
 #pragma region memory 内存操作
         /**
          * @return foreach i in lanes: mem[i] = v[i]
-         * @note mem **MUST** align to sizeof(batch_t)
+         * @note mem **MUST** align to sizeof(typename Traits::batch_t)
          */
-        KSIMD_API(batch_t) load(const scalar_t* mem) noexcept
+        KSIMD_API(typename Traits::batch_t) load(const typename Traits::scalar_t* mem) noexcept
         {
-            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
-            batch_t result{};
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
+            typename Traits::batch_t result{};
             memcpy(result.v, mem, size);
             return result;
         }
@@ -59,55 +57,55 @@ namespace detail
         /**
          * @return foreach i in lanes: mem[i] = v[i]
          */
-        KSIMD_API(batch_t) loadu(const scalar_t* mem) noexcept
+        KSIMD_API(typename Traits::batch_t) loadu(const typename Traits::scalar_t* mem) noexcept
         {
-            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
-            batch_t result{};
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
+            typename Traits::batch_t result{};
             memcpy(result.v, mem, size);
             return result;
         }
 
-        KSIMD_API(batch_t) load_partial(const scalar_t* mem, size_t count) noexcept
+        KSIMD_API(typename Traits::batch_t) load_partial(const typename Traits::scalar_t* mem, size_t count) noexcept
         {
-            count = count > TotalLanes ? TotalLanes : count;
+            count = count > Traits::TotalLanes ? Traits::TotalLanes : count;
 
-            const size_t size = count * sizeof(scalar_t);
+            const size_t size = count * sizeof(typename Traits::scalar_t);
 
             if (size == 0)
                 return zero();
 
-            batch_t result{};
+            typename Traits::batch_t result{};
             memcpy(result.v, mem, size);
             return result;
         }
 
         /**
          * @brief foreach i in lanes: mem[i] = v[i]
-         * @note mem **MUST** align to sizeof(batch_t)
+         * @note mem **MUST** align to sizeof(typename Traits::batch_t)
          */
-        KSIMD_API(void) store(scalar_t* mem, batch_t v) noexcept
+        KSIMD_API(void) store(typename Traits::scalar_t* mem, typename Traits::batch_t v) noexcept
         {
-            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
             memcpy(mem, v.v, size);
         }
 
         /**
          * @brief foreach i in lanes: mem[i] = v[i]
          */
-        KSIMD_API(void) storeu(scalar_t* mem, batch_t v) noexcept
+        KSIMD_API(void) storeu(typename Traits::scalar_t* mem, typename Traits::batch_t v) noexcept
         {
-            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
             memcpy(mem, v.v, size);
         }
 
-        KSIMD_API(void) store_partial(scalar_t* mem, batch_t v, size_t count) noexcept
+        KSIMD_API(void) store_partial(typename Traits::scalar_t* mem, typename Traits::batch_t v, size_t count) noexcept
         {
-            count = count > TotalLanes ? TotalLanes : count;
+            count = count > Traits::TotalLanes ? Traits::TotalLanes : count;
 
             if (count == 0)
                 return;
 
-            const size_t size = count * sizeof(scalar_t);
+            const size_t size = count * sizeof(typename Traits::scalar_t);
             memcpy(mem, v.v, size);
         }
 #pragma endregion
@@ -116,7 +114,7 @@ namespace detail
         /**
          * @return a memory block
          */
-        KSIMD_API(batch_t) undefined() noexcept
+        KSIMD_API(typename Traits::batch_t) undefined() noexcept
         {
             return {};
         }
@@ -124,10 +122,10 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = 0
          */
-        KSIMD_API(batch_t) zero() noexcept
+        KSIMD_API(typename Traits::batch_t) zero() noexcept
         {
-            constexpr size_t size = traits::TotalLanes * sizeof(scalar_t);
-            batch_t result{};
+            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
+            typename Traits::batch_t result{};
             memset(result.v, 0x00, size);
             return result;
         }
@@ -135,12 +133,12 @@ namespace detail
         /**
          * @return foreach i in lanes: result[i] = x
          */
-        KSIMD_API(batch_t) set(scalar_t x) noexcept
+        KSIMD_API(typename Traits::batch_t) set(typename Traits::scalar_t x) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { ((void)I, x)... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 #pragma endregion
 
@@ -148,7 +146,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] + rhs[i]
          */
-        KSIMD_API(batch_t) add(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) add(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return lhs + rhs;
         }
@@ -156,7 +154,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] - rhs[i]
          */
-        KSIMD_API(batch_t) sub(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) sub(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return lhs - rhs;
         }
@@ -164,7 +162,7 @@ namespace detail
         /**
          * @return foreach i in lanes: lhs[i] * rhs[i]
          */
-        KSIMD_API(batch_t) mul(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) mul(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return lhs * rhs;
         }
@@ -172,34 +170,34 @@ namespace detail
         /**
          * @return foreach i in lanes: a[i] * b[i] + c[i]
          */
-        KSIMD_API(batch_t) mul_add(batch_t a, batch_t b, batch_t c) noexcept
+        KSIMD_API(typename Traits::batch_t) mul_add(typename Traits::batch_t a, typename Traits::batch_t b, typename Traits::batch_t c) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { (a.v[I] * b.v[I] + c.v[I])... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: result[i] = min(lhs[i], rhs[i])
          */
-        KSIMD_API(batch_t) min(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) min(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { (KSIMD_NAMESPACE_NAME::min(lhs.v[I], rhs.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: result[i] = max(lhs[i], rhs[i])
          */
-        KSIMD_API(batch_t) max(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) max(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { (KSIMD_NAMESPACE_NAME::max(lhs.v[I], rhs.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 #pragma endregion
 
@@ -208,72 +206,72 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] == rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_API(mask_t) equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (lhs.v[I] == rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (lhs.v[I] == rhs.v[I] ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] != rhs[i] ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_API(mask_t) not_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (lhs.v[I] != rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (lhs.v[I] != rhs.v[I] ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] > rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_API(mask_t) greater(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) greater(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (lhs.v[I] > rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (lhs.v[I] > rhs.v[I] ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] >= rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_API(mask_t) greater_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) greater_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (lhs.v[I] >= rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (lhs.v[I] >= rhs.v[I] ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes, j in mask: result[j] = lhs[i] < rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_API(mask_t) less(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) less(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (lhs.v[I] < rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (lhs.v[I] < rhs.v[I] ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: lhs[i] <= rhs[i] ? 1 : 0
          * @note if NaN: return 0
          */
-        KSIMD_API(mask_t) less_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) less_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (lhs.v[I] <= rhs.v[I] ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (lhs.v[I] <= rhs.v[I] ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 #pragma endregion
 
@@ -281,86 +279,86 @@ namespace detail
         /**
          * @return foreach i in lanes: ~v[i]
          */
-        KSIMD_API(batch_t) bit_not(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_not(typename Traits::batch_t v) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[0]))) == sizeof(v.v[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { std::bit_cast<scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { std::bit_cast<typename Traits::scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(v.v[I]))... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: lhs[i] & rhs[i]
          */
-        KSIMD_API(batch_t) bit_and(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_and(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) &
+                return { std::bit_cast<typename Traits::scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) &
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: (~lhs[i]) & rhs[i]
          */
-        KSIMD_API(batch_t) bit_and_not(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_and_not(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { std::bit_cast<scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) &
+                return { std::bit_cast<typename Traits::scalar_t>(~KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) &
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: lhs[i] | rhs[i]
          */
-        KSIMD_API(batch_t) bit_or(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_or(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) |
+                return { std::bit_cast<typename Traits::scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) |
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: lhs[i] ^ rhs[i]
          */
-        KSIMD_API(batch_t) bit_xor(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_xor(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[0]))) == sizeof(lhs.v[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { std::bit_cast<scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) ^
+                return { std::bit_cast<typename Traits::scalar_t>(KSIMD_NAMESPACE_NAME::bitcast_to_uint(lhs.v[I]) ^
                                                  KSIMD_NAMESPACE_NAME::bitcast_to_uint(rhs.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in bits: result[i] = (mask[i] == 1) ? a[i] : b[i]
          */
-        KSIMD_API(batch_t) bit_select(batch_t mask, batch_t a, batch_t b) noexcept
+        KSIMD_API(typename Traits::batch_t) bit_select(typename Traits::batch_t mask, typename Traits::batch_t a, typename Traits::batch_t b) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[0]))) == sizeof(mask.v[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 // 1 & any = any
                 // 0 & any = 0
@@ -370,28 +368,28 @@ namespace detail
                 // ret = a | 0 = a
                 // 假设 mask == 0, 那么 mask & a = 0, ~mask & b = b
                 // ret = 0 | b = b
-                return { (std::bit_cast<scalar_t>((KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[I]) &
+                return { (std::bit_cast<typename Traits::scalar_t>((KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[I]) &
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(a.v[I])) |
                                                   (~KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.v[I]) &
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(b.v[I]))))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in bits: result[i] = (mask[i] == 1) ? a[i] : b[i]
          */
-        KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
+        KSIMD_API(typename Traits::batch_t) mask_select(typename Traits::mask_t mask, typename Traits::batch_t a, typename Traits::batch_t b) noexcept
         {
             static_assert(sizeof(decltype(KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[0]))) == sizeof(mask.m[0]),
                           "byte size should be equals.");
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { (std::bit_cast<scalar_t>((KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[I]) &
+                return { (std::bit_cast<typename Traits::scalar_t>((KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[I]) &
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(a.v[I])) |
                                                   (~KSIMD_NAMESPACE_NAME::bitcast_to_uint(mask.m[I]) &
                                                    KSIMD_NAMESPACE_NAME::bitcast_to_uint(b.v[I]))))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 #pragma endregion
     };
@@ -399,49 +397,45 @@ namespace detail
     /**
      * @brief 只有有符号的类型才有的函数
      */
-    template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
-    struct Executor_Scalar_Signed_Base : Executor_Scalar_Base<Instruction, BatchType, MaskType, Alignment>
+    template<typename Traits>
+    struct Executor_Scalar_Signed_Base : Executor_Scalar_Base<Traits>
     {
-        KSIMD_DETAIL_TRAITS(detail::SimdTraits_Base<Instruction, BatchType, MaskType, Alignment>)
-
         /**
          * @return foreach i in lanes: result[i] = |v[i]|
          */
-        KSIMD_API(batch_t) abs(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) abs(typename Traits::batch_t v) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { (std::abs(v.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: result[i] = -v[i]
          */
-        KSIMD_API(batch_t) neg(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) neg(typename Traits::batch_t v) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { (-v.v[I])... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
     };
 
     /**
      * @brief 只有 float32, float64 数据类型才有的函数
      */
-    template<SimdInstruction Instruction, typename BatchType, typename MaskType, size_t Alignment>
+    template<typename Traits>
     struct Executor_Scalar_FloatingPoint_Base
-        : Executor_Scalar_Signed_Base<Instruction, BatchType, MaskType, Alignment>
+        : Executor_Scalar_Signed_Base<Traits>
         , BaseOpHelper
     {
-        KSIMD_DETAIL_TRAITS(detail::SimdTraits_Base<Instruction, BatchType, MaskType, Alignment>)
-
 #pragma region arithmetic 算术
         /**
          * @return foreach i in lanes: lhs[i] / rhs[i]
          */
-        KSIMD_API(batch_t) div(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::batch_t) div(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
             return lhs / rhs;
         }
@@ -449,15 +443,15 @@ namespace detail
         /**
          * @return foreach i in lanes: 1.0 / v[i]
          */
-        KSIMD_API(batch_t) one_div(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) one_div(typename Traits::batch_t v) noexcept
         {
             KSIMD_WARNING_PUSH
             KSIMD_IGNORE_WARNING_MSVC(4723) // ignore n / 0 warning
 
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { (static_cast<scalar_t>(1) / v.v[I])... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (static_cast<typename Traits::scalar_t>(1) / v.v[I])... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
 
             KSIMD_WARNING_POP
         }
@@ -465,23 +459,23 @@ namespace detail
         /**
          * @return foreach i in lanes: sqrt(v[i])
          */
-        KSIMD_API(batch_t) sqrt(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) sqrt(typename Traits::batch_t v) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
                 return { (std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: 1.0 / sqrt(v[i])
          */
-        KSIMD_API(batch_t) rsqrt(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) rsqrt(typename Traits::batch_t v) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
             {
-                return { (static_cast<scalar_t>(1) / std::sqrt(v.v[I]))... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (static_cast<typename Traits::scalar_t>(1) / std::sqrt(v.v[I]))... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
@@ -493,42 +487,42 @@ namespace detail
          * RoundingMode::ToZero: 向0取整 \n
          */
         template<RoundingMode mode>
-        KSIMD_API(batch_t) round(batch_t v) noexcept
+        KSIMD_API(typename Traits::batch_t) round(typename Traits::batch_t v) noexcept
         {
             if constexpr (mode == RoundingMode::Up)
             {
-                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
                 {
                     return { (std::ceil(v.v[I]))... };
-                }(std::make_index_sequence<TotalLanes>{});
+                }(std::make_index_sequence<Traits::TotalLanes>{});
             }
             else if constexpr (mode == RoundingMode::Down)
             {
-                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
                 {
                     return { (std::floor(v.v[I]))... };
-                }(std::make_index_sequence<TotalLanes>{});
+                }(std::make_index_sequence<Traits::TotalLanes>{});
             }
             else if constexpr (mode == RoundingMode::Nearest)
             {
-                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
                 {
                     return { (std::nearbyint(v.v[I]))... };
-                }(std::make_index_sequence<TotalLanes>{});
+                }(std::make_index_sequence<Traits::TotalLanes>{});
             }
             else if constexpr (mode == RoundingMode::Round)
             {
-                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
                 {
                     return { (std::round(v.v[I]))... };
-                }(std::make_index_sequence<TotalLanes>{});
+                }(std::make_index_sequence<Traits::TotalLanes>{});
             }
             else /* if constexpr (mode == RoundingMode::ToZero) */
             {
-                return [&]<size_t... I>(std::index_sequence<I...>) -> batch_t
+                return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
                 {
                     return { (std::trunc(v.v[I]))... };
-                }(std::make_index_sequence<TotalLanes>{});
+                }(std::make_index_sequence<Traits::TotalLanes>{});
             }
         }
 #pragma endregion
@@ -538,103 +532,103 @@ namespace detail
          * @return foreach i in lanes, j in mask: result[j] = !(lhs[i] > rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_API(mask_t) not_greater(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_greater(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (!(lhs.v[I] > rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (!(lhs.v[I] > rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: !(lhs[i] >= rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_API(mask_t) not_greater_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_greater_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (!(lhs.v[I] >= rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (!(lhs.v[I] >= rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: !(lhs[i] < rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_API(mask_t) not_less(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_less(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (!(lhs.v[I] < rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (!(lhs.v[I] < rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: !(lhs[i] <= rhs[i]) ? 1 : 0
          * @note if NaN: return 1
          */
-        KSIMD_API(mask_t) not_less_equal(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_less_equal(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (!(lhs.v[I] <= rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (!(lhs.v[I] <= rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: (lhs[i] == NaN || rhs[i] == NaN) ? 1 : 0
          */
-        KSIMD_API(mask_t) any_NaN(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) any_NaN(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (is_NaN(lhs.v[I]) || is_NaN(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (is_NaN(lhs.v[I]) || is_NaN(rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: (lhs[i] == NaN && rhs[i] == NaN) ? 1 : 0
          */
-        KSIMD_API(mask_t) all_NaN(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) all_NaN(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (is_NaN(lhs.v[I]) && is_NaN(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (is_NaN(lhs.v[I]) && is_NaN(rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: (lhs[i] != NaN && rhs[i] != NaN) ? 1 : 0
          */
-        KSIMD_API(mask_t) not_NaN(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) not_NaN(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (!(is_NaN(lhs.v[I]) || is_NaN(rhs.v[I])) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (!(is_NaN(lhs.v[I]) || is_NaN(rhs.v[I])) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: (lhs[i] != NaN,Inf || rhs[i] != NaN,Inf) ? 1 : 0
          */
-        KSIMD_API(mask_t) any_finite(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) any_finite(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (is_finite(lhs.v[I]) || is_finite(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (is_finite(lhs.v[I]) || is_finite(rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 
         /**
          * @return foreach i in lanes: (lhs[i] != NaN,Inf && rhs[i] != NaN,Inf) ? 1 : 0
          */
-        KSIMD_API(mask_t) all_finite(batch_t lhs, batch_t rhs) noexcept
+        KSIMD_API(typename Traits::mask_t) all_finite(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
         {
-            return [&]<size_t... I>(std::index_sequence<I...>) -> mask_t
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::mask_t
             {
-                return { (is_finite(lhs.v[I]) && is_finite(rhs.v[I]) ? OneBlock<scalar_t> : ZeroBlock<scalar_t>)... };
-            }(std::make_index_sequence<TotalLanes>{});
+                return { (is_finite(lhs.v[I]) && is_finite(rhs.v[I]) ? OneBlock<typename Traits::scalar_t> : ZeroBlock<typename Traits::scalar_t>)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
         }
 #pragma endregion
     };

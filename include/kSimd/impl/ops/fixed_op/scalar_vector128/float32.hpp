@@ -10,7 +10,8 @@ KSIMD_NAMESPACE_BEGIN
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
-    : detail::Executor_Scalar_float32<1>
+    : BaseOpTraits_Scalar<float32, 1>
+    , detail::Executor_Scalar_FloatingPoint_Base<BaseOpTraits_Scalar<float32, 1>> // executor
     , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
     , detail::Base_Mixin_Scalar<float32, 1>
