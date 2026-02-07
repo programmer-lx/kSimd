@@ -14,8 +14,22 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
     , detail::Executor_Scalar_FloatingPoint_Base<BaseOpTraits_Scalar<float32, 1>> // executor
     , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
-    , detail::Base_Mixin_Scalar<float32, 1> // TODO 即将删除这个 mixin，因为用户在使用 FIXED_OP 的时候，是不知道 Count 参数的，所以要返回数组
 {
+    KSIMD_API(batch_t) sequence() noexcept
+    {
+        return { 0, 1, 2, 3 };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base) noexcept
+    {
+        return { base, base + 1, base + 2, base + 3 };
+    }
+
+    KSIMD_API(batch_t) sequence(float32 base, float32 stride) noexcept
+    {
+        return { base, base + stride, base + 2 * stride, base + 3 * stride };
+    }
+
     template<int src_mask, int dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
     {
