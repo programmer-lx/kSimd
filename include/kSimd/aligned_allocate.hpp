@@ -63,7 +63,7 @@ struct AlignedAllocator
     [[nodiscard]] T* allocate(const size_t count)
     {
         const size_t bytes = count * sizeof(T);
-        void* ptr = aligned_allocate(bytes, alignment::Vec256);
+        void* ptr = aligned_allocate(bytes, alignment::Max);
 
         if (!ptr)
         {

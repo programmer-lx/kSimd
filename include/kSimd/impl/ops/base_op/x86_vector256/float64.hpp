@@ -12,12 +12,12 @@ KSIMD_NAMESPACE_BEGIN
 
 namespace detail
 {
-    // AVX2_FMA3
+    // AVX2_FMA3_F16C
     template<typename = void>
-    struct Executor_AVX2_FMA3_Impl_float64;
+    struct Executor_AVX2_FMA3_F16C_Impl_float64;
 
     template<size_t... I>
-    struct Executor_AVX2_FMA3_Impl_float64<std::index_sequence<I...>> : BaseOpHelper
+    struct Executor_AVX2_FMA3_F16C_Impl_float64<std::index_sequence<I...>> : BaseOpHelper
     {
         KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64, sizeof...(I)>)
 
@@ -317,7 +317,7 @@ namespace detail
     };
 
     template<size_t reg_count>
-    using Executor_AVX2_FMA3_float64 = Executor_AVX2_FMA3_Impl_float64<std::make_index_sequence<reg_count>>;
+    using Executor_AVX2_FMA3_F16C_float64 = Executor_AVX2_FMA3_F16C_Impl_float64<std::make_index_sequence<reg_count>>;
 }
 
 // -------------------------------- operators --------------------------------
@@ -326,55 +326,55 @@ namespace x86_vector256
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator+(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::add(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::add(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::sub(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::sub(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator*(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::mul(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::mul(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator/(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::div(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::div(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::neg(v);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::neg(v);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator&(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::bit_and(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_and(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator|(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::bit_or(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_or(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator^(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::bit_xor(lhs, rhs);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_xor(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator~(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_AVX2_FMA3_float64<reg_count>::bit_not(v);
+        return detail::Executor_AVX2_FMA3_F16C_float64<reg_count>::bit_not(v);
     }
     
     template<size_t reg_count>
@@ -463,7 +463,7 @@ namespace detail
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64>
-    : detail::Executor_AVX2_FMA3_float64<1>
+    : detail::Executor_AVX2_FMA3_F16C_float64<1>
     , detail::Base_Mixin_AVX2_FMA3_float64
 {};
 
