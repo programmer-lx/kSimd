@@ -209,7 +209,7 @@ namespace detail
 
 // -------------------------------- operators --------------------------------
 // mask type = __m256
-#define KSIMD_EXE detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+#define KSIMD_EXE detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, reg_count, x86_vector256::Mask<float32, reg_count>>, reg_count>
 namespace x86_vector256
 {
     template<size_t reg_count>
@@ -311,12 +311,12 @@ namespace x86_vector256
 #undef KSIMD_EXE
 
 // base op mixin
-#define KSIMD_BATCH_T x86_vector256::Batch<float32, 1>
 namespace detail
 {
+    template<typename Traits>
     struct Base_Mixin_AVX2_FMA3_F16C_float32
     {
-        KSIMD_API(float32) reduce_add(KSIMD_BATCH_T v) noexcept
+        KSIMD_API(float32) reduce_add(typename Traits::batch_t v) noexcept
         {
             __m128 low = _mm256_castps256_ps128(v.v[0]); // [1, 2, 3, 4]
             __m128 high = _mm256_extractf128_ps(v.v[0], 0b1); // [5, 6, 7, 8]
@@ -327,19 +327,19 @@ namespace detail
             return _mm_cvtss_f32(sum);
         }
 
-        KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
+        KSIMD_API(typename Traits::batch_t) sequence() noexcept
         {
             return { _mm256_set_ps(7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f) };
         }
 
-        KSIMD_API(KSIMD_BATCH_T) sequence(float32 base) noexcept
+        KSIMD_API(typename Traits::batch_t) sequence(float32 base) noexcept
         {
             __m256 base_v = _mm256_set1_ps(base);
             __m256 iota = _mm256_set_ps(7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
             return { _mm256_add_ps(iota, base_v) };
         }
 
-        KSIMD_API(KSIMD_BATCH_T) sequence(float32 base, float32 stride) noexcept
+        KSIMD_API(typename Traits::batch_t) sequence(float32 base, float32 stride) noexcept
         {
             __m256 stride_v = _mm256_set1_ps(stride);
             __m256 base_v = _mm256_set1_ps(base);
@@ -348,7 +348,6 @@ namespace detail
         }
     };
 }
-#undef KSIMD_BATCH_T
 
 // mask operation mixin
 namespace detail
@@ -478,8 +477,8 @@ template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32>
     : BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
     , detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1> // executor
-    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1> // mask type = __m256
-    , detail::Base_Mixin_AVX2_FMA3_F16C_float32
+    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1> // mask type = __m256 mixin
+    , detail::Base_Mixin_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>> // horizontal operations mixin
 {};
 
 KSIMD_NAMESPACE_END
