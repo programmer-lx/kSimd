@@ -5,10 +5,10 @@
 
 KSIMD_NAMESPACE_BEGIN
 
-template<is_scalar_type S, size_t RegCount>
+template<is_scalar_type S, size_t RegCount, typename MaskType>
 struct BaseOpTraits_AVX_Family
     : detail::SimdTraits_Base<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, x86_vector256::Batch<S, RegCount>,
-                              x86_vector256::Mask<S, RegCount>, alignment::Vec256>
+                              MaskType, alignment::Vec256>
 {};
 
 KSIMD_NAMESPACE_END

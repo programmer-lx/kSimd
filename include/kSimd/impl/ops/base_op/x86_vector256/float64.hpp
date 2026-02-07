@@ -319,60 +319,61 @@ namespace detail
 }
 
 // -------------------------------- operators --------------------------------
+#define KSIMD_EXE detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>, 1>
 namespace x86_vector256
 {
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator+(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::add(lhs, rhs);
+        return KSIMD_EXE::add(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::sub(lhs, rhs);
+        return KSIMD_EXE::sub(lhs, rhs);
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator*(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::mul(lhs, rhs);
+        return KSIMD_EXE::mul(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator/(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::div(lhs, rhs);
+        return KSIMD_EXE::div(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::neg(v);
+        return KSIMD_EXE::neg(v);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator&(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_and(lhs, rhs);
+        return KSIMD_EXE::bit_and(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator|(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_or(lhs, rhs);
+        return KSIMD_EXE::bit_or(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator^(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_xor(lhs, rhs);
+        return KSIMD_EXE::bit_xor(lhs, rhs);
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator~(Batch<float64, reg_count> v) noexcept
     {
-        return detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, reg_count>, reg_count>::bit_not(v);
+        return KSIMD_EXE::bit_not(v);
     }
     
     template<size_t reg_count>
@@ -417,6 +418,7 @@ namespace x86_vector256
         return lhs = lhs ^ rhs;
     }
 } // namespace x86_vector256
+#undef KSIMD_EXE
 
 // base op mixin
 #define KSIMD_BATCH_T x86_vector256::Batch<float64, 1>
@@ -461,8 +463,8 @@ namespace detail
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64>
-    : BaseOpTraits_AVX_Family<float64, 1>
-    , detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, 1>, 1>
+    : BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>
+    , detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>, 1>
     , detail::Base_Mixin_AVX2_FMA3_float64
 {};
 
