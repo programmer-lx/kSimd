@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility> // std::index_sequence
+
 #include "traits.hpp"
 #include "kSimd/impl/ops/vector_types/x86_vector256.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"
@@ -209,61 +211,87 @@ namespace detail
 
 // -------------------------------- operators --------------------------------
 // mask type = __m256
-#define KSIMD_EXE detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, reg_count, x86_vector256::Mask<float32, reg_count>>, reg_count>
 namespace x86_vector256
 {
+    #define KSIMD_UNROLL_BINARY_OP(intrinsic, lhs, rhs) \
+        static_assert(reg_count <= 2, "512bit is max."); \
+        if constexpr (reg_count == 1) { return { intrinsic(lhs.v[0], rhs.v[0]) }; } \
+        else { return { intrinsic(lhs.v[0], rhs.v[0]), intrinsic(lhs.v[1], rhs.v[1]) }; }
+
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator+(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::add(lhs, rhs);
+        KSIMD_UNROLL_BINARY_OP(_mm256_add_ps, lhs, rhs)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator-(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::sub(lhs, rhs);
+        KSIMD_UNROLL_BINARY_OP(_mm256_sub_ps, lhs, rhs)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator*(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::mul(lhs, rhs);
+        KSIMD_UNROLL_BINARY_OP(_mm256_mul_ps, lhs, rhs)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator/(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::div(lhs, rhs);
-    }
-
-    template<size_t reg_count>
-    KSIMD_API(Batch<float32, reg_count>) operator-(Batch<float32, reg_count> v) noexcept
-    {
-        return KSIMD_EXE::neg(v);
+        KSIMD_UNROLL_BINARY_OP(_mm256_div_ps, lhs, rhs)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator&(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::bit_and(lhs, rhs);
+        KSIMD_UNROLL_BINARY_OP(_mm256_and_ps, lhs, rhs)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator|(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::bit_or(lhs, rhs);
+        KSIMD_UNROLL_BINARY_OP(_mm256_or_ps, lhs, rhs)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator^(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        return KSIMD_EXE::bit_xor(lhs, rhs);
+        KSIMD_UNROLL_BINARY_OP(_mm256_xor_ps, lhs, rhs)
+    }
+
+    #undef KSIMD_UNROLL_BINARY_OP
+
+    template<size_t reg_count>
+    KSIMD_API(Batch<float32, reg_count>) operator-(Batch<float32, reg_count> v) noexcept
+    {
+        static_assert(reg_count <= 2, "512bit is max.");
+
+        __m256 mask = _mm256_set1_ps(SignBitMask<float32>);
+        if constexpr (reg_count == 1)
+        {
+            return { _mm256_xor_ps(v.v[0], mask) };
+        }
+        else
+        {
+            return { _mm256_xor_ps(v.v[0], mask), _mm256_xor_ps(v.v[1], mask) };
+        }
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator~(Batch<float32, reg_count> v) noexcept
     {
-        return KSIMD_EXE::bit_not(v);
+        static_assert(reg_count <= 2, "512bit is max.");
+
+        __m256 mask = _mm256_set1_ps(OneBlock<float32>);
+        if constexpr (reg_count == 1)
+        {
+            return { _mm256_xor_ps(v.v[0], mask) };
+        }
+        else
+        {
+            return { _mm256_xor_ps(v.v[0], mask), _mm256_xor_ps(v.v[1], mask) };
+        }
     }
 
     template<size_t reg_count>
@@ -308,7 +336,6 @@ namespace x86_vector256
         return lhs = lhs ^ rhs;
     }
 } // namespace x86_vector256
-#undef KSIMD_EXE
 
 // base op mixin
 namespace detail
