@@ -8,7 +8,8 @@ KSIMD_NAMESPACE_BEGIN
 #define KSIMD_API(...) KSIMD_OP_AVX2_FMA3_F16C_API static __VA_ARGS__ KSIMD_CALL_CONV
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32, 4, 2>
-    : detail::Executor_AVX2_FMA3_F16C_float32<1>
+    : BaseOpTraits_AVX_Family<float32, 1>
+    , detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1>, 1>
     , FixedOpHelper<4>
     , FixedOpInfo<4, 2>
 {
