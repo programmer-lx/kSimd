@@ -475,10 +475,17 @@ namespace detail
 
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32>
+    // traits
     : BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
-    , detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1> // executor
-    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1> // mask type = __m256 mixin
-    , detail::Base_Mixin_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>> // horizontal operations mixin
+
+    // executor
+    , detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+
+    // __m256 mask mixin
+    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+
+    // horizontal operations mixin
+    , detail::Base_Mixin_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>>
 {};
 
 KSIMD_NAMESPACE_END

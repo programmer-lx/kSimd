@@ -10,11 +10,11 @@ KSIMD_NAMESPACE_BEGIN
 
 template<>
 struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
-    : BaseOpTraits_Scalar<float32, 1>
+    : BaseOpTraits_Scalar<float32, 1> // traits
     , detail::Executor_Scalar_FloatingPoint_Base<BaseOpTraits_Scalar<float32, 1>> // executor
     , FixedOpInfo<4, 1>
     , FixedOpHelper<4>
-    , detail::Base_Mixin_Scalar<float32, 1>
+    , detail::Base_Mixin_Scalar<float32, 1> // TODO 即将删除这个 mixin，因为用户在使用 FIXED_OP 的时候，是不知道 Count 参数的，所以要返回数组
 {
     template<int src_mask, int dst_mask>
     KSIMD_API(batch_t) dot(batch_t a, batch_t b) noexcept
