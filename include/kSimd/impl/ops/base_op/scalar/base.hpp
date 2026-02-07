@@ -632,6 +632,12 @@ namespace detail
         }
 #pragma endregion
     };
+
+    template<typename Traits>
+    using Executor_Scalar_float32 = Executor_Scalar_FloatingPoint_Base<Traits>;
+
+    template<typename Traits>
+    using Executor_Scalar_float64 = Executor_Scalar_FloatingPoint_Base<Traits>;
 } // namespace detail
 
 

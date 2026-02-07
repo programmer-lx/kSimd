@@ -15,7 +15,7 @@ option(KSIMD_BUILD_TESTS "" OFF)
 
 # kSimd library (static)
 add_library(kSimd STATIC)
-target_include_directories(kSimd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(kSimd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FP16/include)
 target_sources(kSimd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/one_cpp.cpp)
 if(MSVC)
     target_compile_options(kSimd PRIVATE /utf-8)
