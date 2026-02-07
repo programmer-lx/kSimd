@@ -63,9 +63,9 @@ namespace KSIMD_DYN_INSTRUCTION
         constexpr size_t Lanes = op::TotalLanes;
 
         // 构造非对齐内存环境
-        float32 input_f32_raw[Lanes + 1];
-        uint16_t mid_f16_raw[Lanes + 1];
-        float32 output_f32_raw[Lanes + 1];
+        alignas(op::BatchAlignment) float32 input_f32_raw[Lanes + 1];
+        alignas(op::BatchAlignment) uint16_t mid_f16_raw[Lanes + 1];
+        alignas(op::BatchAlignment) float32 output_f32_raw[Lanes + 1];
 
         // 偏移 1 个元素，使地址不再满足 16/32 字节对齐
         float32* u_input = input_f32_raw + 1;
