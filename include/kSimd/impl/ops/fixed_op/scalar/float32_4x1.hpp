@@ -49,6 +49,38 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
 
         return res;
     }
+
+    template<int a_idx_for_dst0, int a_idx_for_dst1, int b_idx_for_dst2, int b_idx_for_dst3>
+    KSIMD_API(batch_t) merge(batch_t a, batch_t b) noexcept
+    {
+        static_assert(a_idx_for_dst0 >= 0 && a_idx_for_dst0 <= 3, "idx must be in [0, 3]");
+        static_assert(a_idx_for_dst1 >= 0 && a_idx_for_dst1 <= 3, "idx must be in [0, 3]");
+        static_assert(b_idx_for_dst2 >= 0 && b_idx_for_dst2 <= 3, "idx must be in [0, 3]");
+        static_assert(b_idx_for_dst3 >= 0 && b_idx_for_dst3 <= 3, "idx must be in [0, 3]");
+
+        return {
+            a.v[a_idx_for_dst0],
+            a.v[a_idx_for_dst1],
+            b.v[b_idx_for_dst2],
+            b.v[b_idx_for_dst3]
+        };
+    }
+
+    template<int idx_for_dst0, int idx_for_dst1, int idx_for_dst2, int idx_for_dst3>
+    KSIMD_API(batch_t) permute(batch_t v) noexcept
+    {
+        static_assert(idx_for_dst0 >= 0 && idx_for_dst0 <= 3, "idx must be in [0, 3]");
+        static_assert(idx_for_dst1 >= 0 && idx_for_dst1 <= 3, "idx must be in [0, 3]");
+        static_assert(idx_for_dst2 >= 0 && idx_for_dst2 <= 3, "idx must be in [0, 3]");
+        static_assert(idx_for_dst3 >= 0 && idx_for_dst3 <= 3, "idx must be in [0, 3]");
+
+        return {
+            v.v[idx_for_dst0],
+            v.v[idx_for_dst1],
+            v.v[idx_for_dst2],
+            v.v[idx_for_dst3]
+        };
+    }
 };
 
 #undef KSIMD_API

@@ -46,6 +46,20 @@ struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32, 4
         constexpr int imm8 = (src_mask << 4) | dst_mask;
         return { _mm256_dp_ps(a.v[0], b.v[0], imm8) };
     }
+
+    template<int a_idx_for_dst0, int a_idx_for_dst1, int b_idx_for_dst2, int b_idx_for_dst3>
+    KSIMD_API(batch_t) merge(batch_t a, batch_t b) noexcept
+    {
+        constexpr int imm8 = _MM_SHUFFLE(b_idx_for_dst3, b_idx_for_dst2, a_idx_for_dst1, a_idx_for_dst0);
+        return { _mm256_shuffle_ps(a.v[0], b.v[0], imm8) };
+    }
+
+    template<int idx_for_dst0, int idx_for_dst1, int idx_for_dst2, int idx_for_dst3>
+    KSIMD_API(batch_t) permute(batch_t v) noexcept
+    {
+        constexpr int imm8 = _MM_SHUFFLE(idx_for_dst3, idx_for_dst2, idx_for_dst1, idx_for_dst0);
+        return { _mm256_permute_ps(v.v[0], imm8) };
+    }
 };
 #undef KSIMD_API
 
