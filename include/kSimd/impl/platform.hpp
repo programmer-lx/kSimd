@@ -67,14 +67,14 @@ KSIMD_INSTRUCTION_FEATURE 宏:
 // --------- x86指令集 ---------
 #if defined(KSIMD_ARCH_X86_ANY)
 
-    #define KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY
+    // #define KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY      // 2026 无需支持
     // SSE: 只在 x86 32bit 提供SSE分发
-    #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
+    // #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
         // #define KSIMD_INSTRUCTION_FEATURE_SSE 1      // 2026 无需支持
-    #endif
+    // #endif
 
     // SSE2 及以上
-    #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
+    // #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
         // SSE2
         // #define KSIMD_INSTRUCTION_FEATURE_SSE2 1     // 2026 无需支持
         // // SSE2: fallback 1
@@ -86,16 +86,16 @@ KSIMD_INSTRUCTION_FEATURE 宏:
 
         // #define KSIMD_INSTRUCTION_FEATURE_SSE3 1     // 2026 无需支持
         // #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1    // 2026 无需支持
-        #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1
+        // #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1   // 2026 无需支持
         // #define KSIMD_INSTRUCTION_FEATURE_SSE4_2 1
-    #endif
+    // #endif
 
     // AVX family
     #define KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY
     #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
         // #define KSIMD_INSTRUCTION_FEATURE_AVX 1      // 2026 无需支持
         // #define KSIMD_INSTRUCTION_FEATURE_AVX2 1     // 2026 无需支持
-        #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3 1
+        #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C 1
     #endif
 
     // AVX-512 family
@@ -174,5 +174,10 @@ KSIMD_NAMESPACE_END
 #endif
 
 #if defined(KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY)
-    #include <immintrin.h>
+    #include <xmmintrin.h> // SSE
+    #include <emmintrin.h> // SSE2
+    #include <pmmintrin.h> // SSE3
+    #include <tmmintrin.h> // SSSE3
+    #include <smmintrin.h> // SSE4.1
+    #include <immintrin.h> // AVX+
 #endif

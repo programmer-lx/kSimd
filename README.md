@@ -4,6 +4,14 @@
 1. 抽象SIMD指令，支持一次性编写kernel函数，生成多个指令版本，并且能够运行时根据CPUID选择最优指令集。
 2. 支持对同一块内存的多重解释，比如将 256bit 内存解释为 float32 8x1 和 float32 4x2，对 float32 8x1 做 dot 运算，就是对8个元素进行 dot 运算；对 float32 4x2 做 dot 运算，就是分别对两个 float32x4 做 dot 运算。
 
+# 2026年Steam硬件软件支持调查
+https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-to-Steam?l=schinese
+
+数据显示，95%以上的用户支持AVX2 + FMA3 + F16C，所以决定不再开发SSE家族的指令抽象。
+目前，kSimd库支持两个分发路径: 1. AVX2+FMA3+16C; 2. Scalar (fallback)
+
+由于AVX512只有20%的用户支持，所以将AVX512的开发周期延后。
+
 # Types
 
 SIMD数据类型命名为 Batch，Mask类型命名为 Mask。

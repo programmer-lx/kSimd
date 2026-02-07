@@ -18,7 +18,7 @@ namespace detail
 template<SimdInstruction Instruction, is_scalar_type ScalarType, size_t Width, size_t Count>
 struct FixedOp;
 
-#define KSIMD_DYN_FIXED_OP_COUNT(scalar_type, width, count) \
+#define KSIMD_DETAIL_DYN_FIXED_OP_COUNT(scalar_type, width, count) \
     KSIMD_NAMESPACE_NAME::FixedOp<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, \
         scalar_type, width, count>
 
@@ -28,7 +28,7 @@ struct FixedOp;
         scalar_type, width>()
 
 #define KSIMD_DYN_FIXED_OP(scalar_type, width) \
-    KSIMD_DYN_FIXED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width))
+    KSIMD_DETAIL_DYN_FIXED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width))
 
 template<size_t width, size_t count>
 struct FixedOpInfo

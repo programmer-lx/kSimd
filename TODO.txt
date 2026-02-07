@@ -1,2 +1,3 @@
 - 特化Scalar FixedOp float32 4x2 的 sequence 函数
 - 特化AVX float32 4x2 的sequence函数，将他变为每4个float32为一组的序列
+- 重写TypeOp，将其展开，而不是写死v.v[0]

@@ -6,7 +6,7 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
-#define KSIMD_API(...) KSIMD_OP_AVX2_FMA3_API static __VA_ARGS__ KSIMD_CALL_CONV
+#define KSIMD_API(...) KSIMD_OP_AVX2_FMA3_F16C_API static __VA_ARGS__ KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -19,7 +19,7 @@ namespace detail
     template<size_t... I>
     struct Executor_AVX2_FMA3_Impl_float64<std::index_sequence<I...>> : BaseOpHelper
     {
-        KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float64, sizeof...(I)>)
+        KSIMD_DETAIL_TRAITS(BaseOpTraits_AVX_Family<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64, sizeof...(I)>)
 
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float64* mem, mask_t mask) noexcept
@@ -462,7 +462,7 @@ namespace detail
 #undef KSIMD_BATCH_T
 
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3, float64>
+struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64>
     : detail::Executor_AVX2_FMA3_float64<1>
     , detail::Base_Mixin_AVX2_FMA3_float64
 {};

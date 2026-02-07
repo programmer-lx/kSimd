@@ -8,7 +8,7 @@
 namespace KSIMD_DYN_INSTRUCTION
 {
     // 定义 batch_t 为 2 个 __m128，总宽 8 个 float
-    using f4x2 = KSIMD_DYN_FIXED_OP_COUNT(float, 4, 2);
+    using f4x2 = KSIMD_DETAIL_DYN_FIXED_OP_COUNT(float, 4, 2);
 
     /*
      * 测试场景：条件混合运算

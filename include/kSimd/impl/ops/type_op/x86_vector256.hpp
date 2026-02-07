@@ -4,7 +4,7 @@
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/traits.hpp"
 
-#define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_API static ret KSIMD_CALL_CONV
+#define KSIMD_API(ret) KSIMD_OP_AVX2_FMA3_F16C_API static ret KSIMD_CALL_CONV
 
 KSIMD_NAMESPACE_BEGIN
 

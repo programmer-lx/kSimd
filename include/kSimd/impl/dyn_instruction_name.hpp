@@ -4,9 +4,7 @@
 
 // --------------------------------- KSIMD_DYN_INSTRUCTION names ---------------------------------
 #define KSIMD_DYN_INSTRUCTION_SCALAR            Scalar
-#define KSIMD_DYN_INSTRUCTION_SSE2              SSE2
-#define KSIMD_DYN_INSTRUCTION_SSE4_1            SSE4_1
-#define KSIMD_DYN_INSTRUCTION_AVX2_FMA3         AVX2_FMA3
+#define KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C    AVX2_FMA3_F16C
 
 
 // fallback instruction

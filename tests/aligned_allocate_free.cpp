@@ -22,7 +22,7 @@ TEST(aligned_allocate, alignment_test)
 
 TEST(aligned_allocate, std_vector)
 {
-    []() KSIMD_AVX2_FMA3_INTRINSIC_ATTR
+    []() KSIMD_AVX2_FMA3_F16C_INTRINSIC_ATTR
     {
         using Arr = std::vector<float, ksimd::AlignedAllocator<float>>;
         constexpr size_t size = 88;

@@ -17,13 +17,8 @@ enum class SimdInstruction : int
 {
     KSIMD_DYN_INSTRUCTION_SCALAR,
 
-    SSE_Start,
-    KSIMD_DYN_INSTRUCTION_SSE2,
-    KSIMD_DYN_INSTRUCTION_SSE4_1,
-    SSE_End,
-
     AVX_Start,
-    KSIMD_DYN_INSTRUCTION_AVX2_FMA3,
+    KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C,
     AVX_End
 };
 
@@ -158,10 +153,6 @@ namespace detail
         constexpr size_t lanes = []() -> size_t
         {
             if constexpr (I == SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR)
-            {
-                return 16 / sizeof(S);
-            }
-            if constexpr (I > SimdInstruction::SSE_Start && I < SimdInstruction::SSE_End)
             {
                 return 16 / sizeof(S);
             }
