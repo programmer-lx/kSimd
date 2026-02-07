@@ -58,11 +58,7 @@ FixedOp用于操作固定Lanes的SIMD类型，可支持多种水平操作，以�
 ## TypeOp
 用于跨类型操作，比如convert, bit_cast等。
 
-# 设计原则
-## 类继承
-1. 每一个 SimdOp\<Instruction, ...\> 只能编写 **<= Instruction** 的指令(SSE op 中不能含有SSE2指令)。
-SSE2 op 要继承 SSE op，来复用比他更加低级的指令，以及使用更高级的指令覆盖掉父类的低级指令。
-2. 封装垂直指令的Op使用单继承，直接复用低级指令的逻辑，其他Op可以使用Mixin模式，把小功能拆出来，多继承。
+# 第三方库
+FP16: 用于标量的FP16转换: https://github.com/Maratyszcza/FP16
 
-## 函数
-op类不能出现任何的虚函数，全部函数必须 force inline。
+[许可证](./3rdparty/FP16/LICENSE)
