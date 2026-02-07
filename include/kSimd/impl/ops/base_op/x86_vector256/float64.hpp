@@ -62,17 +62,20 @@ namespace detail
 
         KSIMD_API(typename Traits::batch_t) undefined() noexcept
         {
-            return { ((void)I, _mm256_undefined_pd())... };
+            __m256d u = _mm256_undefined_pd();
+            return { ((void)I, u)... };
         }
 
         KSIMD_API(typename Traits::batch_t) zero() noexcept
         {
-            return { ((void)I, _mm256_setzero_pd())... };
+            __m256d z = _mm256_setzero_pd();
+            return { ((void)I, z)... };
         }
 
         KSIMD_API(typename Traits::batch_t) set(float64 x) noexcept
         {
-            return { ((void)I, _mm256_set1_pd(x))... };
+            __m256d v = _mm256_set1_pd(x);
+            return { ((void)I, v)... };
         }
 
         KSIMD_API(typename Traits::batch_t) add(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
@@ -137,11 +140,11 @@ namespace detail
                 __m256d sign_bit = _mm256_set1_pd(SignBitMask<float64>);
                 // __m256d sign_mask = _mm256_and_pd(v.v[I], sign_bit);
 
-                // 构造一个具有相同符号的0.5
-                // __m256d half = _mm256_or_pd(_mm256_set1_pd(0x1.0p-1f), _mm256_and_pd(v.v[I], sign_bit));
+                // 0.5
+                __m256d half = _mm256_set1_pd(0x1.0p-1);
 
                 return { _mm256_round_pd(_mm256_add_pd(v.v[I],
-                    _mm256_or_pd(_mm256_set1_pd(0x1.0p-1), _mm256_and_pd(v.v[I], sign_bit))),
+                    _mm256_or_pd(half, _mm256_and_pd(v.v[I], sign_bit))),
                     _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC)... };
             }
             else /* if constexpr (mode == RoundingMode::ToZero) */
@@ -211,7 +214,7 @@ namespace detail
 // -------------------------------- operators --------------------------------
 namespace x86_vector256
 {
-    #define KSIMD_UNROLL_BINARY_OP(intrinsic, lhs, rhs) \
+    #define KSIMD_UNROLL_BINARY_OP(intrinsic) \
         static_assert(reg_count <= 2, "512bit is max."); \
         if constexpr (reg_count == 1) { return { intrinsic(lhs.v[0], rhs.v[0]) }; } \
         else { return { intrinsic(lhs.v[0], rhs.v[0]), intrinsic(lhs.v[1], rhs.v[1]) }; }
@@ -219,43 +222,43 @@ namespace x86_vector256
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator+(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_add_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_add_pd)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator-(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_sub_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_sub_pd)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator*(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_mul_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_mul_pd)
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator/(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_div_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_div_pd)
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator&(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_and_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_and_pd)
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator|(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_or_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_or_pd)
     }
     
     template<size_t reg_count>
     KSIMD_API(Batch<float64, reg_count>) operator^(Batch<float64, reg_count> lhs, Batch<float64, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_xor_pd, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_xor_pd)
     }
 
     #undef KSIMD_UNROLL_BINARY_OP

@@ -64,17 +64,20 @@ namespace detail
 
         KSIMD_API(typename Traits::batch_t) undefined() noexcept
         {
-            return { ((void)I, _mm256_undefined_ps())... };
+            __m256 u = _mm256_undefined_ps();
+            return { ((void)I, u)... };
         }
 
         KSIMD_API(typename Traits::batch_t) zero() noexcept
         {
-            return { ((void)I, _mm256_setzero_ps())... };
+            __m256 z = _mm256_setzero_ps();
+            return { ((void)I, z)... };
         }
 
         KSIMD_API(typename Traits::batch_t) set(float32 x) noexcept
         {
-            return { ((void)I, _mm256_set1_ps(x))... };
+            __m256 v = _mm256_set1_ps(x);
+            return { ((void)I, v)... };
         }
 
         KSIMD_API(typename Traits::batch_t) add(typename Traits::batch_t lhs, typename Traits::batch_t rhs) noexcept
@@ -138,11 +141,11 @@ namespace detail
                 __m256 sign_bit = _mm256_set1_ps(SignBitMask<float32>);
                 // __m256 sign_mask = _mm256_and_ps(v.v[I], sign_bit);
 
-                // 构造一个具有相同符号的0.5
-                // __m256 half = _mm256_or_ps(_mm256_set1_ps(0x1.0p-1f), _mm256_and_ps(v.v[I], sign_bit));
+                // 0.5
+                __m256 half = _mm256_set1_ps(0x1.0p-1f);
 
                 return { _mm256_round_ps(_mm256_add_ps(v.v[I],
-                    _mm256_or_ps(_mm256_set1_ps(0x1.0p-1f), _mm256_and_ps(v.v[I], sign_bit))),
+                    _mm256_or_ps(half, _mm256_and_ps(v.v[I], sign_bit))),
                     _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC)... };
             }
             else /* if constexpr (mode == RoundingMode::ToZero) */
@@ -213,7 +216,7 @@ namespace detail
 // mask type = __m256
 namespace x86_vector256
 {
-    #define KSIMD_UNROLL_BINARY_OP(intrinsic, lhs, rhs) \
+    #define KSIMD_UNROLL_BINARY_OP(intrinsic) \
         static_assert(reg_count <= 2, "512bit is max."); \
         if constexpr (reg_count == 1) { return { intrinsic(lhs.v[0], rhs.v[0]) }; } \
         else { return { intrinsic(lhs.v[0], rhs.v[0]), intrinsic(lhs.v[1], rhs.v[1]) }; }
@@ -221,43 +224,43 @@ namespace x86_vector256
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator+(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_add_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_add_ps)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator-(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_sub_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_sub_ps)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator*(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_mul_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_mul_ps)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator/(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_div_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_div_ps)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator&(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_and_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_and_ps)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator|(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_or_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_or_ps)
     }
 
     template<size_t reg_count>
     KSIMD_API(Batch<float32, reg_count>) operator^(Batch<float32, reg_count> lhs, Batch<float32, reg_count> rhs) noexcept
     {
-        KSIMD_UNROLL_BINARY_OP(_mm256_xor_ps, lhs, rhs)
+        KSIMD_UNROLL_BINARY_OP(_mm256_xor_ps)
     }
 
     #undef KSIMD_UNROLL_BINARY_OP
