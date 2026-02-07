@@ -8,6 +8,8 @@
 #include <bit> // std::bit_cast
 #include <utility> // std::index_sequence
 
+#include "fp16.h"
+
 #include "traits.hpp"
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/ops/base_op/BaseOp.hpp"
@@ -59,12 +61,12 @@ namespace detail
          */
         KSIMD_API(typename Traits::batch_t) loadu(const typename Traits::scalar_t* mem) noexcept
         {
-            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
-            typename Traits::batch_t result{};
-            memcpy(result.v, mem, size);
-            return result;
+            return load(mem);
         }
 
+        /**
+         * @return load [mem : mem + count * sizeof(scalar_t)]
+         */
         KSIMD_API(typename Traits::batch_t) load_partial(const typename Traits::scalar_t* mem, size_t count) noexcept
         {
             count = count > Traits::TotalLanes ? Traits::TotalLanes : count;
@@ -94,8 +96,7 @@ namespace detail
          */
         KSIMD_API(void) storeu(typename Traits::scalar_t* mem, typename Traits::batch_t v) noexcept
         {
-            constexpr size_t size = Traits::TotalLanes * sizeof(typename Traits::scalar_t);
-            memcpy(mem, v.v, size);
+            store(mem, v);
         }
 
         KSIMD_API(void) store_partial(typename Traits::scalar_t* mem, typename Traits::batch_t v, size_t count) noexcept
@@ -634,7 +635,39 @@ namespace detail
     };
 
     template<typename Traits>
-    using Executor_Scalar_float32 = Executor_Scalar_FloatingPoint_Base<Traits>;
+    struct Executor_Scalar_float32 : Executor_Scalar_FloatingPoint_Base<Traits>
+    {
+        /**
+        * @return 加载 [mem : mem + sizeof(float16) * TotalLanes]，然后进行类型转换，将FP16提升为FP32
+        */
+        KSIMD_API(typename Traits::batch_t) load_float16(const float16* mem) noexcept
+        {
+            typename Traits::batch_t res;
+            for (size_t i = 0; i < Traits::TotalLanes; ++i)
+            {
+                res.v[i] = fp16_ieee_to_fp32_value(std::bit_cast<uint16_t>(mem[i]));
+            }
+            return res;
+        }
+
+        KSIMD_API(typename Traits::batch_t) loadu_float16(const float16* mem) noexcept
+        {
+            return load_float16(mem);
+        }
+
+        KSIMD_API(void) store_float16(float16* mem, typename Traits::batch_t v) noexcept
+        {
+            for (size_t i = 0; i < Traits::TotalLanes; ++i)
+            {
+                mem[i] = std::bit_cast<float16>(fp16_ieee_from_fp32_value(v.v[i]));
+            }
+        }
+
+        KSIMD_API(void) storeu_float16(float16* mem, typename Traits::batch_t v) noexcept
+        {
+            store_float16(mem, v);
+        }
+    };
 
     template<typename Traits>
     using Executor_Scalar_float64 = Executor_Scalar_FloatingPoint_Base<Traits>;

@@ -43,6 +43,18 @@ namespace detail
             return res;
         }
 
+        KSIMD_API(typename Traits::batch_t) load_float16(const float16* mem) noexcept
+        {
+            // __m128i f16 = _mm_load_si128(reinterpret_cast<const __m128i*>(mem));
+            // __m256 f32 = _mm256_cvtph_ps(_mm_load_si128(reinterpret_cast<const __m128i*>(mem)));
+            return { _mm256_cvtph_ps(_mm_load_si128(reinterpret_cast<const __m128i*>(&mem[I * Traits::RegLanes])))... };
+        }
+
+        KSIMD_API(typename Traits::batch_t) loadu_float16(const float16* mem) noexcept
+        {
+            return { _mm256_cvtph_ps(_mm_loadu_si128(reinterpret_cast<const __m128i*>(&mem[I * Traits::RegLanes])))... };
+        }
+
         KSIMD_API(void) store(float32* mem, typename Traits::batch_t v) noexcept
         {
             (_mm256_store_ps(&mem[I * Traits::RegLanes], v.v[I]), ...);
@@ -60,6 +72,18 @@ namespace detail
                 return;
 
             std::memcpy(mem, v.v, sizeof(float32) * count);
+        }
+
+        KSIMD_API(void) store_float16(float16* mem, typename Traits::batch_t v) noexcept
+        {
+            (_mm_store_si128(reinterpret_cast<__m128i*>(&mem[I * Traits::RegLanes]),
+                _mm256_cvtps_ph(v.v[I], _MM_FROUND_TO_NEAREST_INT)), ...);
+        }
+
+        KSIMD_API(void) storeu_float16(float16* mem, typename Traits::batch_t v) noexcept
+        {
+            (_mm_storeu_si128(reinterpret_cast<__m128i*>(&mem[I * Traits::RegLanes]),
+                _mm256_cvtps_ph(v.v[I], _MM_FROUND_TO_NEAREST_INT)), ...);
         }
 
         KSIMD_API(typename Traits::batch_t) undefined() noexcept

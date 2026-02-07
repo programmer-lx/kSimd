@@ -38,7 +38,7 @@ using int64  = int64_t  ;
 using uint64 = uint64_t ;
 
 // floating point
-using float16 = uint16; // 不定义 enum class，只定义宽度
+enum class float16 : uint16 {};
 using float32 = float;
 using float64 = double;
 static_assert(sizeof(float32) == 4 && std::numeric_limits<float32>::is_iec559);
@@ -47,7 +47,7 @@ static_assert(sizeof(float64) == 8 && std::numeric_limits<float64>::is_iec559);
 // clang-format on
 
 template<typename T>
-concept is_scalar_floating_point = std::is_same_v<T, float32> || std::is_same_v<T, float64>;
+concept is_scalar_floating_point = std::is_same_v<T, float16> || std::is_same_v<T, float32> || std::is_same_v<T, float64>;
 
 template<typename T>
 concept is_scalar_type =

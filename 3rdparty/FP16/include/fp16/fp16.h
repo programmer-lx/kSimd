@@ -306,7 +306,7 @@ static inline uint16_t fp16_ieee_from_fp32_value(float f) {
 	const uint32_t exp_bits = (bits >> 13) & UINT32_C(0x00007C00);
 	const uint32_t mantissa_bits = bits & UINT32_C(0x00000FFF);
 	const uint32_t nonsign = exp_bits + mantissa_bits;
-	return (sign >> 16) | (shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign);
+	return (uint16_t)((sign >> 16) | (shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign));
 #endif
 }
 
