@@ -119,7 +119,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // --- 执行测试: merge<0, 1, 2, 3> ---
         // 你的实现逻辑: _mm256_shuffle_ps(a.v[0], b.v[0], imm8)
         // 物理上 v[0] 包含了逻辑 Block 0 和 Block 1
-        auto res = op::merge<0, 1, 2, 3>(batch_a, batch_b);
+        auto res = op::merge<op::X, op::Y, op::Z, op::W>(batch_a, batch_b);
         op::store(result, res);
 
         // 2. 遍历所有逻辑块进行校验
@@ -136,7 +136,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // --- 3. 验证复杂的逻辑索引映射 merge<3, 0, 1, 2> ---
         // 预期: 逻辑槽位 01 来自 A 的 30, 逻辑槽位 23 来自 B 的 12
-        auto res_shuffle = op::merge<3, 0, 1, 2>(batch_a, batch_b);
+        auto res_shuffle = op::merge<op::W, op::X, op::Y, op::Z>(batch_a, batch_b);
         op::store(result, res_shuffle);
 
         for (size_t c = 0; c < LCount; ++c) {
@@ -184,7 +184,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // --- 测试场景 1: 逆序重排 <3, 2, 1, 0> ---
         // 预期结果：每个 Block 内部变为 [3, 2, 1, 0]
-        auto res_rev = op::permute<3, 2, 1, 0>(batch_in);
+        auto res_rev = op::permute<op::W, op::Z, op::Y, op::X>(batch_in);
         op::store(result, res_rev);
 
         for (size_t c = 0; c < LCount; ++c) {
@@ -197,7 +197,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // --- 测试场景 2: 广播重排 <0, 0, 0, 0> ---
         // 预期结果：每个 Block 第一个元素广播到全块
-        auto res_brd = op::permute<0, 0, 0, 0>(batch_in);
+        auto res_brd = op::permute<op::X, op::X, op::X, op::X>(batch_in);
         op::store(result, res_brd);
 
         for (size_t c = 0; c < LCount; ++c) {
@@ -209,7 +209,7 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // --- 测试场景 3: 交叉选择 <1, 0, 3, 2> ---
-        auto res_mix = op::permute<1, 0, 3, 2>(batch_in);
+        auto res_mix = op::permute<op::Y, op::X, op::W, op::Z>(batch_in);
         op::store(result, res_mix);
 
         for (size_t c = 0; c < LCount; ++c) {

@@ -52,6 +52,34 @@ struct PackedOpHelper<4>
     static constexpr int Y    = 0b0010;
     static constexpr int Z    = 0b0100;
     static constexpr int W    = 0b1000;
+
+    // internal
+    template<int mask>
+    static consteval int _internal_xyzw_mask_to_index_()
+    {
+        static_assert(mask == X || mask == Y || mask == Z || mask == W, "you should only use X, Y, Z, W enum.");
+
+        if constexpr (mask == X)
+        {
+            return 0;
+        }
+        else if constexpr (mask == Y)
+        {
+            return 1;
+        }
+        else if constexpr (mask == Z)
+        {
+            return 2;
+        }
+        else if constexpr (mask == W)
+        {
+            return 3;
+        }
+        else
+        {
+            return -1;
+        }
+    }
 };
 
 KSIMD_NAMESPACE_END
