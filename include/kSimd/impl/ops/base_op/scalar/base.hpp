@@ -635,7 +635,66 @@ namespace detail
     };
 
     template<typename Traits>
-    struct Executor_Scalar_float32 : Executor_Scalar_FloatingPoint_Base<Traits>
+    using Executor_Scalar_float32 = Executor_Scalar_FloatingPoint_Base<Traits>;
+
+    template<typename Traits>
+    using Executor_Scalar_float64 = Executor_Scalar_FloatingPoint_Base<Traits>;
+} // namespace detail
+
+
+// mixin functions
+namespace detail
+{
+    template<typename Traits>
+    struct Base_Mixin_Scalar
+    {
+        /**
+         * @return lane[0] + lane[1] + ... + lane[N]
+         */
+        KSIMD_API(typename Traits::scalar_t) reduce_add(typename Traits::batch_t v) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::scalar_t
+            {
+                return (v.v[I] + ...);
+            }(std::make_index_sequence<Traits::TotalLanes>{});
+        }
+
+        /**
+         * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
+         */
+        KSIMD_API(typename Traits::batch_t) sequence() noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
+            {
+                return { static_cast<typename Traits::scalar_t>(I)... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
+        }
+
+        /**
+         * @return [ base + 0, base + 1, base + 2, ... , base + TotalLanes - 1 ]
+         */
+        KSIMD_API(typename Traits::batch_t) sequence(auto base) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
+            {
+                return { (base + static_cast<typename Traits::scalar_t>(I))... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
+        }
+
+        /**
+         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((TotalLanes - 1) * stride) ]
+         */
+        KSIMD_API(typename Traits::batch_t) sequence(auto base, auto stride) noexcept
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> typename Traits::batch_t
+            {
+                return { (base + (static_cast<typename Traits::scalar_t>(I) * stride))... };
+            }(std::make_index_sequence<Traits::TotalLanes>{});
+        }
+    };
+    
+    template<typename Traits>
+    struct Base_Mixin_Scalar_f16c
     {
         /**
         * @return 加载 [mem : mem + sizeof(float16) * TotalLanes]，然后进行类型转换，将FP16提升为FP32
@@ -668,70 +727,7 @@ namespace detail
             store_float16(mem, v);
         }
     };
-
-    template<typename Traits>
-    using Executor_Scalar_float64 = Executor_Scalar_FloatingPoint_Base<Traits>;
-} // namespace detail
-
-
-// mixin functions
-#define KSIMD_BATCH_T vector_scalar::Batch<S, reg_count>
-namespace detail
-{
-    template<is_scalar_type S, size_t reg_count>
-    struct Base_Mixin_Scalar
-    {
-        /**
-         * @return lane[0] + lane[1] + ... + lane[N]
-         */
-        KSIMD_API(S) reduce_add(KSIMD_BATCH_T v) noexcept
-        {
-            using traits = BaseOpTraits_Scalar<S, reg_count>;
-            return [&]<size_t... I>(std::index_sequence<I...>) -> S
-            {
-                return (v.v[I] + ...);
-            }(std::make_index_sequence<traits::TotalLanes>{});
-        }
-
-        /**
-         * @return [ 0, 1, 2, ... , TotalLanes - 1 ]
-         */
-        KSIMD_API(KSIMD_BATCH_T) sequence() noexcept
-        {
-            using traits = BaseOpTraits_Scalar<S, reg_count>;
-
-            return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
-            {
-                return { static_cast<S>(I)... };
-            }(std::make_index_sequence<traits::TotalLanes>{});
-        }
-
-        /**
-         * @return [ base + 0, base + 1, base + 2, ... , base + TotalLanes - 1 ]
-         */
-        KSIMD_API(KSIMD_BATCH_T) sequence(auto base) noexcept
-        {
-            using traits = BaseOpTraits_Scalar<S, reg_count>;
-            return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
-            {
-                return { (base + static_cast<S>(I))... };
-            }(std::make_index_sequence<traits::TotalLanes>{});
-        }
-
-        /**
-         * @return [ base + (0 * stride), base + (1 * stride), ... , base + ((TotalLanes - 1) * stride) ]
-         */
-        KSIMD_API(KSIMD_BATCH_T) sequence(auto base, auto stride) noexcept
-        {
-            using traits = BaseOpTraits_Scalar<S, reg_count>;
-            return [&]<size_t... I>(std::index_sequence<I...>) -> KSIMD_BATCH_T
-            {
-                return { (base + (static_cast<S>(I) * stride))... };
-            }(std::make_index_sequence<traits::TotalLanes>{});
-        }
-    };
 }
-#undef KSIMD_BATCH_T
 
 // -------------------------------- operators --------------------------------
 namespace vector_scalar

@@ -16,10 +16,10 @@ namespace detail
 {
     // AVX2_FMA3_F16C
     template<typename Traits, typename = void>
-    struct Executor_AVX2_FMA3_F16C_Impl_float32;
+    struct Executor_AVX2_FMA3_F16C_float32_Impl;
     
     template<typename Traits, size_t... I>
-    struct Executor_AVX2_FMA3_F16C_Impl_float32<Traits, std::index_sequence<I...>> : BaseOpHelper
+    struct Executor_AVX2_FMA3_F16C_float32_Impl<Traits, std::index_sequence<I...>> : BaseOpHelper
     {
         KSIMD_API(typename Traits::batch_t) load(const float32* mem) noexcept
         {
@@ -43,18 +43,6 @@ namespace detail
             return res;
         }
 
-        KSIMD_API(typename Traits::batch_t) load_float16(const float16* mem) noexcept
-        {
-            // __m128i f16 = _mm_load_si128(reinterpret_cast<const __m128i*>(mem));
-            // __m256 f32 = _mm256_cvtph_ps(_mm_load_si128(reinterpret_cast<const __m128i*>(mem)));
-            return { _mm256_cvtph_ps(_mm_load_si128(reinterpret_cast<const __m128i*>(&mem[I * Traits::RegLanes])))... };
-        }
-
-        KSIMD_API(typename Traits::batch_t) loadu_float16(const float16* mem) noexcept
-        {
-            return { _mm256_cvtph_ps(_mm_loadu_si128(reinterpret_cast<const __m128i*>(&mem[I * Traits::RegLanes])))... };
-        }
-
         KSIMD_API(void) store(float32* mem, typename Traits::batch_t v) noexcept
         {
             (_mm256_store_ps(&mem[I * Traits::RegLanes], v.v[I]), ...);
@@ -72,18 +60,6 @@ namespace detail
                 return;
 
             std::memcpy(mem, v.v, sizeof(float32) * count);
-        }
-
-        KSIMD_API(void) store_float16(float16* mem, typename Traits::batch_t v) noexcept
-        {
-            (_mm_store_si128(reinterpret_cast<__m128i*>(&mem[I * Traits::RegLanes]),
-                _mm256_cvtps_ph(v.v[I], _MM_FROUND_TO_NEAREST_INT)), ...);
-        }
-
-        KSIMD_API(void) storeu_float16(float16* mem, typename Traits::batch_t v) noexcept
-        {
-            (_mm_storeu_si128(reinterpret_cast<__m128i*>(&mem[I * Traits::RegLanes]),
-                _mm256_cvtps_ph(v.v[I], _MM_FROUND_TO_NEAREST_INT)), ...);
         }
 
         KSIMD_API(typename Traits::batch_t) undefined() noexcept
@@ -233,11 +209,10 @@ namespace detail
     };
 
     template<typename Traits, size_t reg_count>
-    using Executor_AVX2_FMA3_F16C_float32 = Executor_AVX2_FMA3_F16C_Impl_float32<Traits, std::make_index_sequence<reg_count>>;
+    using Executor_AVX2_FMA3_F16C_float32 = Executor_AVX2_FMA3_F16C_float32_Impl<Traits, std::make_index_sequence<reg_count>>;
 }
 
 // -------------------------------- operators --------------------------------
-// mask type = __m256
 namespace x86_vector256
 {
     #define KSIMD_UNROLL_BINARY_OP(intrinsic) \
@@ -401,16 +376,50 @@ namespace detail
             return { _mm256_fmadd_ps(stride_v, iota, base_v) };
         }
     };
+
+    template<typename Traits, typename = void>
+    struct Base_Mixin_AVX2_FMA3_F16C_f16c_Impl;
+
+    template<typename Traits, size_t... I>
+    struct Base_Mixin_AVX2_FMA3_F16C_f16c_Impl<Traits, std::index_sequence<I...>>
+    {
+        KSIMD_API(typename Traits::batch_t) load_float16(const float16* mem) noexcept
+        {
+            // __m128i f16 = _mm_load_si128(reinterpret_cast<const __m128i*>(mem));
+            // __m256 f32 = _mm256_cvtph_ps(_mm_load_si128(reinterpret_cast<const __m128i*>(mem)));
+            return { _mm256_cvtph_ps(_mm_load_si128(reinterpret_cast<const __m128i*>(&mem[I * Traits::RegLanes])))... };
+        }
+
+        KSIMD_API(typename Traits::batch_t) loadu_float16(const float16* mem) noexcept
+        {
+            return { _mm256_cvtph_ps(_mm_loadu_si128(reinterpret_cast<const __m128i*>(&mem[I * Traits::RegLanes])))... };
+        }
+
+        KSIMD_API(void) store_float16(float16* mem, typename Traits::batch_t v) noexcept
+        {
+            (_mm_store_si128(reinterpret_cast<__m128i*>(&mem[I * Traits::RegLanes]),
+                _mm256_cvtps_ph(v.v[I], _MM_FROUND_TO_NEAREST_INT)), ...);
+        }
+
+        KSIMD_API(void) storeu_float16(float16* mem, typename Traits::batch_t v) noexcept
+        {
+            (_mm_storeu_si128(reinterpret_cast<__m128i*>(&mem[I * Traits::RegLanes]),
+                _mm256_cvtps_ph(v.v[I], _MM_FROUND_TO_NEAREST_INT)), ...);
+        }
+    };
+
+    template<typename Traits, size_t RegCount>
+    using Base_Mixin_AVX2_FMA3_F16C_f16c = Base_Mixin_AVX2_FMA3_F16C_f16c_Impl<Traits, std::make_index_sequence<RegCount>>;
 }
 
 // mask operation mixin
 namespace detail
 {
     template<typename Traits, typename = void>
-    struct Base_Mixin_Mask_m256_AVX2_FMA3_F16C_Impl_float32;
+    struct Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32_Impl;
 
     template<typename Traits, size_t... I>
-    struct Base_Mixin_Mask_m256_AVX2_FMA3_F16C_Impl_float32<Traits, std::index_sequence<I...>>
+    struct Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32_Impl<Traits, std::index_sequence<I...>>
     {
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float32* mem, typename Traits::mask_t mask) noexcept
@@ -524,23 +533,28 @@ namespace detail
     };
 
     template<typename Traits, size_t reg_count>
-    using Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32 = Base_Mixin_Mask_m256_AVX2_FMA3_F16C_Impl_float32<Traits, std::make_index_sequence<reg_count>>;
+    using Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32 = Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32_Impl<Traits, std::make_index_sequence<reg_count>>;
 }
 
+#define KSIMD_TRAITS BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32>
     // traits
-    : BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
+    : KSIMD_TRAITS
 
     // executor
-    , detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+    , detail::Executor_AVX2_FMA3_F16C_float32<KSIMD_TRAITS, 1>
 
     // __m256 mask mixin
-    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<KSIMD_TRAITS, 1>
 
     // horizontal operations mixin
-    , detail::Base_Mixin_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>>
+    , detail::Base_Mixin_AVX2_FMA3_F16C_float32<KSIMD_TRAITS>
+
+    // f16c load store set functions
+    , detail::Base_Mixin_AVX2_FMA3_F16C_f16c<KSIMD_TRAITS, 1>
 {};
+#undef KSIMD_TRAITS
 
 KSIMD_NAMESPACE_END
 

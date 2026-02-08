@@ -14,10 +14,10 @@ namespace detail
 {
     // AVX2_FMA3_F16C
     template<typename Traits, typename = void>
-    struct Executor_AVX2_FMA3_F16C_Impl_float64;
+    struct Executor_AVX2_FMA3_F16C_float64_Impl;
 
     template<typename Traits, size_t... I>
-    struct Executor_AVX2_FMA3_F16C_Impl_float64<Traits, std::index_sequence<I...>> : BaseOpHelper
+    struct Executor_AVX2_FMA3_F16C_float64_Impl<Traits, std::index_sequence<I...>> : BaseOpHelper
     {
         KSIMD_API(typename Traits::batch_t) load(const float64* mem) noexcept
         {
@@ -208,7 +208,7 @@ namespace detail
     };
 
     template<typename Traits, size_t reg_count>
-    using Executor_AVX2_FMA3_F16C_float64 = Executor_AVX2_FMA3_F16C_Impl_float64<Traits, std::make_index_sequence<reg_count>>;
+    using Executor_AVX2_FMA3_F16C_float64 = Executor_AVX2_FMA3_F16C_float64_Impl<Traits, std::make_index_sequence<reg_count>>;
 }
 
 // -------------------------------- operators --------------------------------
@@ -382,10 +382,10 @@ namespace detail
 namespace detail
 {
     template<typename Traits, typename = void>
-    struct Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_Impl_float64;
+    struct Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64_Impl;
 
     template<typename Traits, size_t... I>
-    struct Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_Impl_float64<Traits, std::index_sequence<I...>>
+    struct Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64_Impl<Traits, std::index_sequence<I...>>
     {
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float64* mem, typename Traits::mask_t mask) noexcept
@@ -499,23 +499,25 @@ namespace detail
     };
 
     template<typename Traits, size_t reg_count>
-    using Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64 = Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_Impl_float64<Traits, std::make_index_sequence<reg_count>>;
+    using Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64 = Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64_Impl<Traits, std::make_index_sequence<reg_count>>;
 }
 
+#define KSIMD_TRAITS BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>
 template<>
 struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float64>
     // traits
-    : BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>
+    : KSIMD_TRAITS
 
     // executor
-    , detail::Executor_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>, 1>
+    , detail::Executor_AVX2_FMA3_F16C_float64<KSIMD_TRAITS, 1>
 
     // __m256d mask mixin
-    , detail::Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64<BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>, 1>
+    , detail::Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64<KSIMD_TRAITS, 1>
 
     // horizontal mixin
-    , detail::Base_Mixin_AVX2_FMA3_float64<BaseOpTraits_AVX_Family<float64, 1, x86_vector256::Mask<float64, 1>>>
+    , detail::Base_Mixin_AVX2_FMA3_float64<KSIMD_TRAITS>
 {};
+#undef KSIMD_TRAITS
 
 KSIMD_NAMESPACE_END
 
