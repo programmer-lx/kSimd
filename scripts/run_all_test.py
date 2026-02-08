@@ -26,9 +26,9 @@ def get_compiler_configs(test_mode):
     if OS_NAME == "windows":
         print("--- Windows Environment Detected ---")
         all_configs = [
-            ("MSVC",   "cl",                     "cl",                     "msvc"),
-            ("MinGW",  "x86_64-w64-mingw32-gcc", "x86_64-w64-mingw32-g++", "mingw"),
             ("Clang",  "clang",                  "clang++",                "clang"),
+            ("MSVC",   "cl",                     "cl",                     "msvc"),
+            ("MinGW",  "x86_64-w64-mingw32-gcc", "x86_64-w64-mingw32-g++", "mingw")
         ]
     elif OS_NAME == "linux":
         print("--- Linux Environment Detected ---")
