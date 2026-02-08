@@ -696,6 +696,8 @@ namespace detail
     template<typename Traits>
     struct Base_Mixin_Scalar_f16c
     {
+        static_assert(std::is_same_v<typename Traits::scalar_t, float32>);
+
         /**
         * @return 加载 [mem : mem + sizeof(float16) * TotalLanes]，然后进行类型转换，将FP16提升为FP32
         */

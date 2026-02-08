@@ -19,6 +19,8 @@ namespace detail
     template<typename Traits, size_t... I>
     struct Executor_AVX2_FMA3_F16C_float64_Impl<Traits, std::index_sequence<I...>> : BaseOpHelper
     {
+        static_assert(std::is_same_v<typename Traits::scalar_t, float64>);
+
         KSIMD_API(typename Traits::batch_t) load(const float64* mem) noexcept
         {
             return { _mm256_load_pd(&mem[I * Traits::RegLanes])... };
@@ -344,6 +346,8 @@ namespace detail
     template<typename Traits>
     struct Base_Mixin_AVX2_FMA3_float64
     {
+        static_assert(std::is_same_v<typename Traits::scalar_t, float64>);
+
         KSIMD_API(float64) reduce_add(typename Traits::batch_t v) noexcept
         {
             __m128d low = _mm256_castpd256_pd128(v.v[0]);
@@ -387,6 +391,8 @@ namespace detail
     template<typename Traits, size_t... I>
     struct Base_Mixin_Mask_m256d_AVX2_FMA3_F16C_float64_Impl<Traits, std::index_sequence<I...>>
     {
+        static_assert(std::is_same_v<typename Traits::scalar_t, float64>);
+
         #if defined(KSIMD_IS_TESTING)
         KSIMD_API(void) test_store_mask(float64* mem, typename Traits::mask_t mask) noexcept
         {
