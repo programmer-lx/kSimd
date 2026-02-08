@@ -5,7 +5,7 @@
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
 
 // 下面这两个文件一定要放在dispatch_this_file.hpp之后
-#include <kSimd/base_op.hpp>
+#include <kSimd/op.hpp>
 #include <kSimd_extension/vmath.hpp>
 
 // ------------------------------------------ clamp ------------------------------------------
@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void clamp() noexcept
     {
-        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        using op = KSIMD_DYN_OP(TYPE_T);
         constexpr size_t Lanes = op::TotalLanes;
         namespace ext = ksimd::ext::KSIMD_DYN_INSTRUCTION;
 

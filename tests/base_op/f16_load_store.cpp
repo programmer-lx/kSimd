@@ -3,7 +3,7 @@
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/f16_load_store.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/base_op.hpp>
+#include <kSimd/op.hpp>
 
 using namespace ksimd;
 
@@ -13,7 +13,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void fp16_io_aligned() noexcept
     {
-        using op = KSIMD_DYN_BASE_OP(float32);
+        using op = KSIMD_DYN_OP(float32);
         constexpr size_t Lanes = op::TotalLanes;
 
         alignas(op::BatchAlignment) float32 input_f32[Lanes];
@@ -59,7 +59,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void fp16_io_unaligned() noexcept
     {
-        using op = KSIMD_DYN_BASE_OP(float32);
+        using op = KSIMD_DYN_OP(float32);
         constexpr size_t Lanes = op::TotalLanes;
 
         // 构造非对齐内存环境

@@ -3,7 +3,7 @@
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/SIGNED_T/signed.inl" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/base_op.hpp>
+#include <kSimd/op.hpp>
 
 using namespace ksimd;
 
@@ -13,7 +13,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void abs() noexcept
     {
-        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        using op = KSIMD_DYN_OP(TYPE_T);
         constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T test[Lanes]{};
 
@@ -46,7 +46,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void neg() noexcept
     {
-        using op = KSIMD_DYN_BASE_OP(TYPE_T);
+        using op = KSIMD_DYN_OP(TYPE_T);
         constexpr size_t Lanes = op::TotalLanes;
         alignas(ALIGNMENT) TYPE_T src[Lanes];
         alignas(ALIGNMENT) TYPE_T dst[Lanes];

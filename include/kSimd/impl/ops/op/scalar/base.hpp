@@ -12,7 +12,7 @@
 
 #include "traits.hpp"
 #include "kSimd/impl/func_attr.hpp"
-#include "kSimd/impl/ops/base_op/BaseOp.hpp"
+#include "kSimd/impl/ops/op/Op.hpp"
 #include "kSimd/impl/ops/vector_types/scalar.hpp"
 #include "kSimd/impl/number.hpp"
 
@@ -430,7 +430,7 @@ namespace detail
     template<typename Traits>
     struct Executor_Scalar_FloatingPoint_Base
         : Executor_Scalar_Signed_Base<Traits>
-        , BaseOpHelper
+        , OpHelper
     {
 #pragma region arithmetic 算术
         /**

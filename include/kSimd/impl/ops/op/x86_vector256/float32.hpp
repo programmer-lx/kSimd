@@ -4,7 +4,7 @@
 
 #include "traits.hpp"
 #include "kSimd/impl/ops/vector_types/x86_vector256.hpp"
-#include "kSimd/impl/ops/base_op/BaseOp.hpp"
+#include "kSimd/impl/ops/op/Op.hpp"
 #include "kSimd/impl/func_attr.hpp"
 #include "kSimd/impl/number.hpp"
 
@@ -19,7 +19,7 @@ namespace detail
     struct Executor_AVX2_FMA3_F16C_float32_Impl;
     
     template<typename Traits, size_t... I>
-    struct Executor_AVX2_FMA3_F16C_float32_Impl<Traits, std::index_sequence<I...>> : BaseOpHelper
+    struct Executor_AVX2_FMA3_F16C_float32_Impl<Traits, std::index_sequence<I...>> : OpHelper
     {
         static_assert(std::is_same_v<typename Traits::scalar_t, float32>);
 
@@ -546,7 +546,7 @@ namespace detail
 
 #define KSIMD_TRAITS BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32>
+struct Op<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32>
     // traits
     : KSIMD_TRAITS
 

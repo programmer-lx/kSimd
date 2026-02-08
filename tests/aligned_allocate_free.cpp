@@ -1,7 +1,7 @@
 #include <vector>
 
 #include <kSimd/aligned_allocate.hpp>
-#include <kSimd/base_op.hpp>
+#include <kSimd/op.hpp>
 
 #include "test.hpp"
 

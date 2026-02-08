@@ -6,7 +6,7 @@
 #define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
 #include <kSimd/dispatch_this_file.hpp>
 
-#include <kSimd/base_op.hpp>
+#include <kSimd/op.hpp>
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
@@ -34,7 +34,7 @@ TEST(base_op, float32)
 
     // scalar
     {
-        using op = BaseOp<SimdInstruction::Scalar, float32>;
+        using op = Op<SimdInstruction::Scalar, float32>;
         using batch_t = op::batch_t;
         static_assert(alignof(batch_t) == 16);
 
@@ -50,7 +50,7 @@ TEST(base_op, float32)
     }
     // avx2+fma3
     {
-        using op = BaseOp<SimdInstruction::AVX2_FMA3_F16C, float32>;
+        using op = Op<SimdInstruction::AVX2_FMA3_F16C, float32>;
         using batch_t = op::batch_t;
         static_assert(alignof(batch_t) == 32);
         static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));
@@ -73,7 +73,7 @@ TEST(base_op, float64)
 
     // scalar
     {
-        using op = BaseOp<SimdInstruction::Scalar, float64>;
+        using op = Op<SimdInstruction::Scalar, float64>;
         using batch_t = op::batch_t;
         static_assert(alignof(batch_t) == 16);
 
@@ -89,7 +89,7 @@ TEST(base_op, float64)
     }
     // avx2+fma3
     {
-        using op = BaseOp<SimdInstruction::AVX2_FMA3_F16C, float64>;
+        using op = Op<SimdInstruction::AVX2_FMA3_F16C, float64>;
         using batch_t = op::batch_t;
         static_assert(alignof(batch_t) == 32);
         static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float64, 1>>));

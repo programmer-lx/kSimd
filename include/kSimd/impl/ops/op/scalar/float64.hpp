@@ -6,7 +6,7 @@ KSIMD_NAMESPACE_BEGIN
 
 #define KSIMD_TRAITS BaseOpTraits_Scalar<float64, 1>
 template<>
-struct BaseOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64>
+struct Op<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float64>
     : KSIMD_TRAITS
 
     // executor
