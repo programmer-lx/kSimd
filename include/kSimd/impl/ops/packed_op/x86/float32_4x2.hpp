@@ -6,16 +6,17 @@
 KSIMD_NAMESPACE_BEGIN
 
 #define KSIMD_API(...) KSIMD_OP_AVX2_FMA3_F16C_API static __VA_ARGS__ KSIMD_CALL_CONV
+#define KSIMD_TRAITS BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
 template<>
 struct PackedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32, 4, 2>
     // traits
-    : BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>
+    : KSIMD_TRAITS
 
     // executor
-    , detail::Executor_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+    , detail::Executor_AVX2_FMA3_F16C_float32<KSIMD_TRAITS, 1>
 
     // __m256 mask mixin
-    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<BaseOpTraits_AVX_Family<float32, 1, x86_vector256::Mask<float32, 1>>, 1>
+    , detail::Base_Mixin_Mask_m256_AVX2_FMA3_F16C_float32<KSIMD_TRAITS, 1>
 
     , PackedOpHelper<4>
     , PackedOpInfo<4, 2>
@@ -71,6 +72,7 @@ struct PackedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C, float32, 
         return { _mm256_permute_ps(v.v[0], imm8) };
     }
 };
+#undef KSIMD_TRAITS
 #undef KSIMD_API
 
 KSIMD_NAMESPACE_END

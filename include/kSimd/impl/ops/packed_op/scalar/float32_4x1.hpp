@@ -7,11 +7,11 @@ KSIMD_NAMESPACE_BEGIN
 
 
 #define KSIMD_API(ret) KSIMD_OP_SCALAR_API static ret KSIMD_CALL_CONV
-
+#define KSIMD_TRAITS BaseOpTraits_Scalar<float32, 1>
 template<>
 struct PackedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
-    : BaseOpTraits_Scalar<float32, 1> // traits
-    , detail::Executor_Scalar_FloatingPoint_Base<BaseOpTraits_Scalar<float32, 1>> // executor
+    : KSIMD_TRAITS // traits
+    , detail::Executor_Scalar_FloatingPoint_Base<KSIMD_TRAITS> // executor
     , PackedOpInfo<4, 1>
     , PackedOpHelper<4>
 {
@@ -72,7 +72,7 @@ struct PackedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
         };
     }
 };
-
+#undef KSIMD_TRAITS
 #undef KSIMD_API
 
 
