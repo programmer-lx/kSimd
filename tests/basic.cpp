@@ -7,7 +7,7 @@
 #include <kSimd/dispatch_this_file.hpp>
 
 #include <kSimd/base_op.hpp>
-#include <kSimd/fixed_op.hpp>
+#include <kSimd/packed_op.hpp>
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
@@ -113,7 +113,7 @@ TEST(fixed_op_float32_4x1, float32)
 
     // scalar
     {
-        using op = FixedOp<SimdInstruction::Scalar, float32, 4, 1>;
+        using op = PackedOp<SimdInstruction::Scalar, float32, 4, 1>;
         using batch_t = op::batch_t;
         static_assert(alignof(batch_t) == 16);
 
@@ -139,7 +139,7 @@ TEST(fixed_op_float32_4x2, float32)
     using namespace ksimd;
     // avx2+fma3
     {
-        using op = FixedOp<SimdInstruction::AVX2_FMA3_F16C, float32, 4, 2>;
+        using op = PackedOp<SimdInstruction::AVX2_FMA3_F16C, float32, 4, 2>;
         using batch_t = op::batch_t;
         static_assert(alignof(batch_t) == 32);
         static_assert((std::is_same_v<op::batch_t, x86_vector256::Batch<float32, 1>>));

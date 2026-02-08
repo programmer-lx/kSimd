@@ -1,9 +1,9 @@
 #include "../../test.hpp"
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "fixed_op/ALL_TYPE_T/all_type.inl" // this file
+#define KSIMD_DISPATCH_THIS_FILE "packed_op/ALL_TYPE_T/all_type.inl" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/fixed_op.hpp>
+#include <kSimd/packed_op.hpp>
 
 using namespace ksimd;
 
@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void sequence() noexcept
     {
         // 假设通过外部注入或上下文获取 TYPE_T 和具体的 WIDTH
-        using op = KSIMD_DYN_FIXED_OP(TYPE_T, WIDTH);
+        using op = KSIMD_DYN_PACKED_OP(TYPE_T, WIDTH);
         
         constexpr size_t Lanes = op::TotalLanes; // 总通道数 (e.g., 8)
         constexpr size_t VecWidth = op::Width;   // 单个向量宽度 (e.g., 4)
@@ -87,7 +87,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void merge_width4() noexcept
     {
         // 显式获取逻辑宽度为 4 的算子
-        using op = KSIMD_DYN_FIXED_OP(TYPE_T, 4);
+        using op = KSIMD_DYN_PACKED_OP(TYPE_T, 4);
 
         // 逻辑属性
         constexpr size_t LCount = op::Count;   // 逻辑块数量 (对于 AVX float32 是 2)
@@ -160,7 +160,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void permute_logic_width4() noexcept
     {
         // 强制使用逻辑宽度为 4 的算子 (TYPE_T 可为 float32 或 float64)
-        using op = KSIMD_DYN_FIXED_OP(TYPE_T, 4);
+        using op = KSIMD_DYN_PACKED_OP(TYPE_T, 4);
         
         constexpr size_t LCount = op::Count;      // 逻辑块数量 (e.g., AVX下float32为2, float64为1)
         constexpr size_t LWidth = op::Width;      // 逻辑宽度 (固定为 4)

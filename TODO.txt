@@ -1,2 +1,0 @@
-- 重写Scalar FixedOp float32 4x1 的 sequence 函数，而不是直接继承 Base_Mixin_Scalar
-- 重写TypeOp，将其展开，而不是写死v.v[0]

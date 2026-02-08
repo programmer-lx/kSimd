@@ -8,7 +8,7 @@
 https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-to-Steam?l=schinese
 
 数据显示，95%以上的用户支持AVX2 + FMA3 + F16C，所以决定不再开发SSE家族的指令抽象。
-目前，kSimd库支持两个分发路径: 1. AVX2+FMA3+16C; 2. Scalar (fallback)
+目前，kSimd库支持两个分发路径: 1. AVX2+FMA3+F16C; 2. Scalar (fallback)
 
 由于AVX512只有20%的用户支持，所以将AVX512的开发周期延后。
 
@@ -44,12 +44,14 @@ Executor的作用是：封装所有的SIMD垂直指令，在不知道 reg_count 
 1. 直接继承 Executor ，继承其所有垂直操作，并特化 Executor 的 reg_count为 1
 2. 继承相关的 mixin 类，补充 reg_count == 1 的水平操作和mask操作
 
-## FixedOp\<Instruction, ScalarType, Width, Count\>
+## PackedOp\<Instruction, ScalarType, Width, Count\>
 Instruction: 指令集，不需要自动填写，在动态分发的过程中，由宏帮忙填写
 
 Width：一批数据的宽度
 Count：有多少批数据
 比如FixedOp\<AVX2, float32, 4, 2\>表示 float32 4x2，如果调用 dot 函数，就意味着对高128bit和低128bit分别点乘。
+
+在动态分发中，开发者只需要指定Width，Count由库自动决定。
 
 FixedOp用于操作固定Lanes的SIMD类型，可支持多种水平操作，以及对同一块内存的多种理解，比如float32 8x1, float32 4x2等。
 

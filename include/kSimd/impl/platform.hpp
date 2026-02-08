@@ -164,16 +164,7 @@ KSIMD_NAMESPACE_END
 
 
 // 统一包含所有 intrinsics headers
-
-#if defined(KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY)
-    #include <xmmintrin.h> // SSE
-    #include <emmintrin.h> // SSE2
-    #include <pmmintrin.h> // SSE3
-    #include <tmmintrin.h> // SSSE3
-    #include <smmintrin.h> // SSE4.1
-#endif
-
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY)
+#if defined(KSIMD_ARCH_X86_ANY)
     #include <xmmintrin.h> // SSE
     #include <emmintrin.h> // SSE2
     #include <pmmintrin.h> // SSE3

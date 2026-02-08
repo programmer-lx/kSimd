@@ -16,22 +16,22 @@ namespace detail
 }
 
 template<SimdInstruction Instruction, is_scalar_type ScalarType, size_t Width, size_t Count>
-struct FixedOp;
+struct PackedOp;
 
-#define KSIMD_DETAIL_DYN_FIXED_OP_COUNT(scalar_type, width, count) \
-    KSIMD_NAMESPACE_NAME::FixedOp<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, \
+#define KSIMD_DETAIL_DYN_PACKED_OP_COUNT(scalar_type, width, count) \
+    KSIMD_NAMESPACE_NAME::PackedOp<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, \
         scalar_type, width, count>
 
 
-#define KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width) \
+#define KSIMD_DETAIL_MAX_COUNT_OF_PACKED_OP(scalar_type, width) \
     KSIMD_NAMESPACE_NAME::detail::max_count_of_fixed_op<KSIMD_NAMESPACE_NAME::SimdInstruction::KSIMD_DYN_INSTRUCTION, \
         scalar_type, width>()
 
-#define KSIMD_DYN_FIXED_OP(scalar_type, width) \
-    KSIMD_DETAIL_DYN_FIXED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_FIXED_OP(scalar_type, width))
+#define KSIMD_DYN_PACKED_OP(scalar_type, width) \
+    KSIMD_DETAIL_DYN_PACKED_OP_COUNT(scalar_type, width, KSIMD_DETAIL_MAX_COUNT_OF_PACKED_OP(scalar_type, width))
 
 template<size_t width, size_t count>
-struct FixedOpInfo
+struct PackedOpInfo
 {
     static constexpr size_t Width = width;
     static constexpr size_t Count = count;
@@ -39,10 +39,10 @@ struct FixedOpInfo
 
 // helper类，提供各种辅助操作(掩码等)，由最顶层FixedOp继承他
 template<size_t Width>
-struct FixedOpHelper;
+struct PackedOpHelper;
 
 template<>
-struct FixedOpHelper<4>
+struct PackedOpHelper<4>
 {
     // masks
     static constexpr int All  = 0b1111;

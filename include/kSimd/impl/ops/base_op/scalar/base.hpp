@@ -425,7 +425,7 @@ namespace detail
     };
 
     /**
-     * @brief 只有 float32, float64 数据类型才有的函数
+     * @brief 只有 float16, float32, float64 数据类型才有的函数
      */
     template<typename Traits>
     struct Executor_Scalar_FloatingPoint_Base

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "kSimd/impl/ops/base_op/scalar/float32.hpp"
-#include "kSimd/impl/ops/fixed_op/FixedOp.hpp"
+#include "kSimd/impl/ops/packed_op/PackedOp.hpp"
 
 KSIMD_NAMESPACE_BEGIN
 
@@ -9,11 +9,11 @@ KSIMD_NAMESPACE_BEGIN
 #define KSIMD_API(ret) KSIMD_OP_SCALAR_API static ret KSIMD_CALL_CONV
 
 template<>
-struct FixedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
+struct PackedOp<SimdInstruction::KSIMD_DYN_INSTRUCTION_SCALAR, float32, 4, 1>
     : BaseOpTraits_Scalar<float32, 1> // traits
     , detail::Executor_Scalar_FloatingPoint_Base<BaseOpTraits_Scalar<float32, 1>> // executor
-    , FixedOpInfo<4, 1>
-    , FixedOpHelper<4>
+    , PackedOpInfo<4, 1>
+    , PackedOpHelper<4>
 {
     KSIMD_API(batch_t) sequence() noexcept
     {

@@ -1,9 +1,9 @@
 #include "../../test.hpp"
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "fixed_op/FLOAT_T/floating_point.inl" // this file
+#define KSIMD_DISPATCH_THIS_FILE "packed_op/FLOAT_T/floating_point.inl" // this file
 #include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/fixed_op.hpp>
+#include <kSimd/packed_op.hpp>
 
 using namespace ksimd;
 
