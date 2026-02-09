@@ -5,7 +5,7 @@
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/FLOAT_T/floating_point.inl" // this file
 #include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/core/core.hpp>
+#include <kSimd/core/dispatch_core.hpp>
 
 #if 0
 

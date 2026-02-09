@@ -1,7 +1,9 @@
 #include <vector>
 
+#include <xmmintrin.h>
+#include <immintrin.h>
+
 #include <kSimd/core/aligned_allocate.hpp>
-#include <kSimd/core/core.hpp>
 #include <kSimd/core/impl/func_attr.hpp>
 
 #include "test.hpp"

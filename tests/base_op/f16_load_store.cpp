@@ -3,7 +3,7 @@
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/f16_load_store.cpp" // this file
 #include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/core/core.hpp>
+#include <kSimd/core/dispatch_core.hpp>
 
 using namespace ksimd;
 

@@ -4,10 +4,10 @@
 
 #include "platform.hpp"
 #include "dyn_instruction_name.hpp"
+#include "dyn_dispatch_level.hpp"
 
 // instruction充当命名空间
-#define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction) \
-    &instruction::func_name,
+#define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction) &instruction::func_name,
 
 #define KSIMD_DETAIL_ONE_EMPTY_FUNC
 
@@ -85,4 +85,5 @@ namespace ksimd
 
 // --------------------------------- FUNC_ATTR字符串描述 ---------------------------------
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
-#define KSIMD_DYN_FUNC_ATTR "you should include your file after include <kSimd/dispatch_this_file.hpp>"
+#define KSIMD_DYN_FUNC_ATTR "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+#define KSIMD_DYN_DISPATCH_LEVEL "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"

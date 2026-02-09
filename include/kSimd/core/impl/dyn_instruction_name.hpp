@@ -3,7 +3,7 @@
 #include "platform.hpp"
 
 // --------------------------------- KSIMD_DYN_INSTRUCTION names ---------------------------------
-#define KSIMD_DYN_INSTRUCTION_SCALAR   Scalar
+#define KSIMD_DYN_INSTRUCTION_SCALAR   SCALAR
 #define KSIMD_DYN_INSTRUCTION_AVX2_MAX AVX2_MAX
 
 

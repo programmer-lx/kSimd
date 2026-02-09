@@ -1,6 +1,8 @@
 #include <iostream>
 
-#include <kSimd/core/core.hpp>
+#include <immintrin.h>
+
+#include <kSimd/core/dispatch_core.hpp>
 
 #include "test.hpp"
 

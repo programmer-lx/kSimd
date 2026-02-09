@@ -6,7 +6,7 @@
 #define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
 #include <kSimd/core/dispatch_this_file.hpp>
 
-#include <kSimd/core/core.hpp>
+#include <kSimd/core/dispatch_core.hpp>
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 

@@ -101,11 +101,6 @@ namespace ksimd
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256 = 32;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512 = 64;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Max    = Vec512;
-
-        consteval size_t clamp(size_t a)
-        {
-            return a > Max ? Max : a;
-        }
     }
 
     struct CpuSupportInfo
@@ -142,14 +137,3 @@ namespace ksimd
 
     const CpuSupportInfo& get_cpu_support_info() noexcept;
 }
-
-
-// 统一包含所有 intrinsics headers
-// #if defined(KSIMD_ARCH_X86_ANY)
-//     #include <xmmintrin.h> // SSE
-//     #include <emmintrin.h> // SSE2
-//     #include <pmmintrin.h> // SSE3
-//     #include <tmmintrin.h> // SSSE3
-//     #include <smmintrin.h> // SSE4.1
-//     #include <immintrin.h> // AVX+
-// #endif
