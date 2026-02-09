@@ -1,4 +1,4 @@
-// dot not use include guard
+// do not use include guard
 
 #include "kSimd/IDE/IDE_hint.hpp"
 

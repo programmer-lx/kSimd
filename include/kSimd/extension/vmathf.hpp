@@ -18,7 +18,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION::vmathf
     KSIMD_API(Batch<S>) lerp(Batch<S> a, Batch<S> b, Batch<S> t) noexcept
     {
         // a + (b - a) * t
-        return op<S>::mul_add(b - a, t, a);
+        return op<S>::mul_add(op<S>::sub(b, a), t, a);
     }
 }
 
