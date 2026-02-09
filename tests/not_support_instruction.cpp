@@ -2,7 +2,7 @@
 
 #include <immintrin.h>
 
-#include <kSimd/core/dispatch_core.hpp>
+#include "kSimd/core/impl/platform.hpp"
 
 #include "test.hpp"
 

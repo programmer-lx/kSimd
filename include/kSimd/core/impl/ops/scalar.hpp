@@ -11,7 +11,7 @@
 #include "kSimd/core/impl/traits.hpp"
 #include "kSimd/core/impl/number.hpp"
 
-#define KSIMD_API(...) KSIMD_SCALAR_INTRINSIC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
+#define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
 
 namespace ksimd
 {
@@ -33,7 +33,7 @@ namespace ksimd
         namespace detail
         {
             template<is_scalar_type S>
-            struct op_any_type_impl : OpHelper
+            struct op_any_type_impl
             {
 #pragma region memory
                 KSIMD_API(Batch<S>) load(const S* mem) noexcept
@@ -111,26 +111,6 @@ namespace ksimd
                 KSIMD_API(Batch<S>) mul_add(Batch<S> a, Batch<S> b, Batch<S> c) noexcept
                 {
                     return { a.v * b.v + c.v };
-                }
-
-                template<RoundingMode mode>
-                KSIMD_API(Batch<S>) round(Batch<S> v) noexcept
-                {
-                    if constexpr (mode == RoundingMode::Up)
-                        return { std::ceil(v.v) };
-                    else if constexpr (mode == RoundingMode::Down)
-                        return { std::floor(v.v) };
-                    else if constexpr (mode == RoundingMode::Nearest)
-                        return { std::nearbyint(v.v) };
-                    else if constexpr (mode == RoundingMode::ToZero)
-                        return { std::trunc(v.v) };
-                    else /* if constexpr (mode == RoundingMode::Round) */
-                        return { std::round(v.v) };
-                }
-
-                KSIMD_API(Batch<S>) neg(Batch<S> v) noexcept
-                {
-                    return { -v.v };
                 }
                 KSIMD_API(Batch<S>) min(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
@@ -246,7 +226,7 @@ namespace ksimd
             };
 
             template<typename>
-            struct op_signed_empty
+            struct op_signed_type_empty
             {};
 
             template<is_scalar_type S>
@@ -258,6 +238,11 @@ namespace ksimd
                         return { std::abs(v.v) };
                     else
                         return { v.v < 0 ? -v.v : v.v };
+                }
+
+                KSIMD_API(Batch<S>) neg(Batch<S> v) noexcept
+                {
+                    return { -v.v };
                 }
             };
 
@@ -283,78 +268,100 @@ namespace ksimd
                     return { static_cast<S>(1) / std::sqrt(v.v) };
                 }
 
+                template<OpHelper::RoundingMode mode>
+                KSIMD_API(Batch<S>) round(Batch<S> v) noexcept
+                {
+                    if constexpr (mode == OpHelper::RoundingMode::Up)
+                        return { std::ceil(v.v) };
+                    else if constexpr (mode == OpHelper::RoundingMode::Down)
+                        return { std::floor(v.v) };
+                    else if constexpr (mode == OpHelper::RoundingMode::Nearest)
+                        return { std::nearbyint(v.v) };
+                    else if constexpr (mode == OpHelper::RoundingMode::ToZero)
+                        return { std::trunc(v.v) };
+                    else /* if constexpr (mode == RoundingMode::Round) */
+                        return { std::round(v.v) };
+                }
+
                 KSIMD_API(Mask<S>) not_greater(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    return { (!(lhs.v > rhs.v)) ? OneBlock<same_bits_uint_t<S>> : ZeroBlock<same_bits_uint_t<S>> };
+                    return { ~op_any_type_impl<S>::greater(lhs, rhs).m };
                 }
 
                 KSIMD_API(Mask<S>) not_greater_equal(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    return { (!(lhs.v >= rhs.v)) ? OneBlock<same_bits_uint_t<S>> : ZeroBlock<same_bits_uint_t<S>> };
+                    return { ~op_any_type_impl<S>::greater_equal(lhs, rhs).m };
                 }
 
                 KSIMD_API(Mask<S>) not_less(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    return { (!(lhs.v < rhs.v)) ? OneBlock<same_bits_uint_t<S>> : ZeroBlock<same_bits_uint_t<S>> };
+                    return { ~op_any_type_impl<S>::less(lhs, rhs).m };
                 }
 
                 KSIMD_API(Mask<S>) not_less_equal(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    return { (!(lhs.v <= rhs.v)) ? OneBlock<same_bits_uint_t<S>> : ZeroBlock<same_bits_uint_t<S>> };
+                    return { ~op_any_type_impl<S>::less_equal(lhs, rhs).m };
                 }
 
                 KSIMD_API(Mask<S>) any_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    if constexpr (std::is_floating_point_v<S>)
-                        return { (std::isnan(lhs.v) || std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                          : ZeroBlock<same_bits_uint_t<S>> };
-                    return { ZeroBlock<S> };
+                    return { (std::isnan(lhs.v) || std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                      : ZeroBlock<same_bits_uint_t<S>> };
                 }
 
                 KSIMD_API(Mask<S>) all_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    if constexpr (std::is_floating_point_v<S>)
-                        return { (std::isnan(lhs.v) && std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                          : ZeroBlock<same_bits_uint_t<S>> };
-                    return { ZeroBlock<S> };
+                    return { (std::isnan(lhs.v) && std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                      : ZeroBlock<same_bits_uint_t<S>> };
                 }
 
                 KSIMD_API(Mask<S>) not_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    if constexpr (std::is_floating_point_v<S>)
-                        return { (!std::isnan(lhs.v) && !std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                            : ZeroBlock<same_bits_uint_t<S>> };
-                    return { OneBlock<S> };
+                    return { (!std::isnan(lhs.v) && !std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                        : ZeroBlock<same_bits_uint_t<S>> };
                 }
 
                 KSIMD_API(Mask<S>) any_finite(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    if constexpr (std::is_floating_point_v<S>)
-                        return { (std::isfinite(lhs.v) || std::isfinite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                                : ZeroBlock<same_bits_uint_t<S>> };
-                    return { OneBlock<S> };
+                    return { (std::isfinite(lhs.v) || std::isfinite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                            : ZeroBlock<same_bits_uint_t<S>> };
                 }
 
                 KSIMD_API(Mask<S>) all_finite(Batch<S> lhs, Batch<S> rhs) noexcept
                 {
-                    if constexpr (std::is_floating_point_v<S>)
-                        return { (std::isfinite(lhs.v) && std::isfinite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                                : ZeroBlock<same_bits_uint_t<S>> };
-                    return { OneBlock<S> };
+                    return { (std::isfinite(lhs.v) && std::isfinite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                            : ZeroBlock<same_bits_uint_t<S>> };
                 }
             };
+
+            // selectors
+            template<typename S, bool IsSigned = std::is_signed_v<S>>
+            struct signed_type_impl_selector : op_signed_type_empty<S>
+            {};
+
+            template<typename S>
+            struct signed_type_impl_selector<S, true> : op_signed_type_impl<S>
+            {};
+
+            template<typename S, bool IsFloat32_64 = is_scalar_type_includes<S, float32, float64>>
+            struct float32_float64_impl_selector : op_float32_float64_empty<S>
+            {};
+
+            template<typename S>
+            struct float32_float64_impl_selector<S, true> : op_float32_float64_impl<S>
+            {};
         } // namespace detail
 
 
         template<is_scalar_type S>
         struct op
+            : OpHelper
             // any type
-            : detail::op_any_type_impl<S>
+            , detail::op_any_type_impl<S>
             // signed type
-            , std::conditional_t<std::is_signed_v<S>, detail::op_signed_type_impl<S>, detail::op_signed_empty<S>>
+            , detail::signed_type_impl_selector<S>
             // float32, float64
-            , std::conditional_t<is_scalar_type_includes<S, float32, float64>, detail::op_float32_float64_impl<S>,
-                                 detail::op_float32_float64_empty<S>>
+            , detail::float32_float64_impl_selector<S>
         {
             using scalar_t = S;
             using batch_t = Batch<S>;
@@ -362,6 +369,109 @@ namespace ksimd
             static constexpr size_t Alignment = alignof(S);
             static constexpr size_t Lanes = 1;
         };
+#undef KSIMD_API
+
+#define KSIMD_API(...) KSIMD_INTRINSIC_ATTR_SCALAR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
+        // operators
+        // ----------------- 二元算术运算 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator+(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::add(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator-(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::sub(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator*(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::mul(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator/(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::div(lhs, rhs);
+        }
+
+        // ----------------- 复合赋值运算 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator+=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::add(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator-=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::sub(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator*=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::mul(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator/=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::div(lhs, rhs);
+        }
+
+        // ----------------- 二元位运算 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator&(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::bit_and(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator|(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::bit_or(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator^(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::bit_xor(lhs, rhs);
+        }
+
+        // ----------------- 二元复合位运算 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator&=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::bit_and(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator|=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::bit_or(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator^=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::bit_xor(lhs, rhs);
+        }
+
+        // ----------------- 一元运算符 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator-(Batch<S> val) noexcept
+        {
+            return op<S>::sub(op<S>::set(S(0)), val);
+        }
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator~(Batch<S> val) noexcept
+        {
+            return op<S>::bit_not(val);
+        }
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace ksimd
 

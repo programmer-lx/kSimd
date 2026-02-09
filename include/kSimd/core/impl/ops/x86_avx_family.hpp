@@ -10,8 +10,11 @@
 #include <immintrin.h> // AVX+
 
 #include "op_helpers.hpp"
+#include "kSimd/core/impl/func_attr.hpp"
+#include "kSimd/core/impl/traits.hpp"
+#include "kSimd/core/impl/number.hpp"
 
-#define KSIMD_API(...) KSIMD_AVX2_MAX_INTRINSIC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
+#define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
 
 namespace ksimd
 {
@@ -379,9 +382,112 @@ namespace ksimd
                 }
             };
         } // namespace detail
+#undef KSIMD_API
 
         template<is_scalar_type S>
         using op = detail::op_impl<S>;
+
+        // operators
+#define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
+        // ----------------- 二元算术运算 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator+(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::add(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator-(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::sub(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator*(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::mul(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator/(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::div(lhs, rhs);
+        }
+
+        // ----------------- 复合赋值算术运算 (Concise Style) -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator+=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::add(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator-=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::sub(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator*=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::mul(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator/=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::div(lhs, rhs);
+        }
+
+        // ----------------- 位运算 (Bitwise) -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator&(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::bit_and(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator|(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::bit_or(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator^(Batch<S> lhs, Batch<S> rhs) noexcept
+        {
+            return op<S>::bit_xor(lhs, rhs);
+        }
+
+        // ----------------- 复合赋值位运算 (Concise Style) -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator&=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::bit_and(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator|=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::bit_or(lhs, rhs);
+        }
+
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>&) operator^=(Batch<S>& lhs, Batch<S> rhs) noexcept
+        {
+            return lhs = op<S>::bit_xor(lhs, rhs);
+        }
+
+        // ----------------- 一元运算符 -----------------
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator-(Batch<S> val) noexcept
+        {
+            return op<S>::sub(op<S>::set(S(0)), val);
+        }
+        template<is_scalar_type S>
+        KSIMD_API(Batch<S>) operator~(Batch<S> val) noexcept
+        {
+            return op<S>::bit_not(val);
+        }
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace ksimd
 
