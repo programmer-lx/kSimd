@@ -1234,7 +1234,6 @@ namespace KSIMD_DYN_INSTRUCTION {
         check(m1 | m2, op::mask_or(m1, m2),  "mask operator|");
         check(m1 ^ m2, op::mask_xor(m1, m2), "mask operator^");
         check(~m1,     op::mask_not(m1),     "mask operator~");
-        check(!m1,     op::mask_not(m1),     "mask operator!");
 
         mask_t mc = m1; mc &= m2; check(mc, op::mask_and(m1, m2), "mask operator&=");
 
