@@ -10,29 +10,32 @@
 KSIMD_WARNING_PUSH
 KSIMD_IGNORE_WARNING_MSVC(4723) // ignore warning: divide by 0
 
-// ------------------------------------------ one_div ------------------------------------------
+// ------------------------------------------ rcp ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void one_div() noexcept
+    void rcp() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<FLOAT_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) FLOAT_T test[Lanes];
+        if constexpr (std::is_same_v<ksimd::float32, FLOAT_T>)
+        {
+            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+            using op = ns::op<FLOAT_T>;
+            constexpr size_t Lanes = op::Lanes;
+            alignas(op::Alignment) FLOAT_T test[Lanes];
 
-        // 1. 常规数值 1/4 = 0.25
-        op::store(test, op::one_div(op::set(FLOAT_T(4))));
-        for (size_t i = 0; i < Lanes; ++i) {
-            EXPECT_NEAR(static_cast<double>(test[i]), 0.25, 0.001);
+            // 1. 常规数值 1/4 = 0.25
+            op::store(test, op::rcp(op::set(FLOAT_T(4))));
+            for (size_t i = 0; i < Lanes; ++i) {
+                EXPECT_NEAR(static_cast<double>(test[i]), 0.25, FLOAT_T_EPSILON_RCP);
+            }
+
+            // 2. 边界：1/Inf = 0, 1/0 = Inf
+            op::store(test, op::rcp(op::set(inf<FLOAT_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(0));
+
+            op::store(test, op::rcp(op::set(FLOAT_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
         }
-
-        // 2. 边界：1/Inf = 0, 1/0 = Inf
-        op::store(test, op::one_div(op::set(inf<FLOAT_T>)));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(0));
-
-        op::store(test, op::one_div(op::set(FLOAT_T(0))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
     }
 
 // ------------------------------------------ sqrt ------------------------------------------
@@ -56,20 +59,23 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rsqrt() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<FLOAT_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) FLOAT_T test[Lanes];
+        if constexpr (std::is_same_v<ksimd::float32, FLOAT_T>)
+        {
+            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+            using op = ns::op<FLOAT_T>;
+            constexpr size_t Lanes = op::Lanes;
+            alignas(op::Alignment) FLOAT_T test[Lanes];
 
-        op::store(test, op::rsqrt(op::set(FLOAT_T(4))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(static_cast<double>(test[i]), 0.5, 0.001);
+            op::store(test, op::rsqrt(op::set(FLOAT_T(4))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(test[i], 0.5, FLOAT_T_EPSILON_RSQRT);
 
-        op::store(test, op::rsqrt(op::set(FLOAT_T(0))));
-        for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
+            op::store(test, op::rsqrt(op::set(FLOAT_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
+        }
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(one_div)
+TEST_ONCE_DYN(rcp)
 TEST_ONCE_DYN(sqrt)
 TEST_ONCE_DYN(rsqrt)
 #endif

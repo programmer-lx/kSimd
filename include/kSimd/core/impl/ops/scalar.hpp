@@ -272,19 +272,9 @@ namespace ksimd
             template<is_scalar_type_includes<float32, float64> S>
             struct op_float32_float64_impl
             {
-                KSIMD_API(Batch<S>) one_div(Batch<S> v) noexcept
-                {
-                    return { static_cast<S>(1) / v.v };
-                }
-
                 KSIMD_API(Batch<S>) sqrt(Batch<S> v) noexcept
                 {
                     return { std::sqrt(v.v) };
-                }
-
-                KSIMD_API(Batch<S>) rsqrt(Batch<S> v) noexcept
-                {
-                    return { static_cast<S>(1) / std::sqrt(v.v) };
                 }
 
                 template<OpHelper::RoundingMode mode>
@@ -353,6 +343,22 @@ namespace ksimd
                 }
             };
 
+            struct op_float32_empty
+            {};
+
+            struct op_float32_impl
+            {
+                KSIMD_API(Batch<float32>) rcp(Batch<float32> v) noexcept
+                {
+                    return { 1.0f / v.v };
+                }
+
+                KSIMD_API(Batch<float32>) rsqrt(Batch<float32> v) noexcept
+                {
+                    return { static_cast<float32>(1) / std::sqrt(v.v) };
+                }
+            };
+
             // selectors
             template<typename S, bool IsSigned = std::is_signed_v<S>>
             struct signed_type_impl_selector : op_signed_type_empty<S>
@@ -369,6 +375,15 @@ namespace ksimd
             template<typename S>
             struct float32_float64_impl_selector<S, true> : op_float32_float64_impl<S>
             {};
+
+            template<typename S, bool IsFloat32 = std::is_same_v<S, float32>>
+            struct float32_impl_selector : op_float32_empty
+            {};
+
+            template<typename S>
+            struct float32_impl_selector<S, true> : op_float32_impl
+            {};
+
         } // namespace detail
 
 
@@ -376,12 +391,18 @@ namespace ksimd
         struct op
             : OpInfo<S, Batch<S>, Mask<S>, sizeof(S), alignof(S)>
             , OpHelper
+
             // any type
             , detail::op_any_type_impl<S>
+
             // signed type
             , detail::signed_type_impl_selector<S>
+
             // float32, float64
             , detail::float32_float64_impl_selector<S>
+
+            // float32 only
+            , detail::float32_impl_selector<S>
         {};
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace ksimd

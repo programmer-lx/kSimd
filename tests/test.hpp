@@ -105,6 +105,11 @@ bool array_equal(T* arr, size_t len, const T2& val)
     return true;
 }
 
+bool approximately(auto a, auto b, auto tolerance)
+{
+    return std::abs(a - b) <= tolerance;
+}
+
 template<typename T, typename T2, typename T3>
 bool array_approximately(T* arr, size_t len, const T2& val, const T3& tolerance)
 {

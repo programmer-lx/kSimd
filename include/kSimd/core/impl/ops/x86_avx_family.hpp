@@ -165,7 +165,7 @@ namespace ksimd
                     return { _mm256_div_ps(lhs.v, rhs.v) };
                 }
 
-                KSIMD_API(batch_t) one_div(batch_t v) noexcept
+                KSIMD_API(batch_t) rcp(batch_t v) noexcept
                 {
                     return { _mm256_rcp_ps(v.v) };
                 }
