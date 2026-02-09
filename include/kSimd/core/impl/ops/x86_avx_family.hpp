@@ -63,14 +63,10 @@ namespace ksimd
             struct op_impl;
 
             template<>
-            struct op_impl<float32> : OpHelper
+            struct op_impl<float32>
+                : OpHelper
+                , OpInfo<float32, Batch<float32>, Mask<float32>, 32, 32>
             {
-                using scalar_t = float32;
-                using batch_t = Batch<float32>;
-                using mask_t = Mask<float32>;
-                static constexpr size_t Alignment = 32;
-                static constexpr size_t Lanes = 32 / sizeof(scalar_t);
-
                 KSIMD_API(batch_t) load(const scalar_t* mem) noexcept
                 {
                     return { _mm256_load_ps(mem) };

@@ -355,7 +355,8 @@ namespace ksimd
 
         template<is_scalar_type S>
         struct op
-            : OpHelper
+            : OpInfo<S, Batch<S>, Mask<S>, sizeof(S), alignof(S)>
+            , OpHelper
             // any type
             , detail::op_any_type_impl<S>
             // signed type
