@@ -1,8 +1,7 @@
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "bitcast.cpp" // this file
-#include <kSimd/dispatch_this_file.hpp>
-// #include <kSimd/base_op.hpp>
-// #include <kSimd/type_op.hpp>
+#include <kSimd/core/dispatch_this_file.hpp>
+#include <kSimd/core/dispatch_core.hpp>
 
 namespace KSIMD_DYN_INSTRUCTION
 {

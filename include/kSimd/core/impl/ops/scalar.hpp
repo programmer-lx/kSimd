@@ -206,6 +206,25 @@ namespace ksimd
                     return { (lhs.v <= rhs.v) ? OneBlock<same_bits_uint_t<S>> : ZeroBlock<same_bits_uint_t<S>> };
                 }
 
+                KSIMD_API(Mask<S>) mask_and(Mask<S> lhs, Mask<S> rhs) noexcept
+                {
+                    return { lhs.m & rhs.m };
+                }
+
+                KSIMD_API(Mask<S>) mask_or(Mask<S> lhs, Mask<S> rhs) noexcept
+                {
+                    return { lhs.m | rhs.m };
+                }
+
+                KSIMD_API(Mask<S>) mask_xor(Mask<S> lhs, Mask<S> rhs) noexcept
+                {
+                    return { lhs.m ^ rhs.m };
+                }
+
+                KSIMD_API(Mask<S>) mask_not(Mask<S> mask) noexcept
+                {
+                    return { ~mask.m };
+                }
 
                 KSIMD_API(Batch<S>) mask_select(Mask<S> mask, Batch<S> a, Batch<S> b) noexcept
                 {
@@ -370,110 +389,9 @@ namespace ksimd
             static constexpr size_t Alignment = alignof(S);
             static constexpr size_t Lanes = 1;
         };
-#undef KSIMD_API
-
-#define KSIMD_API(...) KSIMD_INTRINSIC_ATTR_SCALAR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
-        // operators
-        // ----------------- 二元算术运算 -----------------
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator+(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::add(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator-(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::sub(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator*(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::mul(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator/(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::div(lhs, rhs);
-        }
-
-        // ----------------- 复合赋值运算 -----------------
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator+=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::add(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator-=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::sub(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator*=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::mul(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator/=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::div(lhs, rhs);
-        }
-
-        // ----------------- 二元位运算 -----------------
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator&(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::bit_and(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator|(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::bit_or(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator^(Batch<S> lhs, Batch<S> rhs) noexcept
-        {
-            return op<S>::bit_xor(lhs, rhs);
-        }
-
-        // ----------------- 二元复合位运算 -----------------
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator&=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::bit_and(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator|=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::bit_or(lhs, rhs);
-        }
-
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>&) operator^=(Batch<S>& lhs, Batch<S> rhs) noexcept
-        {
-            return lhs = op<S>::bit_xor(lhs, rhs);
-        }
-
-        // ----------------- 一元运算符 -----------------
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator-(Batch<S> val) noexcept
-        {
-            return op<S>::sub(op<S>::set(S(0)), val);
-        }
-        template<is_scalar_type S>
-        KSIMD_API(Batch<S>) operator~(Batch<S> val) noexcept
-        {
-            return op<S>::bit_not(val);
-        }
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace ksimd
 
 #undef KSIMD_API
+
+#include "operators.inl"
