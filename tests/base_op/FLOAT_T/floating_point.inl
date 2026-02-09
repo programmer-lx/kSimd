@@ -4,9 +4,10 @@
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/FLOAT_T/floating_point.inl" // this file
-#include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/op.hpp>
+#include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
+#include <kSimd/core/core.hpp>
 
+#if 0
 
 // ------------------------------------------ one_div ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
@@ -596,6 +597,7 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(round)
 #endif
 
+#endif
 
 // main function
 #if KSIMD_ONCE

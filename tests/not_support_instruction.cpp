@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <kSimd/op.hpp>
+#include <kSimd/core/core.hpp>
 
 #include "test.hpp"
 

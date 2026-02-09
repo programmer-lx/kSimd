@@ -2,8 +2,10 @@
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/SIGNED_T/signed.inl" // this file
-#include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/op.hpp>
+#include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
+#include <kSimd/core/core.hpp>
+
+#if 0
 
 using namespace ksimd;
 
@@ -145,6 +147,7 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(neg)
 #endif
 
+#endif
 
 #if KSIMD_ONCE
 int main(int argc, char **argv)

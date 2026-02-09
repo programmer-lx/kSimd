@@ -1,7 +1,8 @@
 #include <vector>
 
-#include <kSimd/aligned_allocate.hpp>
-#include <kSimd/op.hpp>
+#include <kSimd/core/aligned_allocate.hpp>
+#include <kSimd/core/core.hpp>
+#include <kSimd/core/impl/func_attr.hpp>
 
 #include "test.hpp"
 
@@ -22,7 +23,7 @@ TEST(aligned_allocate, alignment_test)
 
 TEST(aligned_allocate, std_vector)
 {
-    []() KSIMD_AVX2_FMA3_F16C_INTRINSIC_ATTR
+    []() KSIMD_AVX2_MAX_INTRINSIC_ATTR
     {
         using Arr = std::vector<float, ksimd::AlignedAllocator<float>>;
         constexpr size_t size = 88;

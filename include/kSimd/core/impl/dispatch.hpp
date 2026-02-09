@@ -5,8 +5,6 @@
 #include "platform.hpp"
 #include "dyn_instruction_name.hpp"
 
-KSIMD_NAMESPACE_BEGIN
-
 // instruction充当命名空间
 #define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction) \
     &instruction::func_name,
@@ -22,17 +20,17 @@ KSIMD_NAMESPACE_BEGIN
 #endif
 
 // AVX_FMA3_F16C
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C)
-    #define KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) \
-        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C)
+#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
+    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_MAX)
 #else
-    #define KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
+    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // function table
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
     /* ------------------------------------- avx family ------------------------------------- */ \
-    KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name) \
+    KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name) \
     /* ------------------------------------- scalar ------------------------------------- */ \
     KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name)
 
@@ -40,31 +38,33 @@ KSIMD_NAMESPACE_BEGIN
     #error "have not defined DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY to cache the simd function pointers"
 #endif
 
-
-// -------------------------- dispatch function ---------------------------
-namespace detail
+namespace ksimd
 {
-    // 这个枚举的值就是函数指针表的索引
-    // 越现代的指令集，排得越靠前，索引越小
-    enum class SimdInstructionIndex : int
+    // -------------------------- dispatch function ---------------------------
+    namespace detail
     {
-        Invalid = -1,
+        // 这个枚举的值就是函数指针表的索引
+        // 越现代的指令集，排得越靠前，索引越小
+        enum class SimdInstructionIndex : int
+        {
+            Invalid = -1,
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3_F16C)
-        KSIMD_DYN_INSTRUCTION_AVX2_FMA3_F16C,
-    #endif
+        #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
+            KSIMD_DYN_INSTRUCTION_AVX2_MAX,
+        #endif
 
-    #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-        KSIMD_DYN_INSTRUCTION_SCALAR,
-    #endif
+        #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+            KSIMD_DYN_INSTRUCTION_SCALAR,
+        #endif
 
-        Num
-    };
-    static_assert(static_cast<int>(SimdInstructionIndex::Num) > 0);
+            Num
+        };
+        static_assert(static_cast<int>(SimdInstructionIndex::Num) > 0);
+    }
+
+    // 测试时直接返回索引即可，正式版本才使用运行时CPUID判断
+    int KSIMD_CALL_CONV dyn_func_index() noexcept;
 }
-
-// 测试时直接返回索引即可，正式版本才使用运行时CPUID判断
-int KSIMD_CALL_CONV dyn_func_index() noexcept;
 
 #define KSIMD_DETAIL_PFN_TABLE_NS K_S_I_M_D__PFN_TABLE
 #define KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) KSIMD_DETAIL_PFN_TABLE_NS::func_name
@@ -86,5 +86,3 @@ int KSIMD_CALL_CONV dyn_func_index() noexcept;
 // --------------------------------- FUNC_ATTR字符串描述 ---------------------------------
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
 #define KSIMD_DYN_FUNC_ATTR "you should include your file after include <kSimd/dispatch_this_file.hpp>"
-
-KSIMD_NAMESPACE_END

@@ -1,4 +1,4 @@
-#include <kSimd/op.hpp>
+#include <kSimd/core/impl/platform.hpp>
 
 #include "test.hpp"
 

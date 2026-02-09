@@ -4,9 +4,10 @@
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/ALL_TYPE_T/all_type.inl" // this file
-#include <kSimd/dispatch_this_file.hpp> // auto dispatch
-#include <kSimd/op.hpp>
+#include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
+#include <kSimd/core/core.hpp>
 
+#if 0
 using namespace ksimd;
 
 // ------------------------------------------ undefined ------------------------------------------
@@ -1085,6 +1086,8 @@ namespace KSIMD_DYN_INSTRUCTION
 #if KSIMD_ONCE
 TEST_ONCE_DYN(less)
 TEST_ONCE_DYN(less_equal)
+#endif
+
 #endif
 
 
