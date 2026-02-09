@@ -222,14 +222,36 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 return { _mm256_xor_ps(v.v, mask) };
             }
 
+            template<FloatMinMaxOption option = FloatMinMaxOption::Native>
             KSIMD_API(batch_t) min(batch_t lhs, batch_t rhs) noexcept
             {
-                return { _mm256_min_ps(lhs.v, rhs.v) };
+                if constexpr (option == FloatMinMaxOption::CheckNaN)
+                {
+                    __m256 has_nan = _mm256_cmp_ps(lhs.v, rhs.v, _CMP_UNORD_Q);
+                    __m256 min_v = _mm256_min_ps(lhs.v, rhs.v);
+                    __m256 nan_v = _mm256_set1_ps(QNaN<scalar_t>);
+                    return { _mm256_blendv_ps(min_v, nan_v, has_nan) };
+                }
+                else
+                {
+                    return { _mm256_min_ps(lhs.v, rhs.v) };
+                }
             }
 
+            template<FloatMinMaxOption option = FloatMinMaxOption::Native>
             KSIMD_API(batch_t) max(batch_t lhs, batch_t rhs) noexcept
             {
-                return { _mm256_max_ps(lhs.v, rhs.v) };
+                if constexpr (option == FloatMinMaxOption::CheckNaN)
+                {
+                    __m256 has_nan = _mm256_cmp_ps(lhs.v, rhs.v, _CMP_UNORD_Q);
+                    __m256 max_v = _mm256_max_ps(lhs.v, rhs.v);
+                    __m256 nan_v = _mm256_set1_ps(QNaN<scalar_t>);
+                    return { _mm256_blendv_ps(max_v, nan_v, has_nan) };
+                }
+                else
+                {
+                    return { _mm256_max_ps(lhs.v, rhs.v) };
+                }
             }
 
             KSIMD_API(batch_t) bit_not(batch_t v) noexcept
@@ -394,6 +416,74 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 sum = _mm_add_ps(sum, _mm_movehl_ps(sum, sum));
                 sum = _mm_add_ss(sum, _mm_shuffle_ps(sum, sum, 1));
                 return _mm_cvtss_f32(sum);
+            }
+
+            template<FloatMinMaxOption option = FloatMinMaxOption::Native>
+            KSIMD_API(scalar_t) reduce_min(batch_t v) noexcept
+            {
+                // [1, 2, 3, 4]
+                // [5, 6, 7, 8]
+                __m128 low1 = _mm256_castps256_ps128(v.v);
+                __m128 high1 = _mm256_extractf128_ps(v.v, 0b1);
+
+                // [ min(1,5), min(2,6), min(3,7), min(4,8) ]
+                __m128 min1 = _mm_min_ps(low1, high1);
+
+                // [ min(3,7), min(4,8), min(3,7), min(4,8) ]
+                __m128 shuffle1 = _mm_movehl_ps(min1, min1);
+
+                // [ min(1,3,5,7), min(2,4,6,8), ... ]
+                __m128 min2 = _mm_min_ps(min1, shuffle1);
+
+                // [ min(2,4,6,8), min(2,4,6,8), ... ]
+                __m128 shuffle2 = _mm_shuffle_ps(min2, min2, _MM_SHUFFLE(1, 1, 1, 1));
+
+                // [ min(1,2,3,4,5,6,7,8), ... ]
+                __m128 res = _mm_min_ps(min2, shuffle2);
+
+                // NaN传播
+                if constexpr (option == FloatMinMaxOption::CheckNaN)
+                {
+                    __m256 nan_check = _mm256_cmp_ps(v.v, v.v, _CMP_UNORD_Q);
+                    int32 has_nan = _mm256_movemask_ps(nan_check);
+                    return has_nan ? QNaN<scalar_t> : _mm_cvtss_f32(res);
+                }
+
+                return _mm_cvtss_f32(res);
+            }
+
+            template<FloatMinMaxOption option = FloatMinMaxOption::Native>
+            KSIMD_API(scalar_t) reduce_max(batch_t v) noexcept
+            {
+                // [1, 2, 3, 4]
+                // [5, 6, 7, 8]
+                __m128 low1 = _mm256_castps256_ps128(v.v);
+                __m128 high1 = _mm256_extractf128_ps(v.v, 0b1);
+
+                // [ max(1,5), max(2,6), max(3,7), max(4,8) ]
+                __m128 max1 = _mm_max_ps(low1, high1);
+
+                // [ max(3,7), max(4,8), max(3,7), max(4,8) ]
+                __m128 shuffle1 = _mm_movehl_ps(max1, max1);
+
+                // [ max(1,3,5,7), max(2,4,6,8), ... ]
+                __m128 max2 = _mm_max_ps(max1, shuffle1);
+
+                // [ max(2,4,6,8), max(2,4,6,8), ... ]
+                __m128 shuffle2 = _mm_shuffle_ps(max2, max2, _MM_SHUFFLE(1, 1, 1, 1));
+
+                // [ max(1,2,3,4,5,6,7,8), ... ]
+                __m128 res = _mm_max_ps(max2, shuffle2);
+
+                // NaN传播
+                if constexpr (option == FloatMinMaxOption::CheckNaN)
+                {
+                    __m256 nan_check = _mm256_cmp_ps(v.v, v.v, _CMP_UNORD_Q);
+                    int32 has_nan = _mm256_movemask_ps(nan_check);
+                    return has_nan ? QNaN<scalar_t> : _mm_cvtss_f32(res);
+                }
+
+                return _mm_cvtss_f32(res);
             }
         };
     } // namespace detail

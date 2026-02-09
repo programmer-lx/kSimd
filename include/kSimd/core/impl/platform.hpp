@@ -123,12 +123,8 @@ namespace ksimd
 
         // AVX family
         unsigned AVX        : 1 = 0;
-
-        // 这两个是独立指令集，在tsimd库中，AVX的op不使用FMA3+F16C指令，AVX2的op分成两套:
-        // 1. AVX2, 2. AVX2+FMA3+F16C。一套不使用FMA3+F16C，另一套使用FMA3+F16C
         unsigned F16C       : 1 = 0;
         unsigned FMA3       : 1 = 0;
-
         unsigned AVX2       : 1 = 0;
 
         // AVX-512 family

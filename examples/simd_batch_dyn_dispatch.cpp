@@ -7,7 +7,7 @@
 
 #include <kSimd/core/aligned_allocate.hpp>
 #include <kSimd/core/dispatch_core.hpp>
-#include <kSimd/extension/vmathf.hpp>
+#include <kSimd/extension/dispatch_vmathf.hpp>
 
 #include "utils.hpp"
 

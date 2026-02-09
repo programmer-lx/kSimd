@@ -699,6 +699,161 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(reduce_add)
 #endif
 
+// ------------------------------------------ reduce_min ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void reduce_min() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        using op = ns::op<TYPE_T>;
+
+        constexpr size_t Lanes = op::Lanes;
+        alignas(op::Alignment) TYPE_T data[Lanes];
+
+        // 1. 常规场景测试：[1, 2, 3, ..., Lanes]
+        TYPE_T expected = TYPE_T(1);
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(i + 1);
+        }
+        TYPE_T res = op::reduce_min<op::FloatMinMaxOption::Native>(op::load(data));
+        EXPECT_EQ(res, expected);
+
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(i + 1);
+        }
+        res = op::reduce_min<op::FloatMinMaxOption::CheckNaN>(op::load(data));
+        EXPECT_EQ(res, expected);
+
+
+        // 2. 最小值在末尾：[Lanes, Lanes-1, ..., 1]
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(Lanes - i);
+        }
+        res = op::reduce_min<op::FloatMinMaxOption::Native>(op::load(data));
+        EXPECT_EQ(res, TYPE_T(1));
+
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(Lanes - i);
+        }
+        res = op::reduce_min<op::FloatMinMaxOption::CheckNaN>(op::load(data));
+        EXPECT_EQ(res, TYPE_T(1));
+
+
+        // 3. 包含负数
+        if constexpr (std::is_signed_v<TYPE_T>)
+        {
+            FILL_ARRAY(data, TYPE_T(0));
+            data[Lanes / 2] = TYPE_T(-100);
+            res = op::reduce_min<op::FloatMinMaxOption::Native>(op::load(data));
+            EXPECT_EQ(res, TYPE_T(-100));
+
+            FILL_ARRAY(data, TYPE_T(0));
+            data[Lanes / 2] = TYPE_T(-100);
+            res = op::reduce_min<op::FloatMinMaxOption::CheckNaN>(op::load(data));
+            EXPECT_EQ(res, TYPE_T(-100));
+        }
+
+        // 4. 浮点数特殊边界测试
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // 测试包含 -Inf (应为最小值)
+            FILL_ARRAY(data, TYPE_T(0));
+            data[0] = -inf<TYPE_T>;
+            EXPECT_TRUE(std::isinf(op::reduce_min(op::load(data))) && op::reduce_min(op::load(data)) < 0);
+
+            FILL_ARRAY(data, TYPE_T(0));
+            data[Lanes - 1] = -inf<TYPE_T>;
+            EXPECT_TRUE(std::isinf(op::reduce_min(op::load(data))) && op::reduce_min(op::load(data)) < 0);
+
+            // 测试 NaN 传播
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                FILL_ARRAY(data, TYPE_T(0));
+                data[i] = qNaN<TYPE_T>;
+                EXPECT_TRUE(std::isnan(op::reduce_min<op::FloatMinMaxOption::CheckNaN>(op::load(data))));
+            }
+        }
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(reduce_min)
+#endif
+
+// ------------------------------------------ reduce_max ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void reduce_max() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        using op = ns::op<TYPE_T>;
+
+        constexpr size_t Lanes = op::Lanes;
+        alignas(op::Alignment) TYPE_T data[Lanes];
+
+        TYPE_T res = TYPE_T(0);
+
+        // 1. 全负数测试：[-Lanes, ..., -1]
+        // 确保能正确识别较大的负数（如 -1 是最大值）
+        if constexpr (std::is_signed_v<TYPE_T>)
+        {
+            for (size_t i = 0; i < Lanes; ++i) {
+                data[i] = -TYPE_T(Lanes - i);
+            }
+            res = op::reduce_max<op::FloatMinMaxOption::Native>(op::load(data));
+            EXPECT_EQ(res, TYPE_T(-1));
+
+            for (size_t i = 0; i < Lanes; ++i) {
+                data[i] = -TYPE_T(Lanes - i);
+            }
+            res = op::reduce_max<op::FloatMinMaxOption::CheckNaN>(op::load(data));
+            EXPECT_EQ(res, TYPE_T(-1));
+        }
+
+        // 2. 最大值在中间位置
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(i);
+        }
+        data[Lanes / 2] = TYPE_T(999);
+        res = op::reduce_max<op::FloatMinMaxOption::Native>(op::load(data));
+        EXPECT_EQ(res, TYPE_T(999));
+
+        for (size_t i = 0; i < Lanes; ++i) {
+            data[i] = TYPE_T(i);
+        }
+        data[Lanes / 2] = TYPE_T(999);
+        res = op::reduce_max<op::FloatMinMaxOption::CheckNaN>(op::load(data));
+        EXPECT_EQ(res, TYPE_T(999));
+
+
+        // 3. 浮点数特殊边界测试
+        if constexpr (std::is_floating_point_v<TYPE_T>) {
+            // 测试正无穷 +Inf
+            FILL_ARRAY(data, TYPE_T(0));
+            data[0] = inf<TYPE_T>;
+            EXPECT_TRUE(std::isinf(op::reduce_max<op::FloatMinMaxOption::Native>(op::load(data)))
+                && op::reduce_max<op::FloatMinMaxOption::Native>(op::load(data)) > 0);
+
+            FILL_ARRAY(data, TYPE_T(0));
+            data[0] = inf<TYPE_T>;
+            EXPECT_TRUE(std::isinf(op::reduce_max<op::FloatMinMaxOption::CheckNaN>(op::load(data)))
+                && op::reduce_max<op::FloatMinMaxOption::Native>(op::load(data)) > 0);
+
+
+            // 测试 NaN 传播
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                FILL_ARRAY(data, TYPE_T(0));
+                data[i] = qNaN<TYPE_T>;
+                EXPECT_TRUE(std::isnan(op::reduce_max<op::FloatMinMaxOption::CheckNaN>(op::load(data))));
+            }
+        }
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(reduce_max)
+#endif
+
 // ------------------------------------------ mul_add ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
@@ -758,7 +913,20 @@ namespace KSIMD_DYN_INSTRUCTION
             op::store(test, op::min(op::set(qNaN<TYPE_T>), op::set(TYPE_T(5))));
             EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(5)));
 
+            // 右操作数是 NaN: 返回 NaN
             op::store(test, op::min(op::set(TYPE_T(5)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(std::isnan(test[i]));
+            }
+
+            // Check 模式，无论左右，都返回NaN
+            op::store(test, op::min<op::FloatMinMaxOption::CheckNaN>(op::set(TYPE_T(5)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(std::isnan(test[i]));
+            }
+            op::store(test, op::min<op::FloatMinMaxOption::CheckNaN>(op::set(qNaN<TYPE_T>), op::set(TYPE_T(5))));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(std::isnan(test[i]));
@@ -785,6 +953,24 @@ namespace KSIMD_DYN_INSTRUCTION
             // NaN 行为
             op::store(test, op::max(op::set(qNaN<TYPE_T>), op::set(TYPE_T(-100))));
             EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(-100)));
+
+            op::store(test, op::max(op::set(TYPE_T(-100)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(std::isnan(test[i]));
+            }
+
+            // Check 模式，无论左右，都返回NaN
+            op::store(test, op::max<op::FloatMinMaxOption::CheckNaN>(op::set(TYPE_T(5)), op::set(qNaN<TYPE_T>)));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(std::isnan(test[i]));
+            }
+            op::store(test, op::max<op::FloatMinMaxOption::CheckNaN>(op::set(qNaN<TYPE_T>), op::set(TYPE_T(5))));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(std::isnan(test[i]));
+            }
         }
     }
 }

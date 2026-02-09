@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <bit>
 #include <type_traits>
 #include <limits>
@@ -62,12 +64,12 @@ namespace ksimd
         {
             if constexpr (std::is_same_v<float32, F>)
             {
-                constexpr uint32 mask = static_cast<uint32>(0b1111'1111u) << 23;
+                constexpr uint32 mask = UINT32_C(0b1111'1111) << 23;
                 return std::bit_cast<F>(mask);
             }
             else if constexpr (std::is_same_v<float64, F>)
             {
-                constexpr uint64 mask = static_cast<uint64>(0b111'1111'1111u) << 52;
+                constexpr uint64 mask = UINT64_C(0b111'1111'1111) << 52;
                 return std::bit_cast<F>(mask);
             }
             else
@@ -103,8 +105,8 @@ namespace ksimd
         // 指数位均为1，尾数位 != 0
         // 1位符号，8位指数，23位尾数
         const uint32 bits = std::bit_cast<uint32>(f);
-        constexpr uint32 exp_mask = static_cast<uint32>(0b1111'1111u) << 23;
-        constexpr uint32 mantissa_mask = ~static_cast<uint32>(0u) >> 9;
+        constexpr uint32 exp_mask = UINT32_C(0b1111'1111) << 23;
+        constexpr uint32 mantissa_mask = (~UINT32_C(0)) >> 9;
         return ((bits & exp_mask) == exp_mask) && ((bits & mantissa_mask) != 0u);
     }
 
@@ -112,8 +114,8 @@ namespace ksimd
     {
         // 1位符号位，11位指数，52位尾数
         const uint64 bits = std::bit_cast<uint64>(f);
-        constexpr uint64 exp_mask = static_cast<uint64>(0b111'1111'1111u) << 52;
-        constexpr uint64 mantissa_mask = ~static_cast<uint64>(0u) >> 12;
+        constexpr uint64 exp_mask = UINT64_C(0b111'1111'1111) << 52;
+        constexpr uint64 mantissa_mask = (~UINT64_C(0)) >> 12;
         return ((bits & exp_mask) == exp_mask) && ((bits & mantissa_mask) != 0ull);
     }
 
@@ -121,14 +123,14 @@ namespace ksimd
     {
         // 指数位不全为1
         const uint32 bits = std::bit_cast<uint32>(f);
-        constexpr uint32 exp_mask = static_cast<uint32>(0b1111'1111u) << 23;
+        constexpr uint32 exp_mask = UINT32_C(0b1111'1111) << 23;
         return (bits & exp_mask) != exp_mask;
     }
 
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float64 f) noexcept
     {
         const uint64 bits = std::bit_cast<uint64>(f);
-        constexpr uint64 exp_mask = static_cast<uint64>(0b111'1111'1111u) << 52;
+        constexpr uint64 exp_mask = UINT64_C(0b111'1111'1111) << 52;
         return (bits & exp_mask) != exp_mask;
     }
 

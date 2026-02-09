@@ -4,7 +4,7 @@
 #define KSIMD_DISPATCH_THIS_FILE "extension/vmathf/vmathf.inl" // this file
 #include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
 #include <kSimd/core/dispatch_core.hpp>
-#include <kSimd/extension/vmathf.hpp>
+#include <kSimd/extension/dispatch_vmathf.hpp>
 
 // ------------------------------------------ lerp ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION {

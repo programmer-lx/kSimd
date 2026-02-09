@@ -1,5 +1,9 @@
 // do not use include guard
 
+#include "op_helpers.hpp"
+#include "op_helpers.hpp"
+
+
 #include <cmath>
 #include <cstring>
 #include <type_traits>
@@ -110,55 +114,75 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             {
                 return { a.v * b.v + c.v };
             }
+
+            template<OpHelper::FloatMinMaxOption option = OpHelper::FloatMinMaxOption::Native>
             KSIMD_API(Batch<S>) min(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                return { ksimd::min(lhs.v, rhs.v) };
-            }
-            KSIMD_API(Batch<S>) max(Batch<S> lhs, Batch<S> rhs) noexcept
-            {
-                return { ksimd::max(lhs.v, rhs.v) };
+                if constexpr (option == OpHelper::FloatMinMaxOption::CheckNaN && is_scalar_floating_point<S>)
+                {
+                    return { (ksimd::is_NaN(lhs.v) || ksimd::is_NaN(rhs.v)) ? QNaN<S> : ksimd::min(lhs.v, rhs.v) };
+                }
+                else
+                {
+                    return { ksimd::min(lhs.v, rhs.v) };
+                }
             }
 
+            template<OpHelper::FloatMinMaxOption option = OpHelper::FloatMinMaxOption::Native>
+            KSIMD_API(Batch<S>) max(Batch<S> lhs, Batch<S> rhs) noexcept
+            {
+                if constexpr (option == OpHelper::FloatMinMaxOption::CheckNaN && is_scalar_floating_point<S>)
+                {
+                    return { (ksimd::is_NaN(lhs.v) || ksimd::is_NaN(rhs.v)) ? QNaN<S> : ksimd::max(lhs.v, rhs.v) };
+                }
+                else
+                {
+                    return { ksimd::max(lhs.v, rhs.v) };
+                }
+            }
+#pragma endregion
+
+#pragma region bit logic
             KSIMD_API(Batch<S>) bit_not(Batch<S> v) noexcept
             {
-                auto bits = std::bit_cast<same_bits_uint_t<S>>(v.v);
-                return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>(~bits)) };
+                auto bits = ksimd::bitcast_to_uint<S>(v.v);
+                return { std::bit_cast<S>(~bits) };
             }
 
             KSIMD_API(Batch<S>) bit_and(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                auto l = std::bit_cast<same_bits_uint_t<S>>(lhs.v);
-                auto r = std::bit_cast<same_bits_uint_t<S>>(rhs.v);
-                return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>(l & r)) };
+                auto l = ksimd::bitcast_to_uint<S>(lhs.v);
+                auto r = ksimd::bitcast_to_uint<S>(rhs.v);
+                return { std::bit_cast<S>(l & r) };
             }
 
             KSIMD_API(Batch<S>) bit_and_not(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                auto l = std::bit_cast<same_bits_uint_t<S>>(lhs.v);
-                auto r = std::bit_cast<same_bits_uint_t<S>>(rhs.v);
-                return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>((~l) & r)) };
+                auto l = ksimd::bitcast_to_uint<S>(lhs.v);
+                auto r = ksimd::bitcast_to_uint<S>(rhs.v);
+                return { std::bit_cast<S>((~l) & r) };
             }
 
             KSIMD_API(Batch<S>) bit_or(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                auto l = std::bit_cast<same_bits_uint_t<S>>(lhs.v);
-                auto r = std::bit_cast<same_bits_uint_t<S>>(rhs.v);
-                return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>(l | r)) };
+                auto l = ksimd::bitcast_to_uint<S>(lhs.v);
+                auto r = ksimd::bitcast_to_uint<S>(rhs.v);
+                return { std::bit_cast<S>(l | r) };
             }
 
             KSIMD_API(Batch<S>) bit_xor(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                auto l = std::bit_cast<same_bits_uint_t<S>>(lhs.v);
-                auto r = std::bit_cast<same_bits_uint_t<S>>(rhs.v);
-                return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>(l ^ r)) };
+                auto l = ksimd::bitcast_to_uint<S>(lhs.v);
+                auto r = ksimd::bitcast_to_uint<S>(rhs.v);
+                return { std::bit_cast<S>(l ^ r) };
             }
 
             KSIMD_API(Batch<S>) bit_if_then_else(Batch<S> _if, Batch<S> _then, Batch<S> _else) noexcept
             {
-                auto m = std::bit_cast<same_bits_uint_t<S>>(_if.v);
-                auto av = std::bit_cast<same_bits_uint_t<S>>(_then.v);
-                auto bv = std::bit_cast<same_bits_uint_t<S>>(_else.v);
-                return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>((m & av) | ((~m) & bv))) };
+                auto _if_v = ksimd::bitcast_to_uint<S>(_if.v);
+                auto _then_v = ksimd::bitcast_to_uint<S>(_then.v);
+                auto _else_v = ksimd::bitcast_to_uint<S>(_else.v);
+                return { std::bit_cast<S>((_if_v & _then_v) | ((~_if_v) & _else_v)) };
             }
 #pragma endregion
 
@@ -227,15 +251,27 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             KSIMD_API(Batch<S>) if_then_else(Mask<S> _if, Batch<S> _then, Batch<S> _else) noexcept
             {
                 using uint_t = same_bits_uint_t<S>;
-                uint_t m = _if.m;
-                uint_t au = std::bit_cast<uint_t>(_then.v);
-                uint_t bu = std::bit_cast<uint_t>(_else.v);
-                return { std::bit_cast<S>(static_cast<uint_t>((m & au) | ((~m) & bu))) };
+                uint_t _if_v = _if.m;
+                uint_t _then_v = std::bit_cast<uint_t>(_then.v);
+                uint_t _else_v = std::bit_cast<uint_t>(_else.v);
+                return { std::bit_cast<S>((_if_v & _then_v) | ((~_if_v) & _else_v)) };
             }
 #pragma endregion
 
 #pragma region reduce operation
             KSIMD_API(S) reduce_add(Batch<S> v) noexcept
+            {
+                return v.v;
+            }
+
+            template<OpHelper::FloatMinMaxOption = OpHelper::FloatMinMaxOption::Native>
+            KSIMD_API(S) reduce_min(Batch<S> v) noexcept
+            {
+                return v.v;
+            }
+
+            template<OpHelper::FloatMinMaxOption = OpHelper::FloatMinMaxOption::Native>
+            KSIMD_API(S) reduce_max(Batch<S> v) noexcept
             {
                 return v.v;
             }
@@ -251,10 +287,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             KSIMD_API(Batch<S>) abs(Batch<S> v) noexcept
             {
-                if constexpr (std::is_floating_point_v<S>)
-                    return { std::abs(v.v) };
-                else
-                    return { v.v < 0 ? -v.v : v.v };
+                return { std::abs(v.v) };
             }
 
             KSIMD_API(Batch<S>) neg(Batch<S> v) noexcept
@@ -312,32 +345,32 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
             KSIMD_API(Mask<S>) any_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                return { (std::isnan(lhs.v) || std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                  : ZeroBlock<same_bits_uint_t<S>> };
+                return { (ksimd::is_NaN(lhs.v) || ksimd::is_NaN(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                        : ZeroBlock<same_bits_uint_t<S>> };
             }
 
             KSIMD_API(Mask<S>) all_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                return { (std::isnan(lhs.v) && std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                  : ZeroBlock<same_bits_uint_t<S>> };
+                return { (ksimd::is_NaN(lhs.v) && ksimd::is_NaN(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                        : ZeroBlock<same_bits_uint_t<S>> };
             }
 
             KSIMD_API(Mask<S>) not_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                return { (!std::isnan(lhs.v) && !std::isnan(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                    : ZeroBlock<same_bits_uint_t<S>> };
+                return { (!ksimd::is_NaN(lhs.v) && !ksimd::is_NaN(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                          : ZeroBlock<same_bits_uint_t<S>> };
             }
 
             KSIMD_API(Mask<S>) any_finite(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                return { (std::isfinite(lhs.v) || std::isfinite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                        : ZeroBlock<same_bits_uint_t<S>> };
+                return { (ksimd::is_finite(lhs.v) || ksimd::is_finite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                              : ZeroBlock<same_bits_uint_t<S>> };
             }
 
             KSIMD_API(Mask<S>) all_finite(Batch<S> lhs, Batch<S> rhs) noexcept
             {
-                return { (std::isfinite(lhs.v) && std::isfinite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
-                                                                        : ZeroBlock<same_bits_uint_t<S>> };
+                return { (ksimd::is_finite(lhs.v) && ksimd::is_finite(rhs.v)) ? OneBlock<same_bits_uint_t<S>>
+                                                                              : ZeroBlock<same_bits_uint_t<S>> };
             }
         };
 
