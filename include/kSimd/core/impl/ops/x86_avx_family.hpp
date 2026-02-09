@@ -9,6 +9,8 @@
 #include <smmintrin.h> // SSE4.1
 #include <immintrin.h> // AVX+
 
+#include <cstring>
+
 #include "op_helpers.hpp"
 #include "kSimd/core/impl/func_attr.hpp"
 #include "kSimd/core/impl/traits.hpp"

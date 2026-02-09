@@ -78,7 +78,7 @@ namespace ksimd
     }
 
 #define KSIMD_DYN_FUNC_POINTER(func_name) \
-    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[KSIMD_NAMESPACE_NAME::dyn_func_index()]
+    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[ksimd::dyn_func_index()]
 #define KSIMD_DYN_CALL(func_name) (KSIMD_DYN_FUNC_POINTER(func_name))
 
 

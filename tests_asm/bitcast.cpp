@@ -6,7 +6,7 @@
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void kernel_impl() noexcept
+    void kernel() noexcept
     {
         // using f32 = KSIMD_DYN_BASE_OP(float);
         // using f64 = KSIMD_DYN_BASE_OP(double);
@@ -49,9 +49,9 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(kernel_impl);
+KSIMD_DYN_DISPATCH_FUNC(kernel);
 void kernel() noexcept
 {
-    KSIMD_DYN_CALL(kernel_impl)();
+    KSIMD_DYN_CALL(kernel)();
 }
 #endif
