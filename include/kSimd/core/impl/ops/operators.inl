@@ -8,15 +8,17 @@ namespace ksimd
 {
     namespace KSIMD_DYN_INSTRUCTION
     {
-        #define KSIMD_BINARY_OP(symbol, name) \
+        #define KSIMD_BINARY_OP(symbol, name, ...) \
             template<is_scalar_type S> \
             KSIMD_API(Batch<S>) operator symbol(Batch<S> lhs, Batch<S> rhs) noexcept \
             { \
+                __VA_ARGS__ \
                 return op<S>::name(lhs, rhs); \
             } \
             template<is_scalar_type S> \
             KSIMD_API(Batch<S>&) operator symbol##=(Batch<S>& lhs, Batch<S> rhs) noexcept \
             { \
+                __VA_ARGS__ \
                 return lhs = op<S>::name(lhs, rhs); \
             }
 
@@ -24,7 +26,8 @@ namespace ksimd
         KSIMD_BINARY_OP(+, add)
         KSIMD_BINARY_OP(-, sub)
         KSIMD_BINARY_OP(*, mul)
-        KSIMD_BINARY_OP(/, div)
+        KSIMD_BINARY_OP(/, div,
+            static_assert(is_scalar_floating_point<S>, "operator/ can only be used by floating point."); )
 
         // ----------------- 二元位运算 -----------------
         KSIMD_BINARY_OP(&, bit_and)
@@ -47,20 +50,23 @@ namespace ksimd
 
         #undef KSIMD_UNARY_OP
 
-        #define KSIMD_MIXED_BINARY_OP(symbol, name) \
+        #define KSIMD_MIXED_BINARY_OP(symbol, name, ...) \
             template<is_scalar_type S> \
             KSIMD_API(Batch<S>) operator symbol(Batch<S> lhs, S rhs) noexcept \
             { \
+                __VA_ARGS__ \
                 return op<S>::name(lhs, op<S>::set(rhs)); \
             } \
             template<is_scalar_type S> \
             KSIMD_API(Batch<S>) operator symbol(S lhs, Batch<S> rhs) noexcept \
             { \
+                __VA_ARGS__ \
                 return op<S>::name(op<S>::set(lhs), rhs); \
             } \
             template<is_scalar_type S> \
             KSIMD_API(Batch<S>&) operator symbol##=(Batch<S>& lhs, S rhs) noexcept \
             { \
+                __VA_ARGS__ \
                 return lhs = op<S>::name(lhs, op<S>::set(rhs)); \
             } \
 
@@ -68,7 +74,8 @@ namespace ksimd
         KSIMD_MIXED_BINARY_OP(+, add)
         KSIMD_MIXED_BINARY_OP(-, sub)
         KSIMD_MIXED_BINARY_OP(*, mul)
-        KSIMD_MIXED_BINARY_OP(/, div)
+        KSIMD_MIXED_BINARY_OP(/, div,
+            static_assert(is_scalar_floating_point<S>, "operator/ can only be used by floating point."); )
 
         // ----------------- 与标量混合的二元位运算符 -----------------
         KSIMD_MIXED_BINARY_OP(&, bit_and)
