@@ -382,13 +382,7 @@ namespace ksimd
             , detail::signed_type_impl_selector<S>
             // float32, float64
             , detail::float32_float64_impl_selector<S>
-        {
-            using scalar_t = S;
-            using batch_t = Batch<S>;
-            using mask_t = Mask<S>;
-            static constexpr size_t Alignment = alignof(S);
-            static constexpr size_t Lanes = 1;
-        };
+        {};
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace ksimd
 

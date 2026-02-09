@@ -33,7 +33,7 @@ namespace ksimd
             return op<S>::div(lhs, rhs);
         }
 
-        // ----------------- 复合赋值算术运算 (Concise Style) -----------------
+        // ----------------- 复合赋值算术运算 -----------------
         template<is_scalar_type S>
         KSIMD_API(Batch<S>&) operator+=(Batch<S>& lhs, Batch<S> rhs) noexcept
         {
@@ -58,7 +58,7 @@ namespace ksimd
             return lhs = op<S>::div(lhs, rhs);
         }
 
-        // ----------------- 位运算 (Bitwise) -----------------
+        // ----------------- 位运算 -----------------
         template<is_scalar_type S>
         KSIMD_API(Batch<S>) operator&(Batch<S> lhs, Batch<S> rhs) noexcept
         {
@@ -77,7 +77,7 @@ namespace ksimd
             return op<S>::bit_xor(lhs, rhs);
         }
 
-        // ----------------- 复合赋值位运算 (Concise Style) -----------------
+        // ----------------- 复合赋值位运算 -----------------
         template<is_scalar_type S>
         KSIMD_API(Batch<S>&) operator&=(Batch<S>& lhs, Batch<S> rhs) noexcept
         {
