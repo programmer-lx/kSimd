@@ -155,11 +155,11 @@ namespace ksimd
                     return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>(l ^ r)) };
                 }
 
-                KSIMD_API(Batch<S>) bit_select(Batch<S> mask, Batch<S> a, Batch<S> b) noexcept
+                KSIMD_API(Batch<S>) bit_if_then_else(Batch<S> _if, Batch<S> _then, Batch<S> _else) noexcept
                 {
-                    auto m = std::bit_cast<same_bits_uint_t<S>>(mask.v);
-                    auto av = std::bit_cast<same_bits_uint_t<S>>(a.v);
-                    auto bv = std::bit_cast<same_bits_uint_t<S>>(b.v);
+                    auto m = std::bit_cast<same_bits_uint_t<S>>(_if.v);
+                    auto av = std::bit_cast<same_bits_uint_t<S>>(_then.v);
+                    auto bv = std::bit_cast<same_bits_uint_t<S>>(_else.v);
                     return { std::bit_cast<S>(static_cast<same_bits_uint_t<S>>((m & av) | ((~m) & bv))) };
                 }
 #pragma endregion
@@ -226,12 +226,12 @@ namespace ksimd
                     return { ~mask.m };
                 }
 
-                KSIMD_API(Batch<S>) mask_select(Mask<S> mask, Batch<S> a, Batch<S> b) noexcept
+                KSIMD_API(Batch<S>) if_then_else(Mask<S> _if, Batch<S> _then, Batch<S> _else) noexcept
                 {
                     using uint_t = same_bits_uint_t<S>;
-                    uint_t m = mask.m;
-                    uint_t au = std::bit_cast<uint_t>(a.v);
-                    uint_t bu = std::bit_cast<uint_t>(b.v);
+                    uint_t m = _if.m;
+                    uint_t au = std::bit_cast<uint_t>(_then.v);
+                    uint_t bu = std::bit_cast<uint_t>(_else.v);
                     return { std::bit_cast<S>(static_cast<uint_t>((m & au) | ((~m) & bu))) };
                 }
 #pragma endregion

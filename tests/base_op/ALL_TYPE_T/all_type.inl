@@ -252,11 +252,11 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(partial_load_store)
 #endif
 
-// ------------------------------------------ bit_select ------------------------------------------
+// ------------------------------------------ bit_if_then_else ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void bit_select() noexcept
+    void bit_if_then_else() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         using op = ns::op<TYPE_T>;
@@ -271,7 +271,7 @@ namespace KSIMD_DYN_INSTRUCTION
         TYPE_T val_mask = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b00010));
         uint_t expected = static_cast<uint_t>(0b11101);
 
-        op::store(res, op::bit_select(op::set(val_mask), op::set(val_a), op::set(val_b)));
+        op::store(res, op::bit_if_then_else(op::set(val_mask), op::set(val_a), op::set(val_b)));
 
         for (size_t i = 0; i < Lanes; ++i)
         {
@@ -289,7 +289,7 @@ namespace KSIMD_DYN_INSTRUCTION
             TYPE_T s_mask  = ksimd::SignBitMask<TYPE_T>;
 
             // 从 neg_val 取符号位，从 pos_val 取数值位，结果应为 -1.0
-            op::store(res, op::bit_select(op::set(s_mask), op::set(neg_val), op::set(pos_val)));
+            op::store(res, op::bit_if_then_else(op::set(s_mask), op::set(neg_val), op::set(pos_val)));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_EQ(res[i], TYPE_T(-1.0));
@@ -298,14 +298,14 @@ namespace KSIMD_DYN_INSTRUCTION
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(bit_select)
+TEST_ONCE_DYN(bit_if_then_else)
 #endif
 
-// ------------------------------------------ mask_select ------------------------------------------
+// ------------------------------------------ if_then_else ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void mask_select() noexcept
+    void if_then_else() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         using op = ns::op<TYPE_T>;
@@ -320,14 +320,14 @@ namespace KSIMD_DYN_INSTRUCTION
         // 1. 全 1 掩码选择
         {
             auto mask_true = op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(1)));
-            op::store(res, op::mask_select(mask_true, v_a, v_b));
+            op::store(res, op::if_then_else(mask_true, v_a, v_b));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], TYPE_T(10));
         }
 
         // 2. 全 0 掩码选择
         {
             auto mask_false = op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(2)));
-            op::store(res, op::mask_select(mask_false, v_a, v_b));
+            op::store(res, op::if_then_else(mask_false, v_a, v_b));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], TYPE_T(20));
         }
 
@@ -341,7 +341,7 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             auto mask_mixed = op::greater(op::load(data_lhs), op::load(data_rhs));
-            op::store(res, op::mask_select(mask_mixed, v_a, v_b));
+            op::store(res, op::if_then_else(mask_mixed, v_a, v_b));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 TYPE_T expected = (i > 1) ? TYPE_T(10) : TYPE_T(20);
@@ -351,7 +351,7 @@ namespace KSIMD_DYN_INSTRUCTION
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(mask_select)
+TEST_ONCE_DYN(if_then_else)
 #endif
 
 // ------------------------------------------ bit_not ------------------------------------------

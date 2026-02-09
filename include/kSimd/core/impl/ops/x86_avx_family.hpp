@@ -258,9 +258,9 @@ namespace ksimd
                     return { _mm256_xor_ps(lhs.v, rhs.v) };
                 }
 
-                KSIMD_API(batch_t) bit_select(batch_t mask, batch_t a, batch_t b) noexcept
+                KSIMD_API(batch_t) bit_if_then_else(batch_t _if, batch_t _then, batch_t _else) noexcept
                 {
-                    return { _mm256_or_ps(_mm256_and_ps(mask.v, a.v), _mm256_andnot_ps(mask.v, b.v)) };
+                    return { _mm256_or_ps(_mm256_and_ps(_if.v, _then.v), _mm256_andnot_ps(_if.v, _else.v)) };
                 }
 
 #if defined(KSIMD_IS_TESTING)
@@ -380,9 +380,9 @@ namespace ksimd
                                            _mm256_cmp_ps(_mm256_and_ps(rhs.v, abs_mask), inf_v, _CMP_LT_OQ)) };
                 }
 
-                KSIMD_API(batch_t) mask_select(mask_t mask, batch_t a, batch_t b) noexcept
+                KSIMD_API(batch_t) if_then_else(mask_t _if, batch_t _then, batch_t _else) noexcept
                 {
-                    return { _mm256_blendv_ps(b.v, a.v, mask.m) };
+                    return { _mm256_blendv_ps(_else.v, _then.v, _if.m) };
                 }
 
                 KSIMD_API(scalar_t) reduce_add(batch_t v) noexcept
