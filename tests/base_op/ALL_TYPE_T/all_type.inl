@@ -976,29 +976,6 @@ namespace KSIMD_DYN_INSTRUCTION
             KSIMD_CHECK_MASK_EQ(op::mask_not(m_true),          m_false);
             KSIMD_CHECK_MASK_EQ(op::mask_not(m_false),         m_true);
         }
-
-        // 2. 运算符重载测试 (operator &, |, ^, ~)
-        {
-            KSIMD_CHECK_MASK_EQ(m_true & m_false, m_false);
-            KSIMD_CHECK_MASK_EQ(m_true | m_false, m_true);
-            KSIMD_CHECK_MASK_EQ(m_true ^ m_true,  m_false);
-            KSIMD_CHECK_MASK_EQ(~m_true,          m_false);
-        }
-
-        // 3. 复合赋值运算符测试 (operator &=, |=, ^=)
-        {
-            mask_t m_curr = m_true;
-
-            m_curr &= m_false;
-            KSIMD_CHECK_MASK_EQ(m_curr, m_false);
-
-            m_curr |= m_true;
-            KSIMD_CHECK_MASK_EQ(m_curr, m_true);
-
-            m_curr ^= m_true;
-            KSIMD_CHECK_MASK_EQ(m_curr, m_false);
-        }
-
         #undef KSIMD_CHECK_MASK_EQ
     }
 }
@@ -1006,264 +983,266 @@ namespace KSIMD_DYN_INSTRUCTION
 TEST_ONCE_DYN(mask_logic)
 #endif
 
-// ------------------------------------------ mask_operator_overload ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
+// ------------------------------------------ test_arithmetic_forwarding ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION {
     KSIMD_DYN_FUNC_ATTR
-    void mask_operator_overload() noexcept
-    {
+    void test_arithmetic_forwarding() noexcept {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         using op = ns::op<TYPE_T>;
         using batch_t = ns::Batch<TYPE_T>;
-        using mask_t = ns::Mask<TYPE_T>;
-
-        // 准备基础掩码
-        batch_t v1 = op::set(static_cast<TYPE_T>(10));
-        batch_t v2 = op::set(static_cast<TYPE_T>(20));
-        mask_t m_true  = op::equal(v1, v1); // 全1
-        mask_t m_false = op::equal(v1, v2); // 全0
-
-        #define KSIMD_CHECK_MASK_EQ(lhs, rhs) \
-        do { \
-            alignas(op::Alignment) TYPE_T M__l[op::Lanes]{}; \
-            alignas(op::Alignment) TYPE_T M__r[op::Lanes]{}; \
-            op::test_store_mask(M__l, lhs); \
-            op::test_store_mask(M__r, rhs); \
-            for (size_t I__ = 0; I__ < op::Lanes; ++I__) \
-            { \
-                EXPECT_TRUE(bit_equal(M__l[I__], M__r[I__])); \
-            } \
-        } while (0)
-
-        // 1. 测试一元运算符: ~ (NOT)
-        {
-            KSIMD_CHECK_MASK_EQ(~m_true,  m_false);
-            KSIMD_CHECK_MASK_EQ(~m_false, m_true);
-        }
-
-        // 2. 测试二元运算符: &, |, ^ (AND, OR, XOR)
-        {
-            KSIMD_CHECK_MASK_EQ(m_true  & m_false, m_false);
-            KSIMD_CHECK_MASK_EQ(m_true  | m_false, m_true);
-            KSIMD_CHECK_MASK_EQ(m_true  ^ m_true,  m_false);
-            KSIMD_CHECK_MASK_EQ(m_true  ^ m_false, m_true);
-        }
-
-        // 3. 测试复合赋值运算符: &=, |=, ^=
-        {
-            mask_t m = m_true;
-
-            m &= m_false;
-            KSIMD_CHECK_MASK_EQ(m, m_false);
-
-            m |= m_true;
-            KSIMD_CHECK_MASK_EQ(m, m_true);
-
-            m ^= m_true; // True ^ True = False
-            KSIMD_CHECK_MASK_EQ(m, m_false);
-        }
-
-        #undef KSIMD_CHECK_MASK_EQ
-    }
-}
-#if KSIMD_ONCE
-TEST_ONCE_DYN(mask_operator_overload)
-#endif
-
-// ------------------------------------------ all_operators ------------------------------------------
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void all_operators() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        using batch_t = ns::Batch<TYPE_T>;
-
         constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T act[Lanes];
-        alignas(op::Alignment) TYPE_T exp[Lanes];
+        alignas(op::Alignment) TYPE_T act[Lanes], exp[Lanes];
 
-        // 辅助检查函数：对比两个 Batch 的存储内容
-        #define check_eq(lhs, rhs, label) \
+        #define check(actual, expected, msg) \
             do { \
-                op::store(act, lhs); \
-                op::store(exp, rhs); \
-                for (size_t i = 0; i < Lanes; ++i) { \
-                    EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Operator " << label << " forwarding failed at lane " << i; \
-                } \
+                op::store(act, actual); \
+                op::store(exp, expected); \
+                for (size_t i = 0; i < Lanes; ++i)  \
+                    EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Forwarding failed: " << msg << " at lane " << i; \
             } while (0)
 
-        // 构造简单的测试数据
-        batch_t a = op::set(TYPE_T(10));
-        batch_t b = op::set(TYPE_T(2));
+        batch_t a = op::set(TYPE_T(10.5)), b = op::set(TYPE_T(2.0));
 
-        // 1. 二元算术转发验证
-        check_eq(a + b, op::add(a, b), "+");
-        check_eq(a - b, op::sub(a, b), "-");
-        check_eq(a * b, op::mul(a, b), "*");
-        check_eq(a / b, op::div(a, b), "/");
+        // 二元运算
+        check(a + b, op::add(a, b), "operator+");
+        check(a - b, op::sub(a, b), "operator-");
+        check(a * b, op::mul(a, b), "operator*");
+        check(a / b, op::div(a, b), "operator/");
 
-        // 2. 位运算转发验证
-        check_eq(a & b, op::bit_and(a, b), "&");
-        check_eq(a | b, op::bit_or(a, b), "|");
-        check_eq(a ^ b, op::bit_xor(a, b), "^");
-        check_eq(~a,    op::bit_not(a), "~");
+        // 一元与赋值
+        check(-a, op::neg(a), "unary operator-");
 
-        // 3. 一元负号转发验证
-        check_eq(-a, op::sub(op::set(TYPE_T(0)), a), "unary -");
+        batch_t c = a; c += b; check(c, op::add(a, b), "operator+=");
+        c = a; c -= b;         check(c, op::sub(a, b), "operator-=");
+        c = a; c *= b;         check(c, op::mul(a, b), "operator*=");
+        c = a; c /= b;         check(c, op::div(a, b), "operator/=");
 
-        // 4. 复合赋值转发验证
-        batch_t c = a;
-        check_eq(c += b, op::add(a, b), "+=");
-
-        c = a;
-        check_eq(c -= b, op::sub(a, b), "-=");
-
-        c = a;
-        check_eq(c &= b, op::bit_and(a, b), "&=");
-
-        c = a;
-        check_eq(c ^= b, op::bit_xor(a, b), "^=");
+        #undef check
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(all_operators)
+TEST_ONCE_DYN(test_arithmetic_forwarding)
 #endif
 
-// ------------------------------------------ Comparison Operators ------------------------------------------
-
-namespace KSIMD_DYN_INSTRUCTION
-{
-    // --- Helper for Comparison Tests ---
-    #define KSIMD_CHECK_COMP_OP(batch_lhs, batch_rhs, op_symbol, expected_block) \
-    do { \
-        op::test_store_mask(test, (batch_lhs) op_symbol (batch_rhs)); \
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::expected_block<TYPE_T>)) \
-            << "Comparison failed for: " << #batch_lhs << " " << #op_symbol << " " << #batch_rhs; \
-    } while (0)
-
+// ------------------------------------------ test_bitwise_forwarding ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION {
     KSIMD_DYN_FUNC_ATTR
-    void op_equal() noexcept
-    {
+    void test_bitwise_forwarding() noexcept {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         using op = ns::op<TYPE_T>;
+        using batch_t = ns::Batch<TYPE_T>;
+        using uint_t = ksimd::same_bits_uint_t<TYPE_T>; // 自动获取对应宽度的无符号整型
+
         constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
+        alignas(op::Alignment) TYPE_T act[Lanes], exp[Lanes];
 
-        // 1 == 1 (True), 1 == 2 (False)
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(1)), ==, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(2)), ==, ZeroBlock);
+        #define check(actual, expected, msg) \
+        do { \
+            op::store(act, actual); \
+            op::store(exp, expected); \
+            for (size_t i = 0; i < Lanes; ++i) \
+                EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Forwarding failed: " << msg << " at lane " << i; \
+        } while (0)
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            KSIMD_CHECK_COMP_OP(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>), ==, OneBlock);
-            KSIMD_CHECK_COMP_OP(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>), ==, ZeroBlock); // NaN != NaN
-        }
+        // 使用全量程的交替位模式
+        // 如果是 32位，它会截断为 0xAAAA5555
+        // 如果是 64位，它是 0xAAAAAAAAAAAAAAAAULL (取决于你的 uint_t 定义)
+        uint_t p1 = static_cast<uint_t>(0xAAAAAAAAAAAAAAAAULL);
+        uint_t p2 = static_cast<uint_t>(0x5555555555555555ULL);
+
+        batch_t a = op::set(std::bit_cast<TYPE_T>(p1));
+        batch_t b = op::set(std::bit_cast<TYPE_T>(p2));
+
+        // 1. 基础位运算重载转发
+        check(a & b, op::bit_and(a, b), "operator&");
+        check(a | b, op::bit_or(a, b),  "operator|");
+        check(a ^ b, op::bit_xor(a, b), "operator^");
+        check(~a,    op::bit_not(a),   "operator~");
+
+        // 2. 复合赋值重载转发
+        batch_t c = a;
+        c &= b; check(c, op::bit_and(a, b), "operator&=");
+
+        c = a;
+        c |= b; check(c, op::bit_or(a, b),  "operator|=");
+
+        c = a;
+        c ^= b; check(c, op::bit_xor(a, b), "operator^=");
+
+        #undef check
     }
-
-    KSIMD_DYN_FUNC_ATTR
-    void op_not_equal() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
-
-        // 1 != 2 (True), 1 != 1 (False)
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(2)), !=, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(1)), !=, ZeroBlock);
-
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            KSIMD_CHECK_COMP_OP(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>), !=, OneBlock); // NaN != NaN is True
-        }
-    }
-
-    KSIMD_DYN_FUNC_ATTR
-    void op_greater() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
-
-        // 2 > 1 (True), 1 > 2 (False), 1 > 1 (False)
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(2)), op::set(TYPE_T(1)), >, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(2)), >, ZeroBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(1)), >, ZeroBlock);
-
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            KSIMD_CHECK_COMP_OP(op::set(inf<TYPE_T>), op::set(-inf<TYPE_T>), >, OneBlock);
-            KSIMD_CHECK_COMP_OP(op::set(qNaN<TYPE_T>), op::set(TYPE_T(0)), >, ZeroBlock);
-        }
-    }
-
-    KSIMD_DYN_FUNC_ATTR
-    void op_greater_equal() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
-
-        // 2 >= 1 (True), 1 >= 1 (True), 1 >= 2 (False)
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(2)), op::set(TYPE_T(1)), >=, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(1)), >=, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(2)), >=, ZeroBlock);
-
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            KSIMD_CHECK_COMP_OP(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>), >=, OneBlock);
-            KSIMD_CHECK_COMP_OP(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>), >=, ZeroBlock);
-        }
-    }
-
-    KSIMD_DYN_FUNC_ATTR
-    void op_less() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
-
-        // 1 < 2 (True), 2 < 1 (False), 1 < 1 (False)
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(2)), <, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(2)), op::set(TYPE_T(1)), <, ZeroBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(1)), <, ZeroBlock);
-
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            KSIMD_CHECK_COMP_OP(op::set(-inf<TYPE_T>), op::set(inf<TYPE_T>), <, OneBlock);
-            KSIMD_CHECK_COMP_OP(op::set(qNaN<TYPE_T>), op::set(inf<TYPE_T>), <, ZeroBlock);
-        }
-    }
-
-    KSIMD_DYN_FUNC_ATTR
-    void op_less_equal() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
-
-        // 1 <= 2 (True), 1 <= 1 (True), 2 <= 1 (False)
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(2)), <=, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(1)), op::set(TYPE_T(1)), <=, OneBlock);
-        KSIMD_CHECK_COMP_OP(op::set(TYPE_T(2)), op::set(TYPE_T(1)), <=, ZeroBlock);
-
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
-            KSIMD_CHECK_COMP_OP(op::set(-inf<TYPE_T>), op::set(-inf<TYPE_T>), <=, OneBlock);
-            KSIMD_CHECK_COMP_OP(op::set(qNaN<TYPE_T>), op::set(TYPE_T(0)), <=, ZeroBlock);
-        }
-    }
-
-    #undef KSIMD_CHECK_COMP_OP
 }
-
 #if KSIMD_ONCE
-TEST_ONCE_DYN(op_equal)
-TEST_ONCE_DYN(op_not_equal)
-TEST_ONCE_DYN(op_greater)
-TEST_ONCE_DYN(op_greater_equal)
-TEST_ONCE_DYN(op_less)
-TEST_ONCE_DYN(op_less_equal)
+TEST_ONCE_DYN(test_bitwise_forwarding)
+#endif
+
+// ------------------------------------------ test_comparison_forwarding ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION {
+    KSIMD_DYN_FUNC_ATTR
+    void test_comparison_forwarding() noexcept {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        using op = ns::op<TYPE_T>;
+        using batch_t = ns::Batch<TYPE_T>;
+        // using mask_t = ns::Mask<TYPE_T>;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(op::Alignment) TYPE_T act[Lanes], exp[Lanes];
+
+        #define check(actual, expected, msg) \
+        do { \
+            op::test_store_mask(act, actual); \
+            op::test_store_mask(exp, expected); \
+            for (size_t i = 0; i < Lanes; ++i) \
+                EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Forwarding failed: " << msg << " at lane " << i; \
+        } while (0)
+
+        batch_t a = op::set(TYPE_T(10)), b = op::set(TYPE_T(20));
+
+        check(a == b, op::equal(a, b),         "operator==");
+        check(a != b, op::not_equal(a, b),     "operator!=");
+        check(a <  b, op::less(a, b),          "operator<");
+        check(a <= b, op::less_equal(a, b),    "operator<=");
+        check(a >  b, op::greater(a, b),       "operator>");
+        check(a >= b, op::greater_equal(a, b), "operator>=");
+
+        #undef check
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(test_comparison_forwarding)
+#endif
+
+// ------------------------------------------ test_mixed_forwarding ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION {
+    KSIMD_DYN_FUNC_ATTR
+    void test_mixed_forwarding() noexcept {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        using op = ns::op<TYPE_T>;
+        using batch_t = ns::Batch<TYPE_T>;
+        // using mask_t = ns::Mask<TYPE_T>;
+        using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(op::Alignment) TYPE_T act[Lanes], exp[Lanes];
+
+        const batch_t b = op::set(TYPE_T(10));
+        const TYPE_T s = TYPE_T(2);
+        const batch_t bs = op::set(s);
+
+        // --- 辅助宏：验证 Batch 结果 ---
+        #define KSIMD_CHECK_B_MIXED(actual, expected, msg) \
+        do { \
+            op::store(act, actual); op::store(exp, expected); \
+            for (size_t i = 0; i < Lanes; ++i) \
+                EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Mixed Forwarding failed: " << msg << " at lane " << i; \
+        } while (0)
+
+        // --- 辅助宏：验证 Mask 结果 ---
+        #define KSIMD_CHECK_M_MIXED(actual, expected, msg) \
+        do { \
+            op::test_store_mask(act, actual); op::test_store_mask(exp, expected); \
+            for (size_t i = 0; i < Lanes; ++i) \
+                EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Mixed Mask Forwarding failed: " << msg << " at lane " << i; \
+        } while (0)
+
+        // 1. 混合算术运算转发 (+, -, *, /)
+        KSIMD_CHECK_B_MIXED(b + s, op::add(b, bs), "Batch + Scalar");
+        KSIMD_CHECK_B_MIXED(s + b, op::add(bs, b), "Scalar + Batch");
+
+        KSIMD_CHECK_B_MIXED(b - s, op::sub(b, bs), "Batch - Scalar");
+        KSIMD_CHECK_B_MIXED(s - b, op::sub(bs, b), "Scalar - Batch");
+
+        KSIMD_CHECK_B_MIXED(b * s, op::mul(b, bs), "Batch * Scalar");
+        KSIMD_CHECK_B_MIXED(s * b, op::mul(bs, b), "Scalar * Batch");
+
+        KSIMD_CHECK_B_MIXED(b / s, op::div(b, bs), "Batch / Scalar");
+        KSIMD_CHECK_B_MIXED(s / b, op::div(bs, b), "Scalar / Batch");
+
+        // 2. 混合位运算转发 (&, |, ^)
+        // 使用 bit_cast 构造一个特定的位模式标量进行测试
+        const TYPE_T s_bit = std::bit_cast<TYPE_T>(static_cast<uint_t>(0x0F0F0F0F0F0F0F0FULL));
+        const batch_t bs_bit = op::set(s_bit);
+
+        KSIMD_CHECK_B_MIXED(b & s_bit, op::bit_and(b, bs_bit), "Batch & Scalar");
+        KSIMD_CHECK_B_MIXED(s_bit & b, op::bit_and(bs_bit, b), "Scalar & Batch");
+
+        KSIMD_CHECK_B_MIXED(b | s_bit, op::bit_or(b, bs_bit),  "Batch | Scalar");
+        KSIMD_CHECK_B_MIXED(s_bit | b, op::bit_or(bs_bit, b),  "Scalar | Batch");
+
+        KSIMD_CHECK_B_MIXED(b ^ s_bit, op::bit_xor(b, bs_bit), "Batch ^ Scalar");
+        KSIMD_CHECK_B_MIXED(s_bit ^ b, op::bit_xor(bs_bit, b), "Scalar ^ Batch");
+
+        // 2. 混合复合赋值转发 (+=, -=, *=, /=)
+        {
+            batch_t c = b; c += s; KSIMD_CHECK_B_MIXED(c, op::add(b, bs), "Batch += Scalar");
+            c = b;         c -= s; KSIMD_CHECK_B_MIXED(c, op::sub(b, bs), "Batch -= Scalar");
+            c = b;         c *= s; KSIMD_CHECK_B_MIXED(c, op::mul(b, bs), "Batch *= Scalar");
+            c = b;         c /= s; KSIMD_CHECK_B_MIXED(c, op::div(b, bs), "Batch /= Scalar");
+
+            c = b; c &= s_bit; KSIMD_CHECK_B_MIXED(c, op::bit_and(b, bs_bit), "Batch &= Scalar");
+            c = b; c |= s_bit; KSIMD_CHECK_B_MIXED(c, op::bit_or(b, bs_bit),  "Batch |= Scalar");
+            c = b; c ^= s_bit; KSIMD_CHECK_B_MIXED(c, op::bit_xor(b, bs_bit), "Batch ^= Scalar");
+        }
+
+        // 3. 混合比较运算转发 (==, !=, <, <=, >, >=)
+        KSIMD_CHECK_M_MIXED(b == s, op::equal(b, bs),         "Batch == Scalar");
+        KSIMD_CHECK_M_MIXED(s == b, op::equal(bs, b),         "Scalar == Batch");
+
+        KSIMD_CHECK_M_MIXED(b != s, op::not_equal(b, bs),     "Batch != Scalar");
+        KSIMD_CHECK_M_MIXED(s != b, op::not_equal(bs, b),     "Scalar != Batch");
+
+        KSIMD_CHECK_M_MIXED(b < s,  op::less(b, bs),          "Batch < Scalar");
+        KSIMD_CHECK_M_MIXED(s < b,  op::less(bs, b),          "Scalar < Batch");
+
+        KSIMD_CHECK_M_MIXED(b <= s, op::less_equal(b, bs),    "Batch <= Scalar");
+        KSIMD_CHECK_M_MIXED(s <= b, op::less_equal(bs, b),    "Scalar <= Batch");
+
+        KSIMD_CHECK_M_MIXED(b > s,  op::greater(b, bs),       "Batch > Scalar");
+        KSIMD_CHECK_M_MIXED(s > b,  op::greater(bs, b),       "Scalar > Batch");
+
+        KSIMD_CHECK_M_MIXED(b >= s, op::greater_equal(b, bs), "Batch >= Scalar");
+        KSIMD_CHECK_M_MIXED(s >= b, op::greater_equal(bs, b), "Scalar >= Batch");
+
+        #undef KSIMD_CHECK_B_MIXED
+        #undef KSIMD_CHECK_M_MIXED
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(test_mixed_forwarding)
+#endif
+
+// ------------------------------------------ test_mask_forwarding ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION {
+    KSIMD_DYN_FUNC_ATTR
+    void test_mask_forwarding() noexcept {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        using op = ns::op<TYPE_T>;
+        using mask_t = ns::Mask<TYPE_T>;
+        constexpr size_t Lanes = op::Lanes;
+        alignas(op::Alignment) TYPE_T act[Lanes], exp[Lanes];
+
+        #define check(actual, expected, msg) \
+        do { \
+            op::test_store_mask(act, actual); \
+            op::test_store_mask(exp, expected); \
+            for (size_t i = 0; i < Lanes; ++i) \
+                EXPECT_TRUE(bit_equal(act[i], exp[i])) << "Forwarding failed: " << msg << " at lane " << i; \
+        } while (0)
+
+        mask_t m1 = op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(1))); // True
+        mask_t m2 = op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))); // False
+
+        check(m1 & m2, op::mask_and(m1, m2), "mask operator&");
+        check(m1 | m2, op::mask_or(m1, m2),  "mask operator|");
+        check(m1 ^ m2, op::mask_xor(m1, m2), "mask operator^");
+        check(~m1,     op::mask_not(m1),     "mask operator~");
+        check(!m1,     op::mask_not(m1),     "mask operator!");
+
+        mask_t mc = m1; mc &= m2; check(mc, op::mask_and(m1, m2), "mask operator&=");
+
+        #undef check
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(test_mask_forwarding)
 #endif
 
 #if KSIMD_ONCE
