@@ -3,7 +3,6 @@
 // 逐元素数学库
 
 // check (必须在包含这个文件之前包含dispatch_core.hpp)
-#include "kSimd/core/impl/ops/op_helpers.hpp"
 #if !defined(KSIMD_DISPATCH_CORE_INCLUDED)
     static_assert(false, "We should include <kSimd/core/dispatch_core.hpp> before include <kSimd/extension/dispatch_vmath.hpp>");
 #endif
