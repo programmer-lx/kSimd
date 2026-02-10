@@ -8,7 +8,7 @@
 
 #include "op_helpers.hpp"
 #include "kSimd/core/impl/func_attr.hpp"
-#include "kSimd/core/impl/traits.hpp"
+#include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
@@ -52,7 +52,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<is_scalar_type S>
-    KSIMD_API(Batch<S>) load_partial(const S* mem, size_t count) noexcept
+    KSIMD_API(Batch<S>) loadu_partial(const S* mem, size_t count) noexcept
     {
         return count > 0 ? Batch<S>{ *mem } : Batch<S>{ static_cast<S>(0) };
     }
@@ -70,7 +70,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<is_scalar_type S>
-    KSIMD_API(void) store_partial(S* mem, Batch<S> v, size_t count) noexcept
+    KSIMD_API(void) storeu_partial(S* mem, Batch<S> v, size_t count) noexcept
     {
         if (count > 0)
             *mem = v.v;

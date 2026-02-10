@@ -194,18 +194,16 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         
-        
-
         constexpr size_t Lanes = ns::Lanes<TYPE_T>;
         alignas(ns::Alignment<TYPE_T>) TYPE_T in[Lanes * 2];
         alignas(ns::Alignment<TYPE_T>) TYPE_T out[Lanes];
 
         for (size_t i = 0; i < Lanes * 2; ++i) in[i] = TYPE_T(i + 1);
 
-        // 1. load_partial & zero-padding check
+        // 1. loadu_partial & zero-padding check
         for (size_t n = 0; n <= Lanes; ++n) {
             std::memset(out, 0xAA, sizeof(out)); // 干扰值
-            ns::Batch<TYPE_T> v = ns::load_partial(in, n);
+            ns::Batch<TYPE_T> v = ns::loadu_partial(in, n);
             ns::store(out, v);
 
             for (size_t i = 0; i < Lanes; ++i) {
@@ -214,13 +212,13 @@ namespace KSIMD_DYN_INSTRUCTION
             }
         }
 
-        // 2. store_partial & memory protection
+        // 2. storeu_partial & memory protection
         for (size_t n = 0; n <= Lanes; ++n) {
             constexpr TYPE_T sentinel = TYPE_T(88);
             for (size_t i = 0; i < Lanes; ++i) out[i] = sentinel;
 
             ns::Batch<TYPE_T> v = ns::set(TYPE_T(99));
-            ns::store_partial(out, v, n);
+            ns::storeu_partial(out, v, n);
 
             for (size_t i = 0; i < Lanes; ++i) {
                 if (i < n) EXPECT_EQ(out[i], TYPE_T(99));
@@ -230,7 +228,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 3. Unaligned safety
         if constexpr (Lanes > 1) {
-            ns::Batch<TYPE_T> v = ns::load_partial(in + 1, 1);
+            ns::Batch<TYPE_T> v = ns::loadu_partial(in + 1, 1);
             ns::store(out, v);
             EXPECT_EQ(out[0], in[1]);
             EXPECT_EQ(out[1], TYPE_T(0));
@@ -238,7 +236,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 4. Overflow tolerance (n > Lanes)
 {
-    ns::Batch<TYPE_T> v = ns::load_partial(in, Lanes + 10);
+    ns::Batch<TYPE_T> v = ns::loadu_partial(in, Lanes + 10);
     ns::store(out, v);
     EXPECT_EQ(out[Lanes - 1], in[Lanes - 1]);
 }

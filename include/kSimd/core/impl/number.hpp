@@ -7,7 +7,7 @@
 #include <limits>
 
 #include "common_macros.hpp"
-#include "traits.hpp"
+#include "types.hpp"
 
 namespace ksimd
 {
