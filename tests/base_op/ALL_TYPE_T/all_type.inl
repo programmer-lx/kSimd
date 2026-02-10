@@ -235,11 +235,34 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // 4. Overflow tolerance (n > Lanes)
-{
-    ns::Batch<TYPE_T> v = ns::loadu_partial(in, Lanes + 10);
-    ns::store(out, v);
-    EXPECT_EQ(out[Lanes - 1], in[Lanes - 1]);
-}
+        {
+            ns::Batch<TYPE_T> v = ns::loadu_partial(in, Lanes + 10);
+            ns::store(out, v);
+            EXPECT_EQ(out[Lanes - 1], in[Lanes - 1]);
+        }
+
+        // load 0
+        {
+            FILL_ARRAY(in, TYPE_T(99));
+            ns::Batch<TYPE_T> v = ns::loadu_partial(in, 0);
+            FILL_ARRAY(out, TYPE_T(10));
+            ns::storeu(out, v);
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(out[i] == 0);
+            }
+        }
+        // store 0
+        {
+            FILL_ARRAY(in, TYPE_T(99));
+            ns::Batch<TYPE_T> v = ns::load(in);
+            FILL_ARRAY(out, TYPE_T(10));
+            ns::storeu_partial(out, v, 0);
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_TRUE(out[i] == 10);
+            }
+        }
     }
 }
 #if KSIMD_ONCE

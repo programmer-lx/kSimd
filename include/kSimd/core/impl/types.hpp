@@ -5,8 +5,6 @@
 #include <limits>
 #include <type_traits>
 
-#include "platform.hpp"
-
 namespace ksimd
 {
     // clang-format off

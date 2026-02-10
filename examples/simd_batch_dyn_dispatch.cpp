@@ -72,8 +72,8 @@ namespace MyNamespace
             // 尾处理
             if (const size_t tail = size - i; tail > 0)
             {
-                batch_t x = ns::load_partial(src + i, tail);
-                ns::store_partial(dst + i, compute_unit(x), tail);
+                batch_t x = ns::loadu_partial(src + i, tail);
+                ns::storeu_partial(dst + i, compute_unit(x), tail);
             }
         }
     } // namespace KSIMD_DYN_INSTRUCTION
