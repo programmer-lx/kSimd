@@ -453,7 +453,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 __m128 shuffle2 = _mm_shuffle_ps(mul2, mul2, _MM_SHUFFLE(1, 1, 1, 1));
 
                 // [12345678, ...]
-                __m128 res = _mm_mul_ps(mul2, shuffle2);
+                __m128 res = _mm_mul_ss(mul2, shuffle2);
 
                 return _mm_cvtss_f32(res);
             }
