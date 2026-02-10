@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-
 // compiler detect
 #if defined(_MSC_VER) && !defined(__clang__)
     #define KSIMD_COMPILER_MSVC 1
@@ -107,7 +105,7 @@
     #define KSIMD_ARCH_X86_32 1
     #define KSIMD_ARCH_X86_ANY 1
 #else
-    #error "Unknown arch, tSimd can only support x86 arch."
+    #error "Unknown arch, kSimd can only support x86 arch."
 #endif
 
 
