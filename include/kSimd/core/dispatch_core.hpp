@@ -6,6 +6,9 @@
     " Please include your dispatch header \"<kSimd/core/dispatch_this_file.hpp>\" and define KSIMD_DISPATCH_THIS_FILE.");
 #endif
 
+// 用于检查是否已经包含了这个文件
+#define KSIMD_DISPATCH_CORE_INCLUDED
+
 // clang-format off
 
 #include "impl/platform.hpp"

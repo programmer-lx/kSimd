@@ -7,7 +7,7 @@
 
 #include <kSimd/core/aligned_allocate.hpp>
 #include <kSimd/core/dispatch_core.hpp>
-#include <kSimd/extension/dispatch_vmathf.hpp>
+#include <kSimd/extension/dispatch_vmath.hpp>
 
 #include "utils.hpp"
 
@@ -55,13 +55,13 @@ namespace MyNamespace
 
                 res = f32::if_then_else(res < lower, lower, res);
                 res = f32::if_then_else(res > upper, upper, res);
-                res = ns::vmathf::lerp(res, x, f32::set(0.5));
+                res = ns::vmath::lerp(res, x, f32::set(0.5));
 
                 return res;
             };
 
             size_t i = 0;
-            const size_t step = f32::Lanes; // 使用底层的 Lanes
+            const size_t step = f32::Lanes;
 
             // 主循环
             for (; i + step <= size; i += step)
