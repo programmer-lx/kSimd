@@ -31,9 +31,9 @@ TEST(dyn_dispatch, pfn_table_size)
 template<typename T>
 void test_scalar_op_constants()
 {
-    using op = ksimd::KSIMD_DYN_INSTRUCTION_SCALAR::op<T>;
-    static_assert(op::Lanes == 1);
-    static_assert(op::Alignment == alignof(T));
+    namespace ns = ksimd::KSIMD_DYN_INSTRUCTION_SCALAR;
+    static_assert(ns::Lanes<T> == 1);
+    static_assert(ns::Alignment<T> == alignof(T));
 }
 
 TEST(dyn_dispatch, constants)

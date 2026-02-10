@@ -30,50 +30,50 @@ namespace KSIMD_DYN_INSTRUCTION {
     KSIMD_DYN_FUNC_ATTR
     void lerp() noexcept {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<FLOAT_T>;
+        
         using batch_t = ns::Batch<FLOAT_T>;
 
-        constexpr size_t Lanes = op::Lanes;
+        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
         // 显式对齐的本地缓冲区
-        alignas(op::Alignment) FLOAT_T act_buf[Lanes];
-        alignas(op::Alignment) FLOAT_T exp_buf[Lanes];
+        alignas(ns::Alignment<FLOAT_T>) FLOAT_T act_buf[Lanes];
+        alignas(ns::Alignment<FLOAT_T>) FLOAT_T exp_buf[Lanes];
 
         #define CHECK(actual, expected, msg) \
         do { \
-            op::store(act_buf, actual); \
-            op::store(exp_buf, expected); \
+            ns::store(act_buf, actual); \
+            ns::store(exp_buf, expected); \
             perform_lerp_check(act_buf, exp_buf, Lanes, msg); \
         } while (0)
 
-        const batch_t a = op::set(FLOAT_T(10.0));
-        const batch_t b = op::set(FLOAT_T(20.0));
+        const batch_t a = ns::set(FLOAT_T(10.0));
+        const batch_t b = ns::set(FLOAT_T(20.0));
 
         // --- 1. 标准范围内插值 ---
-        CHECK(ns::vmath::lerp(a, b, op::set(FLOAT_T(0.0))), a, "t=0");
-        CHECK(ns::vmath::lerp(a, b, op::set(FLOAT_T(1.0))), b, "t=1");
-        CHECK(ns::vmath::lerp(a, b, op::set(FLOAT_T(0.5))), op::set(FLOAT_T(15.0)), "t=0.5");
+        CHECK(ns::vmath::lerp(a, b, ns::set(FLOAT_T(0.0))), a, "t=0");
+        CHECK(ns::vmath::lerp(a, b, ns::set(FLOAT_T(1.0))), b, "t=1");
+        CHECK(ns::vmath::lerp(a, b, ns::set(FLOAT_T(0.5))), ns::set(FLOAT_T(15.0)), "t=0.5");
 
         // --- 2. 外插测试 (Extrapolation) ---
         // t = -0.3  => 10 + (-0.3 * 10) = 7
-        CHECK(ns::vmath::lerp(a, b, op::set(FLOAT_T(-0.3))), op::set(FLOAT_T(7.0)), "t < 0");
+        CHECK(ns::vmath::lerp(a, b, ns::set(FLOAT_T(-0.3))), ns::set(FLOAT_T(7.0)), "t < 0");
         // t = 1.2   => 10 + (1.2 * 10) = 22
-        CHECK(ns::vmath::lerp(a, b, op::set(FLOAT_T(1.2))),  op::set(FLOAT_T(22.0)), "t > 1");
+        CHECK(ns::vmath::lerp(a, b, ns::set(FLOAT_T(1.2))),  ns::set(FLOAT_T(22.0)), "t > 1");
 
         // --- 3. 负数范围与反向插值 ---
         // a=10, b=-10, t=0.2 => 10 + 0.2*(-20) = 6
-        CHECK(ns::vmath::lerp(a, op::set(FLOAT_T(-10.0)), op::set(FLOAT_T(0.2))), op::set(FLOAT_T(6.0)), "mixed sign");
+        CHECK(ns::vmath::lerp(a, ns::set(FLOAT_T(-10.0)), ns::set(FLOAT_T(0.2))), ns::set(FLOAT_T(6.0)), "mixed sign");
 
         // --- 4. 极端值测试 ---
         // 同值插值
-        CHECK(ns::vmath::lerp(a, a, op::set(FLOAT_T(0.7))), a, "a == b");
+        CHECK(ns::vmath::lerp(a, a, ns::set(FLOAT_T(0.7))), a, "a == b");
 
         // 零区间插值 (a=0, b=0)
-        batch_t zero = op::set(FLOAT_T(0.0));
-        CHECK(ns::vmath::lerp(zero, zero, op::set(FLOAT_T(0.5))), zero, "zero range");
+        batch_t zero = ns::set(FLOAT_T(0.0));
+        CHECK(ns::vmath::lerp(zero, zero, ns::set(FLOAT_T(0.5))), zero, "zero range");
 
         // NaN 传播测试 (基于你对 clamp 的 NaN 处理逻辑，lerp 也应遵循)
         if constexpr (std::numeric_limits<FLOAT_T>::has_quiet_NaN) {
-            batch_t nan_v = op::set(std::numeric_limits<FLOAT_T>::quiet_NaN());
+            batch_t nan_v = ns::set(std::numeric_limits<FLOAT_T>::quiet_NaN());
             // 如果 t 是 NaN，结果应当是 NaN
             CHECK(ns::vmath::lerp(a, b, nan_v), nan_v, "NaN propagation in t");
         }
@@ -110,28 +110,28 @@ namespace KSIMD_DYN_INSTRUCTION {
     KSIMD_DYN_FUNC_ATTR
     void clamp_test() noexcept {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<FLOAT_T>;
-        using batch_t = ns::Batch<FLOAT_T>;
-        using Opt = op::FloatMinMaxOption;
         
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) FLOAT_T act_buf[Lanes];
-        alignas(op::Alignment) FLOAT_T exp_buf[Lanes];
+        using batch_t = ns::Batch<FLOAT_T>;
+        using Opt = ksimd::FloatMinMaxOption;
+        
+        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
+        alignas(ns::Alignment<FLOAT_T>) FLOAT_T act_buf[Lanes];
+        alignas(ns::Alignment<FLOAT_T>) FLOAT_T exp_buf[Lanes];
 
         // 辅助宏，仅用于 store 和调用静态检查函数
         #define CLAMP_CHECK(actual, expected, msg) \
         do { \
-            op::store(act_buf, actual); \
-            op::store(exp_buf, expected); \
+            ns::store(act_buf, actual); \
+            ns::store(exp_buf, expected); \
             perform_clamp_check(act_buf, exp_buf, Lanes, msg); \
         } while (0)
 
-        const batch_t v_mid = op::set(FLOAT_T(15.0));
-        const batch_t v_low = op::set(FLOAT_T(5.0));
-        const batch_t v_high = op::set(FLOAT_T(25.0));
-        const batch_t min_v = op::set(FLOAT_T(10.0));
-        const batch_t max_v = op::set(FLOAT_T(20.0));
-        const batch_t nan_v = op::set(ksimd::QNaN<FLOAT_T>);
+        const batch_t v_mid = ns::set(FLOAT_T(15.0));
+        const batch_t v_low = ns::set(FLOAT_T(5.0));
+        const batch_t v_high = ns::set(FLOAT_T(25.0));
+        const batch_t min_v = ns::set(FLOAT_T(10.0));
+        const batch_t max_v = ns::set(FLOAT_T(20.0));
+        const batch_t nan_v = ns::set(ksimd::QNaN<FLOAT_T>);
 
         // ==========================================================
         // 1. 常规测试：min, max 均不是 NaN

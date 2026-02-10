@@ -1,6 +1,6 @@
 // do not use include guard
 
-#include "kSimd/IDE/IDE_hint.hpp"
+// #include "kSimd/IDE/IDE_hint.hpp"
 
 #include <cmath>
 #include <cstring>
@@ -424,14 +424,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- float32 only ---
-    KSIMD_API(Batch<float32>) rcp(Batch<float32> v) noexcept
+    template<is_scalar_type_includes<float32> S>
+    KSIMD_API(Batch<S>) rcp(Batch<S> v) noexcept
     {
-        return { 1.0f / v.v };
+        return { static_cast<S>(1) / v.v };
     }
 
-    KSIMD_API(Batch<float32>) rsqrt(Batch<float32> v) noexcept
+    template<is_scalar_type_includes<float32> S>
+    KSIMD_API(Batch<S>) rsqrt(Batch<S> v) noexcept
     {
-        return { static_cast<float32>(1) / std::sqrt(v.v) };
+        return { static_cast<S>(1) / std::sqrt(v.v) };
     }
 #pragma endregion
 

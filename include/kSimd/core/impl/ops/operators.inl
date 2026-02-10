@@ -1,6 +1,6 @@
 // do not use include guard
 
-#include "kSimd/IDE/IDE_hint.hpp"
+// #include "kSimd/IDE/IDE_hint.hpp"
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
 
@@ -152,4 +152,5 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
 #undef KSIMD_MASK_UNARY_LOGIC_OP
 } // namespace ksimd::KSIMD_DYN_INSTRUCTION
+
 #undef KSIMD_API
