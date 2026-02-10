@@ -4,7 +4,8 @@
 
 #include <cmath>
 #include <cstring>
-#include <type_traits>
+
+#include <utility> // index_sequence
 
 #include "op_helpers.hpp"
 #include "kSimd/core/impl/func_attr.hpp"
@@ -46,27 +47,27 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<is_scalar_type S>
-    KSIMD_API(Batch<S>) loadu(const S* mem) noexcept
-    {
-        return { *mem };
-    }
-
-    template<is_scalar_type S>
-    KSIMD_API(Batch<S>) loadu_partial(const S* mem, size_t count) noexcept
-    {
-        return count > 0 ? Batch<S>{ *mem } : Batch<S>{ static_cast<S>(0) };
-    }
-
-    template<is_scalar_type S>
     KSIMD_API(void) store(S* mem, Batch<S> v) noexcept
     {
         *mem = v.v;
     }
 
     template<is_scalar_type S>
+    KSIMD_API(Batch<S>) loadu(const S* mem) noexcept
+    {
+        return { *mem };
+    }
+
+    template<is_scalar_type S>
     KSIMD_API(void) storeu(S* mem, Batch<S> v) noexcept
     {
         *mem = v.v;
+    }
+
+    template<is_scalar_type S>
+    KSIMD_API(Batch<S>) loadu_partial(const S* mem, size_t count) noexcept
+    {
+        return count > 0 ? Batch<S>{ *mem } : Batch<S>{ static_cast<S>(0) };
     }
 
     template<is_scalar_type S>

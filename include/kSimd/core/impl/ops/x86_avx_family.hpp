@@ -74,9 +74,21 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<is_scalar_type_includes<float32> S>
+    KSIMD_API(void) store(S* mem, Batch<S> v) noexcept
+    {
+        _mm256_store_ps(mem, v.v);
+    }
+
+    template<is_scalar_type_includes<float32> S>
     KSIMD_API(Batch<S>) loadu(const S* mem) noexcept
     {
         return { _mm256_loadu_ps(mem) };
+    }
+
+    template<is_scalar_type_includes<float32> S>
+    KSIMD_API(void) storeu(S* mem, Batch<S> v) noexcept
+    {
+        _mm256_storeu_ps(mem, v.v);
     }
 
     template<is_scalar_type_includes<float32> S>
@@ -91,18 +103,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
         std::memcpy(&res.v, mem, sizeof(S) * count);
         return res;
-    }
-
-    template<is_scalar_type_includes<float32> S>
-    KSIMD_API(void) store(S* mem, Batch<S> v) noexcept
-    {
-        _mm256_store_ps(mem, v.v);
-    }
-
-    template<is_scalar_type_includes<float32> S>
-    KSIMD_API(void) storeu(S* mem, Batch<S> v) noexcept
-    {
-        _mm256_storeu_ps(mem, v.v);
     }
 
     template<is_scalar_type_includes<float32> S>
