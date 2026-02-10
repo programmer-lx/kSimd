@@ -5,9 +5,8 @@
 #include <type_traits>
 #include <new>
 
-#include "impl/common_macros.hpp"
-#include "impl/platform.hpp"
-
+#include "impl/base.hpp"
+#include "impl/types.hpp"
 
 namespace ksimd
 {

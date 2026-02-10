@@ -2,7 +2,7 @@
 
 // 该头文件编写函数分发表相关逻辑
 
-#include "platform.hpp"
+#include "base.hpp"
 #include "dyn_instruction_name.hpp"
 #include "dyn_dispatch_level.hpp"
 

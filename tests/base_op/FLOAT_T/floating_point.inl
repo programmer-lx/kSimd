@@ -16,7 +16,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rcp() noexcept
     {
-        if constexpr (std::is_same_v<ksimd::float32, FLOAT_T>)
+        if constexpr (std::is_same_v<float, FLOAT_T>)
         {
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
             
@@ -59,7 +59,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rsqrt() noexcept
     {
-        if constexpr (std::is_same_v<ksimd::float32, FLOAT_T>)
+        if constexpr (std::is_same_v<float, FLOAT_T>)
         {
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
             

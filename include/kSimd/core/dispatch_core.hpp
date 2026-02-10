@@ -11,7 +11,7 @@
 
 // clang-format off
 
-#include "impl/platform.hpp"
+#include "impl/base.hpp"
 
 // Scalar
 #if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SCALAR

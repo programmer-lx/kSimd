@@ -1,4 +1,4 @@
-#include "kSimd/core/impl/platform.hpp"
+#include "kSimd/core/impl/base.hpp"
 
 #if defined(_MSC_VER)
     #include <intrin.h>

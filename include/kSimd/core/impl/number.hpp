@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <limits>
 
-#include "common_macros.hpp"
+#include "base.hpp"
 #include "types.hpp"
 
 namespace ksimd
@@ -32,13 +32,13 @@ namespace ksimd
         struct uint_from_bytes
         {
             using type = std::conditional_t<
-                (Bytes == sizeof(uint8)), uint8,
+                (Bytes == sizeof(uint8_t)), uint8_t,
                 std::conditional_t<
-                    (Bytes == sizeof(uint16)), uint16,
+                    (Bytes == sizeof(uint16_t)), uint16_t,
                     std::conditional_t<
-                        (Bytes == sizeof(uint32)), uint32,
+                        (Bytes == sizeof(uint32_t)), uint32_t,
                         std::conditional_t<
-                            (Bytes == sizeof(uint64)), uint64, void
+                            (Bytes == sizeof(uint64_t)), uint64_t, void
                         >
                     >
                 >
@@ -62,14 +62,14 @@ namespace ksimd
         template<is_scalar_floating_point F>
         consteval F exp_mask()
         {
-            if constexpr (std::is_same_v<float32, F>)
+            if constexpr (std::is_same_v<float, F>)
             {
-                constexpr uint32 mask = UINT32_C(0b1111'1111) << 23;
+                constexpr uint32_t mask = UINT32_C(0b1111'1111) << 23;
                 return std::bit_cast<F>(mask);
             }
-            else if constexpr (std::is_same_v<float64, F>)
+            else if constexpr (std::is_same_v<double, F>)
             {
-                constexpr uint64 mask = UINT64_C(0b111'1111'1111) << 52;
+                constexpr uint64_t mask = UINT64_C(0b111'1111'1111) << 52;
                 return std::bit_cast<F>(mask);
             }
             else
@@ -100,37 +100,37 @@ namespace ksimd
         return a > b ? a : b;
     }
 
-    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_NaN(const float32 f) noexcept
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_NaN(const float f) noexcept
     {
         // 指数位均为1，尾数位 != 0
         // 1位符号，8位指数，23位尾数
-        const uint32 bits = std::bit_cast<uint32>(f);
-        constexpr uint32 exp_mask = UINT32_C(0b1111'1111) << 23;
-        constexpr uint32 mantissa_mask = (~UINT32_C(0)) >> 9;
+        const uint32_t bits = std::bit_cast<uint32_t>(f);
+        constexpr uint32_t exp_mask = UINT32_C(0b1111'1111) << 23;
+        constexpr uint32_t mantissa_mask = (~UINT32_C(0)) >> 9;
         return ((bits & exp_mask) == exp_mask) && ((bits & mantissa_mask) != 0u);
     }
 
-    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_NaN(const float64 f) noexcept
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_NaN(const double f) noexcept
     {
         // 1位符号位，11位指数，52位尾数
-        const uint64 bits = std::bit_cast<uint64>(f);
-        constexpr uint64 exp_mask = UINT64_C(0b111'1111'1111) << 52;
-        constexpr uint64 mantissa_mask = (~UINT64_C(0)) >> 12;
+        const uint64_t bits = std::bit_cast<uint64_t>(f);
+        constexpr uint64_t exp_mask = UINT64_C(0b111'1111'1111) << 52;
+        constexpr uint64_t mantissa_mask = (~UINT64_C(0)) >> 12;
         return ((bits & exp_mask) == exp_mask) && ((bits & mantissa_mask) != 0ull);
     }
 
-    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float32 f) noexcept
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float f) noexcept
     {
         // 指数位不全为1
-        const uint32 bits = std::bit_cast<uint32>(f);
-        constexpr uint32 exp_mask = UINT32_C(0b1111'1111) << 23;
+        const uint32_t bits = std::bit_cast<uint32_t>(f);
+        constexpr uint32_t exp_mask = UINT32_C(0b1111'1111) << 23;
         return (bits & exp_mask) != exp_mask;
     }
 
-    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const float64 f) noexcept
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_finite(const double f) noexcept
     {
-        const uint64 bits = std::bit_cast<uint64>(f);
-        constexpr uint64 exp_mask = UINT64_C(0b111'1111'1111) << 52;
+        const uint64_t bits = std::bit_cast<uint64_t>(f);
+        constexpr uint64_t exp_mask = UINT64_C(0b111'1111'1111) << 52;
         return (bits & exp_mask) != exp_mask;
     }
 

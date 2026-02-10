@@ -28,13 +28,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     };
 
     template<>
-    struct Batch<float32>
+    struct Batch<float>
     {
         __m256 v;
     };
 
     template<>
-    struct Batch<float64>
+    struct Batch<double>
     {
         __m256d v;
     };
@@ -46,13 +46,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     };
 
     template<>
-    struct Mask<float32>
+    struct Mask<float>
     {
         __m256 m;
     };
 
     template<>
-    struct Mask<float64>
+    struct Mask<double>
     {
         __m256d m;
     };
@@ -67,31 +67,31 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- any types ---
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) load(const S* mem) noexcept
     {
         return { _mm256_load_ps(mem) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(void) store(S* mem, Batch<S> v) noexcept
     {
         _mm256_store_ps(mem, v.v);
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) loadu(const S* mem) noexcept
     {
         return { _mm256_loadu_ps(mem) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(void) storeu(S* mem, Batch<S> v) noexcept
     {
         _mm256_storeu_ps(mem, v.v);
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) loadu_partial(const S* mem, size_t count) noexcept
     {
         count = count > Lanes<S> ? Lanes<S> : count;
@@ -105,7 +105,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return res;
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(void) storeu_partial(S* mem, Batch<S> v, size_t count) noexcept
     {
         count = count > Lanes<S> ? Lanes<S> : count;
@@ -115,31 +115,31 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         std::memcpy(mem, &v.v, sizeof(S) * count);
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) undefined() noexcept
     {
         return { _mm256_undefined_ps() };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) zero() noexcept
     {
         return { _mm256_setzero_ps() };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) set(S x) noexcept
     {
         return { _mm256_set1_ps(x) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) sequence() noexcept
     {
         return { _mm256_set_ps(7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) sequence(S base) noexcept
     {
         __m256 base_v = _mm256_set1_ps(base);
@@ -147,7 +147,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return { _mm256_add_ps(iota, base_v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) sequence(S base, S stride) noexcept
     {
         __m256 stride_v = _mm256_set1_ps(stride);
@@ -156,37 +156,37 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return { _mm256_fmadd_ps(stride_v, iota, base_v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) add(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_add_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) sub(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_sub_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) mul(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_mul_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) div(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_div_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) mul_add(Batch<S> a, Batch<S> b, Batch<S> c) noexcept
     {
         return { _mm256_fmadd_ps(a.v, b.v, c.v) };
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float32> S>
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) min(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         if constexpr (option == FloatMinMaxOption::CheckNaN)
@@ -202,7 +202,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float32> S>
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) max(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         if constexpr (option == FloatMinMaxOption::CheckNaN)
@@ -218,124 +218,124 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) bit_not(Batch<S> v) noexcept
     {
         __m256 mask = _mm256_set1_ps(OneBlock<S>);
         return { _mm256_xor_ps(v.v, mask) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) bit_and(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_and_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) bit_and_not(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_andnot_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) bit_or(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_or_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) bit_xor(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_xor_ps(lhs.v, rhs.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) bit_if_then_else(Batch<S> _if, Batch<S> _then, Batch<S> _else) noexcept
     {
         return { _mm256_or_ps(_mm256_and_ps(_if.v, _then.v), _mm256_andnot_ps(_if.v, _else.v)) };
     }
 
 #if defined(KSIMD_IS_TESTING)
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(void) test_store_mask(S* mem, Mask<S> mask) noexcept
     {
         _mm256_store_ps(mem, mask.m);
     }
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) test_load_mask(const S* mem) noexcept
     {
         return { _mm256_load_ps(mem) };
     }
 #endif
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) equal(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_EQ_OQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) not_equal(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_NEQ_UQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) greater(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_GT_OQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) greater_equal(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_GE_OQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) less(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_LT_OQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) less_equal(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_LE_OQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) mask_and(Mask<S> lhs, Mask<S> rhs) noexcept
     {
         return { _mm256_and_ps(lhs.m, rhs.m) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) mask_or(Mask<S> lhs, Mask<S> rhs) noexcept
     {
         return { _mm256_or_ps(lhs.m, rhs.m) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) mask_xor(Mask<S> lhs, Mask<S> rhs) noexcept
     {
         return { _mm256_xor_ps(lhs.m, rhs.m) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) mask_not(Mask<S> mask) noexcept
     {
         __m256 m = _mm256_set1_ps(OneBlock<S>);
         return { _mm256_xor_ps(mask.m, m) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) if_then_else(Mask<S> _if, Batch<S> _then, Batch<S> _else) noexcept
     {
         return { _mm256_blendv_ps(_else.v, _then.v, _if.m) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(S) reduce_add(Batch<S> v) noexcept
     {
         // [1, 2, 3, 4]
@@ -362,7 +362,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_cvtss_f32(sum);
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(S) reduce_mul(Batch<S> v) noexcept
     {
         // [1, 2, 3, 4]
@@ -388,7 +388,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_cvtss_f32(res);
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float32> S>
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float> S>
     KSIMD_API(S) reduce_min(Batch<S> v) noexcept
     {
         // [1, 2, 3, 4]
@@ -415,14 +415,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             __m256 nan_check = _mm256_cmp_ps(v.v, v.v, _CMP_UNORD_Q);
-            int32 has_nan = _mm256_movemask_ps(nan_check);
+            int32_t has_nan = _mm256_movemask_ps(nan_check);
             return has_nan ? QNaN<S> : _mm_cvtss_f32(res);
         }
 
         return _mm_cvtss_f32(res);
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float32> S>
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_includes<float> S>
     KSIMD_API(S) reduce_max(Batch<S> v) noexcept
     {
         // [1, 2, 3, 4]
@@ -449,7 +449,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             __m256 nan_check = _mm256_cmp_ps(v.v, v.v, _CMP_UNORD_Q);
-            int32 has_nan = _mm256_movemask_ps(nan_check);
+            int32_t has_nan = _mm256_movemask_ps(nan_check);
             return has_nan ? QNaN<S> : _mm_cvtss_f32(res);
         }
 
@@ -458,13 +458,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- signed ---
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) abs(Batch<S> v) noexcept
     {
         return { _mm256_and_ps(v.v, _mm256_set1_ps(SignBitClearMask<S>)) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) neg(Batch<S> v) noexcept
     {
         __m256 mask = _mm256_set1_ps(SignBitMask<S>);
@@ -473,13 +473,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- floating point ---
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) sqrt(Batch<S> v) noexcept
     {
         return { _mm256_sqrt_ps(v.v) };
     }
 
-    template<RoundingMode mode, is_scalar_type_includes<float32> S>
+    template<RoundingMode mode, is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) round(Batch<S> v) noexcept
     {
         if constexpr (mode == RoundingMode::Up)
@@ -507,49 +507,49 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) not_greater(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_NGT_UQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) not_greater_equal(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_NGE_UQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) not_less(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_NLT_UQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) not_less_equal(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_NLE_UQ) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) any_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_UNORD_Q) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) all_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_and_ps(_mm256_cmp_ps(lhs.v, lhs.v, _CMP_UNORD_Q), _mm256_cmp_ps(rhs.v, rhs.v, _CMP_UNORD_Q)) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) not_NaN(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         return { _mm256_cmp_ps(lhs.v, rhs.v, _CMP_ORD_Q) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) any_finite(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         __m256 abs_mask = _mm256_set1_ps(SignBitClearMask<S>);
@@ -558,7 +558,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                               _mm256_cmp_ps(_mm256_and_ps(rhs.v, abs_mask), inf_v, _CMP_LT_OQ)) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Mask<S>) all_finite(Batch<S> lhs, Batch<S> rhs) noexcept
     {
         __m256 abs_mask = _mm256_set1_ps(SignBitClearMask<S>);
@@ -570,13 +570,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- float32 only ---
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) rcp(Batch<S> v) noexcept
     {
         return { _mm256_rcp_ps(v.v) };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) rsqrt(Batch<S> v) noexcept
     {
         return { _mm256_rsqrt_ps(v.v) };

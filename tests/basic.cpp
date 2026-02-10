@@ -1,6 +1,7 @@
 #include "test.hpp"
 
 #include <string>
+#include <stdfloat>
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
@@ -38,16 +39,36 @@ void test_scalar_op_constants()
 
 TEST(dyn_dispatch, constants)
 {
-    test_scalar_op_constants<ksimd::float32>();
-    test_scalar_op_constants<ksimd::float64>();
-    test_scalar_op_constants<ksimd::int8>();
-    test_scalar_op_constants<ksimd::uint8>();
-    test_scalar_op_constants<ksimd::int16>();
-    test_scalar_op_constants<ksimd::uint16>();
-    test_scalar_op_constants<ksimd::int32>();
-    test_scalar_op_constants<ksimd::uint32>();
-    test_scalar_op_constants<ksimd::int64>();
-    test_scalar_op_constants<ksimd::uint64>();
+    test_scalar_op_constants<float>();
+    test_scalar_op_constants<double>();
+    test_scalar_op_constants<int8_t>();
+    test_scalar_op_constants<uint8_t>();
+    test_scalar_op_constants<int16_t>();
+    test_scalar_op_constants<uint16_t>();
+    test_scalar_op_constants<int32_t>();
+    test_scalar_op_constants<uint32_t>();
+    test_scalar_op_constants<int64_t>();
+    test_scalar_op_constants<uint64_t>();
+
+    SUCCEED();
+}
+
+TEST(std_float_types, basic)
+{
+    #if KSIMD_SUPPORT_STD_FLOAT16
+    static_assert(!std::is_same_v<std::float16_t, uint16_t>);
+    static_assert(sizeof(std::float16_t) == sizeof(uint16_t));
+    #endif
+
+    #if KSIMD_SUPPORT_STD_FLOAT32
+    static_assert(!std::is_same_v<std::float32_t, float>);
+    static_assert(sizeof(std::float32_t) == sizeof(float));
+    #endif
+
+    #if KSIMD_SUPPORT_STD_FLOAT64
+    static_assert(!std::is_same_v<std::float64_t, double>);
+    static_assert(sizeof(std::float64_t) == sizeof(double));
+    #endif
 
     SUCCEED();
 }

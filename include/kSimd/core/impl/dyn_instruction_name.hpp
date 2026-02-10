@@ -1,6 +1,6 @@
 #pragma once
 
-#include "platform.hpp"
+#include "base.hpp"
 
 // --------------------------------- KSIMD_DYN_INSTRUCTION names ---------------------------------
 #define KSIMD_DYN_INSTRUCTION_SCALAR   SCALAR

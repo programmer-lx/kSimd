@@ -425,13 +425,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- float32 only ---
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) rcp(Batch<S> v) noexcept
     {
         return { static_cast<S>(1) / v.v };
     }
 
-    template<is_scalar_type_includes<float32> S>
+    template<is_scalar_type_includes<float> S>
     KSIMD_API(Batch<S>) rsqrt(Batch<S> v) noexcept
     {
         return { static_cast<S>(1) / std::sqrt(v.v) };
