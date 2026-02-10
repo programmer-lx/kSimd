@@ -409,13 +409,53 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
             KSIMD_API(scalar_t) reduce_add(batch_t v) noexcept
             {
+                // [1, 2, 3, 4]
                 __m128 low = _mm256_castps256_ps128(v.v);
+
+                // [5, 6, 7, 8]
                 __m128 high = _mm256_extractf128_ps(v.v, 0b1);
+
+                // [15, 26, 37, 48]
                 __m128 sum = _mm_add_ps(low, high);
 
-                sum = _mm_add_ps(sum, _mm_movehl_ps(sum, sum));
-                sum = _mm_add_ss(sum, _mm_shuffle_ps(sum, sum, 1));
+                // [37, 48, 37, 48]
+                __m128 shuffle1 = _mm_movehl_ps(sum, sum);
+
+                // [1357, 2468, ...]
+                sum = _mm_add_ps(sum, shuffle1);
+
+                // [2468, ...]
+                __m128 shuffle2 = _mm_shuffle_ps(sum, sum, _MM_SHUFFLE(1, 1, 1, 1));
+
+                // [12345678, ...]
+                sum = _mm_add_ss(sum, shuffle2);
+
                 return _mm_cvtss_f32(sum);
+            }
+
+            KSIMD_API(scalar_t) reduce_mul(batch_t v) noexcept
+            {
+                // [1, 2, 3, 4]
+                __m128 low = _mm256_castps256_ps128(v.v);
+                // [5, 6, 7, 8]
+                __m128 high = _mm256_extractf128_ps(v.v, 0b1);
+
+                // [15, 26, 37, 48]
+                __m128 mul1 = _mm_mul_ps(low, high);
+
+                // [37, 48, ...]
+                __m128 shuffle1 = _mm_movehl_ps(mul1, mul1);
+
+                // [1357, 2468, ...]
+                __m128 mul2 = _mm_mul_ps(mul1, shuffle1);
+
+                // [2468, ...]
+                __m128 shuffle2 = _mm_shuffle_ps(mul2, mul2, _MM_SHUFFLE(1, 1, 1, 1));
+
+                // [12345678, ...]
+                __m128 res = _mm_mul_ps(mul2, shuffle2);
+
+                return _mm_cvtss_f32(res);
             }
 
             template<FloatMinMaxOption option = FloatMinMaxOption::Native>

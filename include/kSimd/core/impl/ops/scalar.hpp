@@ -264,6 +264,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 return v.v;
             }
 
+            KSIMD_API(S) reduce_mul(Batch<S> v) noexcept
+            {
+                return v.v;
+            }
+
             template<OpHelper::FloatMinMaxOption = OpHelper::FloatMinMaxOption::Native>
             KSIMD_API(S) reduce_min(Batch<S> v) noexcept
             {

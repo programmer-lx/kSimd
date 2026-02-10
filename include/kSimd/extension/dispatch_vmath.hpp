@@ -27,7 +27,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION::vmath
 
         // 一定要将v放在右边，假如v是NaN，经过min之后，会返回NaN，然后经过了max之后，也会返回NaN
         // 所以一般情况下，保持option是Native即可。如果担心min,或max的值是NaN，可以将option设置为CheckNaN保证NaN的传播
-        return o::max<option>(min, o::min<option>(max, v));
+        return o::template max<option>(min, o::template min<option>(max, v));
     }
 
     // --- floating point ---

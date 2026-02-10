@@ -74,7 +74,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(arr[i], val);
 
         // 针对浮点数的特殊值测试
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // NaN 广播
             op::store(arr, op::set(qNaN<TYPE_T>));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(arr[i]));
@@ -121,7 +121,7 @@ namespace KSIMD_DYN_INSTRUCTION
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(b_v + static_cast<TYPE_T>(i) * stride));
         }
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             TYPE_T f_base = TYPE_T(1.5), f_stride = TYPE_T(-0.5);
             op::store(arr, op::sequence(f_base, f_stride));
             for (size_t i = 0; i < Lanes; ++i) {
@@ -282,7 +282,7 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // 浮点数特殊验证：符号位搬运
-        if constexpr (std::is_floating_point_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             TYPE_T pos_val = TYPE_T(1.0);
             TYPE_T neg_val = TYPE_T(-2.0);
@@ -537,7 +537,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
 
         // 浮点特殊边界测试
-        if constexpr (std::is_floating_point_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // Inf + 1 = Inf
             op::store(test, op::add(op::set(inf<TYPE_T>), op::set(TYPE_T(1))));
@@ -574,7 +574,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::store(test, op::sub(op::set(TYPE_T(50)), op::set(TYPE_T(20))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // Inf - Inf = NaN
             op::store(test, op::sub(op::set(inf<TYPE_T>), op::set(inf<TYPE_T>)));
@@ -607,7 +607,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::store(test, op::mul(op::set(TYPE_T(6)), op::set(TYPE_T(7))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(42));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // Inf * 0 = NaN
             op::store(test, op::mul(op::set(inf<TYPE_T>), op::set(TYPE_T(0))));
@@ -643,7 +643,7 @@ namespace KSIMD_DYN_INSTRUCTION
             EXPECT_NEAR(static_cast<double>(test[i]), 25.0, 1e-7);
         }
 
-        if constexpr (std::is_floating_point_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // 1.0 / 0.0 = Inf
             op::store(test, op::div(op::set(TYPE_T(1)), op::set(TYPE_T(0))));
@@ -684,7 +684,7 @@ namespace KSIMD_DYN_INSTRUCTION
         TYPE_T res = op::reduce_add(op::load(data));
         EXPECT_NEAR((res), (expected), std::numeric_limits<TYPE_T>::epsilon() * 10);
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Inf in sum
             data[0] = inf<TYPE_T>;
             EXPECT_TRUE(std::isinf(op::reduce_add(op::load(data))));
@@ -697,6 +697,78 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 #if KSIMD_ONCE
 TEST_ONCE_DYN(reduce_add)
+#endif
+
+// ------------------------------------------ reduce_mul ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void reduce_mul() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        using op = ns::op<TYPE_T>;
+
+        constexpr size_t Lanes = op::Lanes;
+        alignas(op::Alignment) TYPE_T data[Lanes];
+
+        // --- 1. 基础阶乘/累乘测试 ---
+        TYPE_T expected = 1;
+        for (size_t i = 0; i < Lanes; ++i) {
+            // 使用较小的正数避免在 int8 或 float16 下过快溢出
+            // 例如：1, 1, 2, 1, 1... 或者简单的交替
+            data[i] = (i % 2 == 0) ? TYPE_T(2) : TYPE_T(1);
+            expected *= data[i];
+        }
+
+        TYPE_T res = op::reduce_mul(op::load(data));
+        
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+            EXPECT_NEAR(res, expected, std::numeric_limits<TYPE_T>::epsilon() * 100);
+        } else {
+            EXPECT_EQ(res, expected);
+        }
+
+        // --- 2. 包含 0 的测试 (归零律) ---
+        data[Lanes / 2] = TYPE_T(0);
+        EXPECT_EQ(op::reduce_mul(op::load(data)), TYPE_T(0)) << "Multiplication by zero failed";
+
+        // --- 3. 负数符号位测试 ---
+        // 设置所有 lane 为 1，仅设置两个为 -1，结果应为 1
+        if constexpr (ksimd::is_scalar_signed<TYPE_T>)
+        {
+            if constexpr (Lanes > 1)
+            {
+                for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(1);
+                data[0] = TYPE_T(-1);
+                data[1] = TYPE_T(-1);
+                EXPECT_EQ(op::reduce_mul(op::load(data)), TYPE_T(1)) << "Double negative sign failed";
+            }
+        }
+
+        // --- 4. 浮点数特殊值测试 ---
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+            // Infinity 传播: inf * 2 = inf
+            for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(2);
+            data[Lanes / 2] = std::numeric_limits<TYPE_T>::infinity();
+            EXPECT_TRUE(std::isinf(op::reduce_mul(op::load(data))));
+
+            // NaN 传播: NaN * 1 = NaN
+            data[Lanes / 2] = std::numeric_limits<TYPE_T>::quiet_NaN();
+            EXPECT_TRUE(std::isnan(op::reduce_mul(op::load(data))));
+            
+            if constexpr (Lanes > 1)
+            {
+                // 0 * inf = NaN
+                data[0] = TYPE_T(0);
+                data[1] = std::numeric_limits<TYPE_T>::infinity();
+                // 注意：某些架构优化可能导致结果不同，但 IEEE754 标准下应为 NaN
+                EXPECT_TRUE(std::isnan(op::reduce_mul(op::load(data))));
+            }
+        }
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(reduce_mul)
 #endif
 
 // ------------------------------------------ reduce_min ------------------------------------------
@@ -741,7 +813,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
 
         // 3. 包含负数
-        if constexpr (std::is_signed_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_signed<TYPE_T>)
         {
             FILL_ARRAY(data, TYPE_T(0));
             data[Lanes / 2] = TYPE_T(-100);
@@ -755,7 +827,7 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // 4. 浮点数特殊边界测试
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // 测试包含 -Inf (应为最小值)
             FILL_ARRAY(data, TYPE_T(0));
             data[0] = -inf<TYPE_T>;
@@ -795,7 +867,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 1. 全负数测试：[-Lanes, ..., -1]
         // 确保能正确识别较大的负数（如 -1 是最大值）
-        if constexpr (std::is_signed_v<TYPE_T>)
+        if constexpr (ksimd::is_scalar_signed<TYPE_T>)
         {
             for (size_t i = 0; i < Lanes; ++i) {
                 data[i] = -TYPE_T(Lanes - i);
@@ -827,7 +899,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
 
         // 3. 浮点数特殊边界测试
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // 测试正无穷 +Inf
             FILL_ARRAY(data, TYPE_T(0));
             data[0] = inf<TYPE_T>;
@@ -871,7 +943,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::store(test, op::mul_add(op::set(TYPE_T(2)), op::set(TYPE_T(3)), op::set(TYPE_T(4))));
         EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(10)));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // NaN propagation
             op::store(test, op::mul_add(op::set(qNaN<TYPE_T>), op::set(TYPE_T(2)), op::set(TYPE_T(3))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
@@ -900,7 +972,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::store(test, op::min(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
         EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(10)));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Min(Inf, 100) = 100
             op::store(test, op::min(op::set(inf<TYPE_T>), op::set(TYPE_T(100))));
             EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(100)));
@@ -945,7 +1017,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::store(test, op::max(op::set(TYPE_T(10)), op::set(TYPE_T(20))));
         EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(20)));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Max(-Inf, -100) = -100
             op::store(test, op::max(op::set(-inf<TYPE_T>), op::set(TYPE_T(-100))));
             EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(-100)));
@@ -998,7 +1070,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::test_store_mask(test, op::equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // NaN == NaN (False)
             op::test_store_mask(test, op::equal(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>)));
             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<TYPE_T>));
@@ -1017,7 +1089,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::test_store_mask(test, op::not_equal(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // NaN != NaN (True)
             op::test_store_mask(test, op::not_equal(op::set(qNaN<TYPE_T>), op::set(qNaN<TYPE_T>)));
             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
@@ -1044,7 +1116,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::test_store_mask(test, op::greater(op::set(TYPE_T(2)), op::set(TYPE_T(1))));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Inf > 1e30 (True)
             op::test_store_mask(test, op::greater(op::set(inf<TYPE_T>), op::set(TYPE_T(1e30))));
             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
@@ -1092,7 +1164,7 @@ namespace KSIMD_DYN_INSTRUCTION
         op::test_store_mask(test, op::less(op::set(TYPE_T(1)), op::set(TYPE_T(2))));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
 
-        if constexpr (std::is_floating_point_v<TYPE_T>) {
+        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // -Inf < Inf (True)
             op::test_store_mask(test, op::less(op::set(-inf<TYPE_T>), op::set(inf<TYPE_T>)));
             EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<TYPE_T>));
