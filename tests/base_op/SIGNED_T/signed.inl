@@ -12,24 +12,24 @@ namespace KSIMD_DYN_INSTRUCTION
     void abs() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T test[Lanes];
+        
+        constexpr size_t Lanes = ns::Lanes<TYPE_T>;
+        alignas(ns::Alignment<TYPE_T>) TYPE_T test[Lanes];
 
         // 基础数值：正数与负数
-        op::store(test, op::abs(op::set(TYPE_T(-5))));
+        ns::store(test, ns::abs(ns::set(TYPE_T(-5))));
         EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(5)));
 
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // -0.0 -> 0.0 (符号位必须清除)
-            op::store(test, op::abs(op::set(TYPE_T(-0.0))));
+            ns::store(test, ns::abs(ns::set(TYPE_T(-0.0))));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_EQ(test[i], TYPE_T(0.0));
                 EXPECT_FALSE(std::signbit(test[i]));
             }
 
             // -Inf -> Inf
-            op::store(test, op::abs(op::set(-inf<TYPE_T>)));
+            ns::store(test, ns::abs(ns::set(-inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
             }
@@ -37,7 +37,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         if constexpr (std::is_integral_v<TYPE_T> && std::is_signed_v<TYPE_T>) {
             // 补码特例：abs(INT_MIN) 在溢出后仍为 INT_MIN
-            op::store(test, op::abs(op::set(std::numeric_limits<TYPE_T>::min())));
+            ns::store(test, ns::abs(ns::set(std::numeric_limits<TYPE_T>::min())));
             EXPECT_TRUE(array_equal(test, Lanes, std::numeric_limits<TYPE_T>::min()));
         }
     }
@@ -53,32 +53,32 @@ namespace KSIMD_DYN_INSTRUCTION
     void neg() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        using op = ns::op<TYPE_T>;
+        
         using batch_t = ns::Batch<TYPE_T>;
 
-        constexpr size_t Lanes = op::Lanes;
-        alignas(op::Alignment) TYPE_T src[Lanes];
-        alignas(op::Alignment) TYPE_T dst[Lanes];
+        constexpr size_t Lanes = ns::Lanes<TYPE_T>;
+        alignas(ns::Alignment<TYPE_T>) TYPE_T src[Lanes];
+        alignas(ns::Alignment<TYPE_T>) TYPE_T dst[Lanes];
 
         // 1. 基础数值测试：正变负，负变正
         for (size_t i = 0; i < Lanes; ++i) {
             src[i] = (i % 2 == 0) ? TYPE_T(i + 1) : TYPE_T(-(static_cast<int>(i) + 1));
         }
-        op::store(dst, op::neg(op::load(src)));
+        ns::store(dst, ns::neg(ns::load(src)));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(dst[i], static_cast<TYPE_T>(-src[i]));
         }
 
         // 2. 双重否定：-(-x) == x
-        op::store(dst, op::neg(op::neg(op::load(src))));
+        ns::store(dst, ns::neg(ns::neg(ns::load(src))));
         for (size_t i = 0; i < Lanes; ++i)
         {
             EXPECT_TRUE(dst[i] == src[i]);
         }
 
         // 3. 零值符号位测试
-        op::store(src, op::set(TYPE_T(0)));
-        op::store(dst, op::neg(op::load(src)));
+        ns::store(src, ns::set(TYPE_T(0)));
+        ns::store(dst, ns::neg(ns::load(src)));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(dst[i], TYPE_T(0));
             if constexpr (std::is_floating_point_v<TYPE_T>) {
@@ -90,23 +90,23 @@ namespace KSIMD_DYN_INSTRUCTION
         // 4. 整数边界测试
         if constexpr (std::is_integral_v<TYPE_T> && std::is_signed_v<TYPE_T>) {
             // INT_MIN -> INT_MIN (溢出行为)
-            batch_t v_min = op::set(std::numeric_limits<TYPE_T>::min());
-            op::store(dst, op::neg(v_min));
+            batch_t v_min = ns::set(std::numeric_limits<TYPE_T>::min());
+            ns::store(dst, ns::neg(v_min));
             EXPECT_TRUE(array_equal(dst, Lanes, std::numeric_limits<TYPE_T>::min()));
         }
 
         // 5. 浮点数特殊值
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // Inf -> -Inf
-            op::store(dst, op::neg(op::set(inf<TYPE_T>)));
+            ns::store(dst, ns::neg(ns::set(inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_TRUE(std::isinf(dst[i]) && std::signbit(dst[i]));
             }
 
             // NaN sign flip
-            batch_t v_nan = op::set(qNaN<TYPE_T>);
-            op::store(src, v_nan);
-            op::store(dst, op::neg(v_nan));
+            batch_t v_nan = ns::set(qNaN<TYPE_T>);
+            ns::store(src, v_nan);
+            ns::store(dst, ns::neg(v_nan));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_TRUE(std::isnan(dst[i]));
                 EXPECT_NE(std::signbit(src[i]), std::signbit(dst[i]));
