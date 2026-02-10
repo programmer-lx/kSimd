@@ -1,14 +1,10 @@
 // do not use include guard
 
-#include "op_helpers.hpp"
-#include "op_helpers.hpp"
-
+#include "kSimd/IDE/IDE_hint.hpp"
 
 #include <cmath>
 #include <cstring>
 #include <type_traits>
-
-#include "kSimd/IDE/IDE_hint.hpp"
 
 #include "op_helpers.hpp"
 #include "kSimd/core/impl/func_attr.hpp"
