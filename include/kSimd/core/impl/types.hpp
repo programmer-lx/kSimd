@@ -7,6 +7,8 @@
 #include <limits>
 #include <type_traits>
 
+#include "base.hpp"
+
 // clang-format off
 
 namespace ksimd

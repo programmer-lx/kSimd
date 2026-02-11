@@ -1,9 +1,0 @@
-#pragma once
-
-// 该宏用于判断分发到了哪一层指令集
-// KSIMD_DYN_DISPATCH_LEVEL values
-#define KSIMD_DYN_DISPATCH_LEVEL_SCALAR         1
-
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX_START      2
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX       3
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        4

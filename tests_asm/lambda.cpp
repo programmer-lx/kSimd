@@ -1,15 +1,9 @@
-#include <string>
-#include <vector>
-
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "simd_batch_dyn_dispatch.cpp"
+#define KSIMD_DISPATCH_THIS_FILE "lambda.cpp"
 #include <kSimd/core/dispatch_this_file.hpp>
 
-#include <kSimd/core/aligned_allocate.hpp>
 #include <kSimd/core/dispatch_core.hpp>
 #include <kSimd/extension/dispatch_vmath.hpp>
-
-#include "utils.hpp"
 
 namespace MyNamespace
 {
@@ -93,39 +87,6 @@ namespace MyNamespace
     ) noexcept
     {
         KSIMD_DYN_CALL(kernel)(src, dst, size);
-
-        // for testing
-        #if KSIMD_COMPILER_MSVC
-        static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel)) == 2); // 分发 SCALAR, AVX2_MAX 路径
-        #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
-        static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel)) == 1); // 只分发 AVX2_MAX 路径
-        #endif
     }
 } // namespace MyNamespace
-
-int main()
-{
-    constexpr size_t NUM = 1000003;
-
-    // 使用对齐分配器
-    std::vector<float, ksimd::AlignedAllocator<float>> src(NUM);
-    std::vector<float, ksimd::AlignedAllocator<float>> dst(NUM);
-
-    for (size_t i = 0; i < NUM; ++i)
-    {
-        src[i] = (float)i / NUM;
-    }
-
-    // 预热
-    MyNamespace::kernel(src.data(), dst.data(), NUM);
-
-    // 正式计时
-    ScopeTimer timer("timer");
-    for (int r = 0; r < 100; ++r)
-    {
-        MyNamespace::kernel(src.data(), dst.data(), NUM);
-    }
-
-    return 0;
-}
 #endif

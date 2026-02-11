@@ -1,7 +1,6 @@
 #pragma once
 
 #include "impl/dispatch.hpp"
-#include "impl/func_attr.hpp"
 
 #if !defined(KSIMD_DISPATCH_THIS_FILE)
     #error "has not defined KSIMD_DISPATCH_THIS_FILE"
@@ -20,7 +19,7 @@
 
     // KSIMD_DYN_FUNC_ATTR
     #undef KSIMD_DYN_FUNC_ATTR
-    #define KSIMD_DYN_FUNC_ATTR KSIMD_INTRINSIC_ATTR_AVX2_MAX
+    #define KSIMD_DYN_FUNC_ATTR KSIMD_DYN_FUNC_ATTR_AVX2_MAX
 
     // KSIMD_DYN_DISPATCH_LEVEL
     #undef KSIMD_DYN_DISPATCH_LEVEL
@@ -40,7 +39,7 @@
 
     // KSIMD_DYN_FUNC_ATTR
     #undef KSIMD_DYN_FUNC_ATTR
-    #define KSIMD_DYN_FUNC_ATTR KSIMD_INTRINSIC_ATTR_SCALAR
+    #define KSIMD_DYN_FUNC_ATTR KSIMD_DYN_FUNC_ATTR_SCALAR
 
     // KSIMD_DYN_DISPATCH_LEVEL
     #undef KSIMD_DYN_DISPATCH_LEVEL

@@ -11,10 +11,8 @@
 
 #include <cstring> // memcpy
 
-#include <bit> // bit_cast
-
 #include "op_helpers.hpp"
-#include "kSimd/core/impl/func_attr.hpp"
+#include "kSimd/core/impl/dispatch.hpp"
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
 
@@ -443,7 +441,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128 shuffle2 = _mm_shuffle_ps(min2, min2, _MM_SHUFFLE(1, 1, 1, 1));
 
         // [ min(1,2,3,4,5,6,7,8), ... ]
-        __m128 res = _mm_min_ps(min2, shuffle2);
+        __m128 res = _mm_min_ss(min2, shuffle2);
 
         // NaN传播
         if constexpr (option == FloatMinMaxOption::CheckNaN)
@@ -477,7 +475,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128 shuffle2 = _mm_shuffle_ps(max2, max2, _MM_SHUFFLE(1, 1, 1, 1));
 
         // [ max(1,2,3,4,5,6,7,8), ... ]
-        __m128 res = _mm_max_ps(max2, shuffle2);
+        __m128 res = _mm_max_ss(max2, shuffle2);
 
         // NaN传播
         if constexpr (option == FloatMinMaxOption::CheckNaN)

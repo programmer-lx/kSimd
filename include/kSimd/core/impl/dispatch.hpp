@@ -3,8 +3,60 @@
 // 该头文件编写函数分发表相关逻辑
 
 #include "base.hpp"
-#include "dyn_instruction_name.hpp"
-#include "dyn_dispatch_level.hpp"
+
+// --------------------------------- DISPATCH_LEVEL ---------------------------------
+// 将会在 dispatch_this_file.hpp 文件被多次重定义
+#define KSIMD_DYN_DISPATCH_LEVEL "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+
+// 该宏用于判断分发到了哪一层指令集
+// KSIMD_DYN_DISPATCH_LEVEL values
+#define KSIMD_DYN_DISPATCH_LEVEL_SCALAR         1
+
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX_START      2
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX       3
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        4
+
+
+// --------------------------------- FUNC_ATTR ---------------------------------
+// 将会在 dispatch_this_file.hpp 文件被多次重定义
+#define KSIMD_DYN_FUNC_ATTR "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+
+/*
+    see https://gcc.gnu.org/onlinedocs/gcc/x86-Function-Attributes.html#x86-Function-Attributes
+    for more intrinsics attributes information.
+*/
+
+// scalar
+#define KSIMD_DYN_FUNC_ATTR_SCALAR
+
+// avx2+fma3+f16c
+#define KSIMD_DYN_FUNC_ATTR_AVX2_MAX KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma,f16c")
+
+
+// --------------------------------- KSIMD_DYN_INSTRUCTION ---------------------------------
+// 将会在 dispatch_this_file.hpp 文件被多次重定义
+#define KSIMD_DYN_INSTRUCTION "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+
+#define KSIMD_DYN_INSTRUCTION_SCALAR   SCALAR
+#define KSIMD_DYN_INSTRUCTION_AVX2_MAX AVX2_MAX
+
+// avx2 max fallback
+#if KSIMD_INSTRUCTION_FEATURE_AVX2_MAX == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_AVX2_MAX
+#endif
+
+// scalar fallback
+#if KSIMD_INSTRUCTION_FEATURE_SCALAR == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_SCALAR
+#endif
+
+// check fallback
+#if !defined(KSIMD_DYN_INSTRUCTION_FALLBACK)
+    #error "We must define a fallback instruction name."
+#endif
+
 
 // instruction充当命名空间
 #define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction) &instruction::func_name,
@@ -91,7 +143,7 @@ namespace ksimd
 #define KSIMD_DYN_DISPATCH_FUNC(func_name) \
     /* 构建静态数组，存储函数指针 (使用命名空间包裹，限定只能在类外使用)，不能添加 static, inline 声明，强制整个程序只能有一份函数表 */ \
     namespace KSIMD_DETAIL_PFN_TABLE_NS { \
-        decltype(&KSIMD_DYN_INSTRUCTION::func_name) func_name[] = { \
+        const decltype(&KSIMD_DYN_INSTRUCTION::func_name) func_name[] = { \
             KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
         }; \
     }
@@ -99,10 +151,3 @@ namespace ksimd
 #define KSIMD_DYN_FUNC_POINTER(func_name) \
     KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[ksimd::dyn_func_index()]
 #define KSIMD_DYN_CALL(func_name) (KSIMD_DYN_FUNC_POINTER(func_name))
-
-
-
-// --------------------------------- FUNC_ATTR字符串描述 ---------------------------------
-// 将会在 dispatch_this_file.hpp 文件被多次重定义
-#define KSIMD_DYN_FUNC_ATTR "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
-#define KSIMD_DYN_DISPATCH_LEVEL "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"

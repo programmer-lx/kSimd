@@ -142,9 +142,6 @@
 
 // --------- x86指令集 ---------
 #if KSIMD_ARCH_X86_ANY
-    // AVX family
-    #define KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY
-
     // AVX2+FMA3+F16C (AVX2_MAX)
     #if KSIMD_IS_TESTING || KSIMD_ARCH_X86_ANY
         #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1
