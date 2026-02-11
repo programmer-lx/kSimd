@@ -63,7 +63,26 @@ namespace ksimd
     }
 
     // 测试时直接返回索引即可，正式版本才使用运行时CPUID判断
-    int KSIMD_CALL_CONV dyn_func_index() noexcept;
+    KSIMD_HEADER_GLOBAL int dyn_func_index() noexcept
+    {
+        static int i = []()
+        {
+            const CpuSupportInfo& supports = get_cpu_support_info();
+
+            // 从最高级的指令往下判断
+        #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
+            if (supports.AVX2 && supports.FMA3 && supports.F16C)
+            {
+                return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
+            }
+        #endif
+
+            // 返回实际的 fallback index 即可，某些平台，标量可能不是 fallback
+            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
+        }();
+
+        return i;
+    }
 }
 
 #define KSIMD_DETAIL_PFN_TABLE_NS K_S_I_M_D__PFN_TABLE

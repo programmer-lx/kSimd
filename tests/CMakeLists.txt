@@ -36,8 +36,8 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     endif()
     add_extra_test_compile_and_link_options(${FINAL_TARGET_NAME})
 
-    target_compile_definitions(kSimd PUBLIC KSIMD_IS_TESTING)
-#    target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_IS_TESTING)
+#    target_compile_definitions(kSimd PUBLIC KSIMD_IS_TESTING)
+    target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_IS_TESTING)
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 

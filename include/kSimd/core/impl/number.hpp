@@ -13,43 +13,32 @@ namespace ksimd
 {
     namespace detail
     {
-        template<typename T>
-        using underlying_t =
-            std::conditional_t<
-                std::is_enum_v<T>,
-                std::underlying_type_t<T>,
-                T
-            >;
-
-        template<typename T>
-            requires (std::is_enum_v<T> || std::is_integral_v<T>)
-        constexpr underlying_t<T> underlying(const T val) noexcept
-        {
-            return static_cast<underlying_t<T>>(val);
-        }
-
         template<size_t Bytes>
-        struct uint_from_bytes
-        {
-            using type = std::conditional_t<
-                (Bytes == sizeof(uint8_t)), uint8_t,
-                std::conditional_t<
-                    (Bytes == sizeof(uint16_t)), uint16_t,
-                    std::conditional_t<
-                        (Bytes == sizeof(uint32_t)), uint32_t,
-                        std::conditional_t<
-                            (Bytes == sizeof(uint64_t)), uint64_t, void
-                        >
-                    >
-                >
-            >;
+        struct uint_from_bytes;
 
-            // check
-            static_assert(!std::is_void_v<type>);
+        template<>
+        struct uint_from_bytes<1>
+        {
+            using type = uint8_t;
         };
 
-        template<size_t Bytes>
-        using uint_from_bytes_t = typename uint_from_bytes<Bytes>::type;
+        template<>
+        struct uint_from_bytes<2>
+        {
+            using type = uint16_t;
+        };
+
+        template<>
+        struct uint_from_bytes<4>
+        {
+            using type = uint32_t;
+        };
+
+        template<>
+        struct uint_from_bytes<8>
+        {
+            using type = uint64_t;
+        };
 
         template<typename S, int index>
         consteval int inverse_bit_index_impl()
@@ -80,7 +69,7 @@ namespace ksimd
     } // namespace detail
 
     template<is_scalar_type S>
-    using same_bits_uint_t = detail::uint_from_bytes_t<sizeof(S)>;
+    using same_bits_uint_t = typename detail::uint_from_bytes<sizeof(S)>::type;
 
     template<is_scalar_type S>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr auto bitcast_to_uint(S n) noexcept
@@ -141,7 +130,7 @@ namespace ksimd
      * @brief 0b11111111...
      */
     template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR S OneBlock = std::bit_cast<S>(~static_cast<detail::uint_from_bytes_t<sizeof(S)>>(0));
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S OneBlock = std::bit_cast<S>(~static_cast<same_bits_uint_t<S>>(0));
 
     /**
      * @brief 0b00000000...
@@ -154,7 +143,7 @@ namespace ksimd
      */
     template<is_scalar_type S>
     KSIMD_HEADER_GLOBAL_CONSTEXPR S SignBitMask = std::bit_cast<S>(
-        static_cast<detail::uint_from_bytes_t<sizeof(S)>>(1) << static_cast<detail::uint_from_bytes_t<sizeof(S)>>(InverseBitIndex<S, 0>)
+        static_cast<same_bits_uint_t<S>>(1) << static_cast<same_bits_uint_t<S>>(InverseBitIndex<S, 0>)
     );
 
     /**
