@@ -4,7 +4,6 @@
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/FLOAT_T/floating_point.inl" // this file
-#include "src/gtest-internal-inl.h"
 
 
 #include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
