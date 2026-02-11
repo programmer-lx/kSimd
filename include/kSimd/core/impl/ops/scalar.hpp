@@ -297,9 +297,10 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<S>) if_then_else(Mask<S> _if, Batch<S> _then, Batch<S> _else) noexcept
     {
         using uint_t = same_bits_uint_t<S>;
+
         uint_t _if_v = _if.m;
-        uint_t _then_v = std::bit_cast<uint_t>(_then.v);
-        uint_t _else_v = std::bit_cast<uint_t>(_else.v);
+        uint_t _then_v = bitcast_to_uint(_then.v);
+        uint_t _else_v = bitcast_to_uint(_else.v);
         return { std::bit_cast<S>((_if_v & _then_v) | ((~_if_v) & _else_v)) };
     }
 
