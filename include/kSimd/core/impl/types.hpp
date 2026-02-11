@@ -3,11 +3,16 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <stdfloat>
 #include <limits>
 #include <type_traits>
 
 #include "base.hpp"
+
+#if __has_include(<stdfloat>) && \
+    KSIMD_SUPPORT_STD_FLOAT16 || KSIMD_SUPPORT_STD_BFLOAT16 || KSIMD_SUPPORT_STD_FLOAT32 || KSIMD_SUPPORT_STD_FLOAT64
+
+    #include <stdfloat>
+#endif
 
 // clang-format off
 

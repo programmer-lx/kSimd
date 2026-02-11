@@ -65,9 +65,20 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB_RECURSE TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp")
 
 foreach(SOURCE_FILE ${TEST_SOURCES})
-    # 读取文件路径，变成test target的名字: "simd/SSE2.cpp" -> "test_simd_SSE2"
     string(REPLACE "/" "_" TEST_TARGET_NAME "${SOURCE_FILE}")
     get_filename_component(TEST_TARGET_NAME ${TEST_TARGET_NAME} NAME_WE)
 
     add_ksimd_test_target(${TEST_TARGET_NAME} ${SOURCE_FILE})
 endforeach()
+
+# extra test
+
+# inline test
+add_executable(inline_test inline_test/inline_cpp_1.cc inline_test/inline_cpp_2.cc inline_test/inline_main.cc)
+target_include_directories(inline_test PRIVATE inline_test)
+add_test(NAME inline_test COMMAND COMMAND $<TARGET_FILE:inline_test>)
+
+# static test
+add_executable(static_test static_test/static_cpp_1.cc static_test/static_cpp_2.cc static_test/static_main.cc)
+target_include_directories(static_test PRIVATE static_test)
+add_test(NAME static_test COMMAND COMMAND $<TARGET_FILE:static_test>)
