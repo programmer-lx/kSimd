@@ -4,7 +4,7 @@
 
 // check (必须在包含这个文件之前包含dispatch_core.hpp)
 #if !defined(KSIMD_DISPATCH_CORE_INCLUDED)
-    static_assert(false, "We should include <kSimd/core/dispatch_core.hpp> before include <kSimd/extension/dispatch_vmath.hpp>");
+    #error We should include <kSimd/core/dispatch_core.hpp> before include <kSimd/extension/dispatch_vmath.hpp>
 #endif
 
 // #include "kSimd/IDE/IDE_hint.hpp"

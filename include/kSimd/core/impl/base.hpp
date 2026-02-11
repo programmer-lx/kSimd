@@ -87,6 +87,11 @@
 #endif
 
 
+// min, max macro
+#if (_WIN32 || _WIN64) && (defined(min) || defined(max))
+    #error The "min" "max" macro are defined, we can define NOMINMAX before include <windows.h>.
+#endif
+
 // --- macro utils ---
 #define KSIMD_STR_IMPL(x) #x
 #define KSIMD_STR(x) KSIMD_STR_IMPL(x)

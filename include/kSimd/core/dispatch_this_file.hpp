@@ -3,7 +3,7 @@
 #include "impl/dispatch.hpp"
 
 #if !defined(KSIMD_DISPATCH_THIS_FILE)
-    #error "has not defined KSIMD_DISPATCH_THIS_FILE"
+    #error we should defined KSIMD_DISPATCH_THIS_FILE before include <kSimd/core/dispatch_this_file.hpp>
 #endif
 
 #define KSIMD_DETAIL_CHECK_DISPATCH_FILE_INCLUDED

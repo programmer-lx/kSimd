@@ -1,5 +1,12 @@
 // using ALL_TYPE_T = uint32_t;
 
+#if _WIN32 || WIN64
+    #ifndef NOMINMAX
+    #define NOMINMAX
+    #endif
+    #include <windows.h>
+#endif
+
 #include "../../test.hpp"
 
 #undef KSIMD_DISPATCH_THIS_FILE
