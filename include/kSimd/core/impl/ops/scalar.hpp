@@ -429,22 +429,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type_float_32bits S>
     KSIMD_API(Batch<S>) rcp(Batch<S> v) noexcept
     {
-        int32_t i = std::bit_cast<int32_t>(v.v);
-        i = 0x7ef311c2 - i;
-        S y = std::bit_cast<S>(i);
-
-        y = y * (static_cast<S>(2.0f) - v.v * y);
-
-        const int32_t sign_mask = std::bit_cast<int32_t>(v.v) & SignBitMask<int32_t>;
-
-        // 1 / +-0 = inf
-        // 1 / inf = 0
-        // 1 / -inf = -0
-        // 1 / +-NaN = +-NaN
-        S res = (v.v == static_cast<S>(0.0f)) ? Inf<S> :
-                 is_inf(v.v) ? std::bit_cast<S>(UINT32_C(0) | sign_mask) : y;
-
-        return { res };
+        return { static_cast<S>(1.0f) / v.v };
     }
 
     template<is_scalar_type_float_32bits S>
