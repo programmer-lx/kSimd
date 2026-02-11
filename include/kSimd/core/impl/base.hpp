@@ -122,58 +122,47 @@
 
 
 // ------------------------------------------- instruction features -------------------------------------------
+// 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3+F16C开关，那么其实就没必要分发标量了
+#ifdef KSIMD_COMPILER_MSVC
+    #ifdef __AVX2__
+        #define KSIMD_FORCE_AVX2_MAX 1
+    #endif
+#elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
+    #if defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
+        #define KSIMD_FORCE_AVX2_MAX 1
+    #endif
+#endif
+
 // 这些宏开关，表示分发表将会分发哪些函数
 // fallback指令的值，后续可通过类似于
 #define KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE (-1) // fallback值
 #undef KSIMD_DETAIL_INST_FEATURE_FALLBACK
 
-// Scalar
-#if KSIMD_IS_TESTING || KSIMD_ARCH_X86_ANY
-    #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
-    #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // fallback
-#endif
+// 由高到低判断
 
 // --------- x86指令集 ---------
 #if KSIMD_ARCH_X86_ANY
-
-    // #define KSIMD_INSTRUCTION_FEATURE_SSE_FAMILY      // 2026 无需支持
-    // SSE: 只在 x86 32bit 提供SSE分发
-    // #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_32)
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE 1      // 2026 无需支持
-    // #endif
-
-    // SSE2 及以上
-    // #if defined(KSIMD_IS_TESTING) || defined(KSIMD_ARCH_X86_ANY)
-        // SSE2
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE2 1     // 2026 无需支持
-        // // SSE2: fallback 1
-        // #if !defined(KSIMD_DETAIL_INST_FEATURE_FALLBACK)
-        //     #undef KSIMD_INSTRUCTION_FEATURE_SSE2
-        //     #define KSIMD_INSTRUCTION_FEATURE_SSE2 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE // fallback value
-        //     #define KSIMD_DETAIL_INST_FEATURE_FALLBACK // fallback
-        // #endif
-
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE3 1     // 2026 无需支持
-        // #define KSIMD_INSTRUCTION_FEATURE_SSSE3 1    // 2026 无需支持
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1   // 2026 无需支持
-        // #define KSIMD_INSTRUCTION_FEATURE_SSE4_2 1
-    // #endif
-
     // AVX family
     #define KSIMD_INSTRUCTION_FEATURE_AVX_FAMILY
-    #if KSIMD_IS_TESTING || KSIMD_ARCH_X86_ANY
-        // #define KSIMD_INSTRUCTION_FEATURE_AVX 1      // 2026 无需支持
-        // #define KSIMD_INSTRUCTION_FEATURE_AVX2 1     // 2026 无需支持
-        #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1    // AVX2+FMA3+F16C
-    #endif
 
-    // AVX-512 family
-    #define KSIMD_INSTRUCTION_FEATURE_AVX512_FAMILY
+    // AVX2+FMA3+F16C (AVX2_MAX)
     #if KSIMD_IS_TESTING || KSIMD_ARCH_X86_ANY
-        // #define KSIMD_INSTRUCTION_FEATURE_AVX512_F 1
+        #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1
+
+        #if KSIMD_FORCE_AVX2_MAX
+            #undef KSIMD_INSTRUCTION_FEATURE_AVX2_MAX
+            #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+        #endif
     #endif
 
 #endif // x86 instructions
+
+// Scalar
+#if KSIMD_IS_TESTING || !KSIMD_DETAIL_INST_FEATURE_FALLBACK
+    #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // fallback
+#endif
 
 // check fallback
 #if !KSIMD_DETAIL_INST_FEATURE_FALLBACK

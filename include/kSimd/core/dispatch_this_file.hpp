@@ -26,11 +26,13 @@
     #undef KSIMD_DYN_DISPATCH_LEVEL
     #define KSIMD_DYN_DISPATCH_LEVEL KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX
 
-    // dispatch
-    #include KSIMD_DISPATCH_THIS_FILE
+    // dispatch if not fallback
+    #if (KSIMD_INSTRUCTION_FEATURE_AVX2_MAX != KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE)
+        #include KSIMD_DISPATCH_THIS_FILE
+    #endif
 #endif
 
-// Scalar (may be fallback)
+// Scalar
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
     // KSIMD_DYN_INSTRUCTION
     #undef KSIMD_DYN_INSTRUCTION
