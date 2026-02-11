@@ -4,6 +4,9 @@
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "base_op/FLOAT_T/floating_point.inl" // this file
+#include "src/gtest-internal-inl.h"
+
+
 #include <kSimd/core/dispatch_this_file.hpp> // auto dispatch
 #include <kSimd/core/dispatch_core.hpp>
 
@@ -16,12 +19,18 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rcp() noexcept
     {
-        if constexpr (std::is_same_v<float, FLOAT_T>)
+        if constexpr (ksimd::is_scalar_type_float_32bits<FLOAT_T>)
         {
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
             
             constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
             alignas(ns::Alignment<FLOAT_T>) FLOAT_T test[Lanes];
+
+            EXPECT_TRUE(std::isinf(inf<FLOAT_T>));
+            EXPECT_TRUE(std::isinf(-inf<FLOAT_T>));
+
+            EXPECT_TRUE(ksimd::is_inf(inf<FLOAT_T>));
+            EXPECT_TRUE(ksimd::is_inf(-inf<FLOAT_T>));
 
             // 1. 常规数值 1/4 = 0.25
             ns::store(test, ns::rcp(ns::set(FLOAT_T(4))));
@@ -29,12 +38,36 @@ namespace KSIMD_DYN_INSTRUCTION
                 EXPECT_NEAR(static_cast<double>(test[i]), 0.25, FLOAT_T_EPSILON_RCP);
             }
 
-            // 2. 边界：1/Inf = 0, 1/0 = Inf
+            // 2. 边界：1/Inf = 0
             ns::store(test, ns::rcp(ns::set(inf<FLOAT_T>)));
-            for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], FLOAT_T(0));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_EQ(test[i], FLOAT_T(0));
+                EXPECT_TRUE(!std::signbit(test[i]));
+            }
 
+            // 1 / -Inf = -0
+            ns::store(test, ns::rcp(ns::set(-inf<FLOAT_T>)));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_EQ(test[i], FLOAT_T(-0));
+                EXPECT_TRUE(std::signbit(test[i]));
+            }
+
+            // 1/0 = Inf
             ns::store(test, ns::rcp(ns::set(FLOAT_T(0))));
-            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == inf<FLOAT_T>);
+
+            // 1/-0 = Inf
+            ns::store(test, ns::rcp(ns::set(FLOAT_T(-0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == inf<FLOAT_T>);
+
+            // 3. 1/NaN = NaN
+            ns::store(test, ns::rcp(ns::set(qNaN<FLOAT_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            ns::store(test, ns::rcp(ns::set(-qNaN<FLOAT_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
 
@@ -59,7 +92,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void rsqrt() noexcept
     {
-        if constexpr (std::is_same_v<float, FLOAT_T>)
+        if constexpr (ksimd::is_scalar_type_float_32bits<FLOAT_T>)
         {
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
             
@@ -71,6 +104,12 @@ namespace KSIMD_DYN_INSTRUCTION
 
             ns::store(test, ns::rsqrt(ns::set(FLOAT_T(0))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
+
+            ns::store(test, ns::rsqrt(ns::set(FLOAT_T(-0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
+
+            ns::store(test, ns::rsqrt(ns::set(FLOAT_T(-2))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
 }

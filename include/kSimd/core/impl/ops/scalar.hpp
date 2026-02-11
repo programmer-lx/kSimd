@@ -429,13 +429,40 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type_float_32bits S>
     KSIMD_API(Batch<S>) rcp(Batch<S> v) noexcept
     {
-        return { static_cast<S>(1) / v.v };
+        int32_t i = std::bit_cast<int32_t>(v.v);
+        i = 0x7ef311c2 - i;
+        S y = std::bit_cast<S>(i);
+
+        y = y * (static_cast<S>(2.0f) - v.v * y);
+
+        const int32_t sign_mask = std::bit_cast<int32_t>(v.v) & SignBitMask<int32_t>;
+
+        // 1 / +-0 = inf
+        // 1 / inf = 0
+        // 1 / -inf = -0
+        // 1 / +-NaN = +-NaN
+        S res = (v.v == static_cast<S>(0.0f)) ? Inf<S> :
+                 is_inf(v.v) ? std::bit_cast<S>(UINT32_C(0) | sign_mask) : y;
+
+        return { res };
     }
 
     template<is_scalar_type_float_32bits S>
     KSIMD_API(Batch<S>) rsqrt(Batch<S> v) noexcept
     {
-        return { static_cast<S>(1) / std::sqrt(v.v) };
+        // Quake III 算法
+        constexpr S three_half = static_cast<S>(1.5f);
+        S x2 = v.v * static_cast<S>(0.5f);
+        int32_t i = std::bit_cast<int32_t>(v.v);
+        i = 0x5f3759df - (i >> 1);
+        S y = std::bit_cast<S>(i);
+        y = y * (three_half - (x2 * y * y)); // 第一次迭代，可添加第二次
+
+        // 如果传入的数 == 0，返回 inf，如果传入负数，返回-NaN，与硬件指令匹配
+        const S res = (v.v == static_cast<S>(0.0f)) ? Inf<S> :
+                      (v.v <  static_cast<S>(0.0f)) ? -QNaN<S> : y;
+
+        return { res };
     }
 #pragma endregion
 

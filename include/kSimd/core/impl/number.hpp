@@ -169,4 +169,10 @@ namespace ksimd
         constexpr uint_t exp_mask = bitcast_to_uint(ExpMask<F>);
         return (bits & exp_mask) != exp_mask;
     }
+
+    template<is_scalar_floating_point F>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_inf(const F f) noexcept
+    {
+        return (f == Inf<F>) || (f == -Inf<F>);
+    }
 }
