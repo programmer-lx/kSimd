@@ -15,7 +15,7 @@ int main()
             InlineStruct* inline_var_2 = get_inline_var_2();
             volatile uintptr_t ptr1 = reinterpret_cast<uintptr_t>(inline_var_1);
             volatile uintptr_t ptr2 = reinterpret_cast<uintptr_t>(inline_var_2);
-            if (ptr1 != ptr2)
+            if (ptr1 != ptr2) // inline: 链接器会合并多个inline声明，所以地址必须相等
             {
                 throw std::exception();
             }
@@ -28,7 +28,7 @@ int main()
 
             volatile uintptr_t ptr1 = reinterpret_cast<uintptr_t>(var1);
             volatile uintptr_t ptr2 = reinterpret_cast<uintptr_t>(var2);
-            if (ptr1 != ptr2)
+            if (ptr1 != ptr2) // inline: 链接器会合并多个inline声明，所以地址必须相等
             {
                 throw std::exception();
             }

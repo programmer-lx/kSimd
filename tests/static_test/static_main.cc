@@ -28,7 +28,7 @@ int main()
 
             volatile uintptr_t ptr1 = reinterpret_cast<uintptr_t>(var1);
             volatile uintptr_t ptr2 = reinterpret_cast<uintptr_t>(var2);
-            if (ptr1 == ptr2)
+            if (ptr1 == ptr2) // static 是每个TU一份，所以指针不能相等
             {
                 throw std::exception();
             }

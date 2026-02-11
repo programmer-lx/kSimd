@@ -11,13 +11,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<S>) operator symbol(Batch<S> lhs, Batch<S> rhs) noexcept \
     { \
         __VA_ARGS__ \
-        return name(lhs, rhs); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, rhs); \
     } \
     template<is_scalar_type S> \
     KSIMD_API(Batch<S>&) operator symbol## = (Batch<S> & lhs, Batch<S> rhs) noexcept \
     { \
         __VA_ARGS__ \
-        return lhs = name(lhs, rhs); \
+        return lhs = ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, rhs); \
     }
 
     // ----------------- 二元算术运算 -----------------
@@ -38,7 +38,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S> \
     KSIMD_API(Batch<S>) operator symbol(Batch<S> val) noexcept \
     { \
-        return name(val); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(val); \
     }
 
     // -----------------一元算术运算 -----------------
@@ -53,19 +53,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<S>) operator symbol(Batch<S> lhs, S rhs) noexcept \
     { \
         __VA_ARGS__ \
-        return name(lhs, set(rhs)); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, set(rhs)); \
     } \
     template<is_scalar_type S> \
     KSIMD_API(Batch<S>) operator symbol(S lhs, Batch<S> rhs) noexcept \
     { \
         __VA_ARGS__ \
-        return name(set(lhs), rhs); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(set(lhs), rhs); \
     } \
     template<is_scalar_type S> \
     KSIMD_API(Batch<S>&) operator symbol## = (Batch<S> & lhs, S rhs) noexcept \
     { \
         __VA_ARGS__ \
-        return lhs = name(lhs, set(rhs)); \
+        return lhs = ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, set(rhs)); \
     }
 
     // ----------------- 与标量混合的二元算术运算符 -----------------
@@ -87,7 +87,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S> \
     KSIMD_API(Mask<S>) operator symbol(Batch<S> lhs, Batch<S> rhs) noexcept \
     { \
-        return name(lhs, rhs); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, rhs); \
     }
 
     KSIMD_COMP_OP(==, equal)
@@ -104,12 +104,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S> \
     KSIMD_API(Mask<S>) operator symbol(Batch<S> lhs, S rhs) noexcept \
     { \
-        return name(lhs, set(rhs)); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, set(rhs)); \
     } \
     template<is_scalar_type S> \
     KSIMD_API(Mask<S>) operator symbol(S lhs, Batch<S> rhs) noexcept \
     { \
-        return name(set(lhs), rhs); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(set(lhs), rhs); \
     }
 
     KSIMD_MIXED_COMP_OP(==, equal)
@@ -126,12 +126,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S> \
     KSIMD_API(Mask<S>) operator symbol(Mask<S> lhs, Mask<S> rhs) noexcept \
     { \
-        return name(lhs, rhs); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, rhs); \
     } \
     template<is_scalar_type S> \
     KSIMD_API(Mask<S>&) operator symbol## = (Mask<S> & lhs, Mask<S> rhs) noexcept \
     { \
-        return lhs = name(lhs, rhs); \
+        return lhs = ksimd::KSIMD_DYN_INSTRUCTION::name(lhs, rhs); \
     }
 
     KSIMD_MASK_BINARY_LOGIC_OP(&, mask_and)
@@ -144,7 +144,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S> \
     KSIMD_API(Mask<S>) operator symbol(Mask<S> mask) noexcept \
     { \
-        return name(mask); \
+        return ksimd::KSIMD_DYN_INSTRUCTION::name(mask); \
     }
 
     KSIMD_MASK_UNARY_LOGIC_OP(~, mask_not)
