@@ -5,6 +5,8 @@
 
 #include <stdfloat>
 
+#pragma message("test std::float32_t.")
+
 using TYPE_T = std::float32_t;
 
 #include "all_type.inl"

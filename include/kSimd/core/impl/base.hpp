@@ -9,93 +9,59 @@
     #define KSIMD_COMPILER_CLANG 1
 #endif
 
-#ifndef __cplusplus
-    #error "requires C++."
+#if defined(KSIMD_COMPILER_MSVC) + defined(KSIMD_COMPILER_GCC) + defined(KSIMD_COMPILER_CLANG) != 1
+    #error "We should only define one compiler macro."
 #endif
+
 #if !KSIMD_COMPILER_MSVC && !KSIMD_COMPILER_GCC && !KSIMD_COMPILER_CLANG
     #error "Unknown compiler, only support msvc, g++, clang++."
 #endif
 
-#define KSIMD_STR_IMPL(x) #x
-#define KSIMD_STR(x) KSIMD_STR_IMPL(x)
 
-#define KSIMD_CONCAT_IMPL(a, b) a##b
-#define KSIMD_CONCAT(a, b) KSIMD_CONCAT_IMPL(a, b)
+// C++ standard
+#ifndef __cplusplus
+    #error "requires C++."
+#endif
 
-#define KSIMD_IGNORE_WARNING_MSVC(warnings)
-#define KSIMD_IGNORE_WARNING_GCC(warnings)
-#define KSIMD_IGNORE_WARNING_CLANG(warnings)
+#ifdef _MSVC_LANG
+    #define KSIMD_CPP_STANDARD _MSVC_LANG
+#else
+    #define KSIMD_CPP_STANDARD __cplusplus
+#endif
 
-#if defined(KSIMD_COMPILER_MSVC)
+#if KSIMD_CPP_STANDARD >= 202002L
+    #define KSIMD_FULL_CPP_20 1
+#endif
 
-    #define KSIMD_RESTRICT __restrict
-    #define KSIMD_NOINLINE __declspec(noinline)
-    #define KSIMD_FORCE_INLINE __forceinline
-    #define KSIMD_FLATTEN
-    #define KSIMD_PRAGMA(tokens) __pragma(tokens)
+#if KSIMD_CPP_STANDARD >= 202302L
+    #define KSIMD_FULL_CPP_23 1
+#endif
 
-    #define KSIMD_WARNING_PUSH KSIMD_PRAGMA(warning(push))
-    #define KSIMD_WARNING_POP KSIMD_PRAGMA(warning(pop))
-    #undef KSIMD_IGNORE_WARNING_MSVC
-    #define KSIMD_IGNORE_WARNING_MSVC(warnings) KSIMD_PRAGMA(warning(disable : warnings))
+#if !KSIMD_FULL_CPP_20
+    #error "requires C++20. We should use -std=c++20 in GCC clang, or use /std:c++20 in MSVC."
+#endif
 
-    #define KSIMD_FUNC_ATTR_INTRINSIC_TARGETS(...)
-
-#elif defined(KSIMD_COMPILER_GCC) || defined(KSIMD_COMPILER_CLANG) // GCC clang
-
-    #define KSIMD_RESTRICT __restrict__
-    #define KSIMD_NOINLINE __attribute__((noinline))
-    #define KSIMD_FORCE_INLINE inline __attribute__((always_inline))
-    #define KSIMD_FLATTEN __attribute__((flatten))
-    #define KSIMD_PRAGMA(tokens) _Pragma(#tokens)
-    #define KSIMD_FUNC_ATTR_INTRINSIC_TARGETS(...) __attribute__((target(__VA_ARGS__)))
-
-    #if !defined(KSIMD_COMPILER_CLANG) // GCC only
-
-        #define KSIMD_WARNING_PUSH KSIMD_PRAGMA(GCC diagnostic push)
-        #define KSIMD_WARNING_POP KSIMD_PRAGMA(GCC diagnostic pop)
-        #undef KSIMD_IGNORE_WARNING_GCC
-        #define KSIMD_IGNORE_WARNING_GCC(warnings) KSIMD_PRAGMA(GCC diagnostic ignored warnings)
-
+// C++23 std::floatXXX support
+#if __has_include(<stdfloat>)
+    #ifdef __STDCPP_FLOAT16_T__
+        #define KSIMD_SUPPORT_STD_FLOAT16 1
     #endif
 
-    #if !defined(KSIMD_COMPILER_GCC) // clang only
-
-        #define KSIMD_WARNING_PUSH KSIMD_PRAGMA(clang diagnostic push)
-        #define KSIMD_WARNING_POP KSIMD_PRAGMA(clang diagnostic pop)
-        #undef KSIMD_IGNORE_WARNING_CLANG
-        #define KSIMD_IGNORE_WARNING_CLANG(warnings) KSIMD_PRAGMA(clang diagnostic ignored warnings)
-
+    #ifdef __STDCPP_BFLOAT16_T__
+        #define KSIMD_SUPPORT_STD_BFLOAT16 1
     #endif
 
-#endif // MSVC
+    #ifdef __STDCPP_FLOAT32_T__
+        #define KSIMD_SUPPORT_STD_FLOAT32 1
+    #endif
 
-// Header-only 全局常量或 constexpr 函数 (防止误用 static constexpr 导致每个TU一份)
-#define KSIMD_HEADER_GLOBAL_CONSTEXPR inline constexpr
-
-// Header-only 全局变量或内联函数 (防止误用 static)
-#define KSIMD_HEADER_GLOBAL inline
-
-
-// std::floatXXX support
-#ifdef __STDCPP_FLOAT16_T__
-    #define KSIMD_SUPPORT_STD_FLOAT16 1
-#endif
-
-#ifdef __STDCPP_BFLOAT16_T__
-    #define KSIMD_SUPPORT_STD_BFLOAT16 1
-#endif
-
-#ifdef __STDCPP_FLOAT32_T__
-    #define KSIMD_SUPPORT_STD_FLOAT32 1
-#endif
-
-#ifdef __STDCPP_FLOAT64_T__
-    #define KSIMD_SUPPORT_STD_FLOAT64 1
+    #ifdef __STDCPP_FLOAT64_T__
+        #define KSIMD_SUPPORT_STD_FLOAT64 1
+    #endif
 #endif
 
 
-// --- X86 系列 ---
+// arch
 // ----------------------------- x86 64-bit -----------------------------
 #if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
     #define KSIMD_ARCH_X86_64 1
@@ -121,9 +87,71 @@
 #endif
 
 
+// --- macro utils ---
+#define KSIMD_STR_IMPL(x) #x
+#define KSIMD_STR(x) KSIMD_STR_IMPL(x)
+
+#define KSIMD_CONCAT_IMPL(a, b) a##b
+#define KSIMD_CONCAT(a, b) KSIMD_CONCAT_IMPL(a, b)
+
+#define KSIMD_IGNORE_WARNING_MSVC(warnings)
+#define KSIMD_IGNORE_WARNING_GCC(warnings)
+#define KSIMD_IGNORE_WARNING_CLANG(warnings)
+
+#if KSIMD_COMPILER_MSVC
+
+    #define KSIMD_RESTRICT __restrict
+    #define KSIMD_NOINLINE __declspec(noinline)
+    #define KSIMD_FORCE_INLINE __forceinline
+    #define KSIMD_FLATTEN
+    #define KSIMD_PRAGMA(tokens) __pragma(tokens)
+
+    #define KSIMD_WARNING_PUSH KSIMD_PRAGMA(warning(push))
+    #define KSIMD_WARNING_POP KSIMD_PRAGMA(warning(pop))
+    #undef KSIMD_IGNORE_WARNING_MSVC
+    #define KSIMD_IGNORE_WARNING_MSVC(warnings) KSIMD_PRAGMA(warning(disable : warnings))
+
+    #define KSIMD_FUNC_ATTR_INTRINSIC_TARGETS(...)
+
+#elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG // GCC clang
+
+    #define KSIMD_RESTRICT __restrict__
+    #define KSIMD_NOINLINE __attribute__((noinline))
+    #define KSIMD_FORCE_INLINE inline __attribute__((always_inline))
+    #define KSIMD_FLATTEN __attribute__((flatten))
+    #define KSIMD_PRAGMA(tokens) _Pragma(#tokens)
+    #define KSIMD_FUNC_ATTR_INTRINSIC_TARGETS(...) __attribute__((target(__VA_ARGS__)))
+
+    #if !KSIMD_COMPILER_CLANG // GCC only
+
+        #define KSIMD_WARNING_PUSH KSIMD_PRAGMA(GCC diagnostic push)
+        #define KSIMD_WARNING_POP KSIMD_PRAGMA(GCC diagnostic pop)
+        #undef KSIMD_IGNORE_WARNING_GCC
+        #define KSIMD_IGNORE_WARNING_GCC(warnings) KSIMD_PRAGMA(GCC diagnostic ignored warnings)
+
+    #endif
+
+    #if !KSIMD_COMPILER_GCC // clang only
+
+        #define KSIMD_WARNING_PUSH KSIMD_PRAGMA(clang diagnostic push)
+        #define KSIMD_WARNING_POP KSIMD_PRAGMA(clang diagnostic pop)
+        #undef KSIMD_IGNORE_WARNING_CLANG
+        #define KSIMD_IGNORE_WARNING_CLANG(warnings) KSIMD_PRAGMA(clang diagnostic ignored warnings)
+
+    #endif
+
+#endif // MSVC
+
+// Header-only 全局常量或 constexpr 函数 (防止误用 static constexpr 导致每个TU一份)
+#define KSIMD_HEADER_GLOBAL_CONSTEXPR inline constexpr
+
+// Header-only 全局变量或内联函数 (防止误用 static)
+#define KSIMD_HEADER_GLOBAL inline
+
+
 // ------------------------------------------- instruction features -------------------------------------------
 // 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3+F16C开关，那么其实就没必要分发标量了
-#ifdef KSIMD_COMPILER_MSVC
+#if KSIMD_COMPILER_MSVC
     #ifdef __AVX2__
         #define KSIMD_FORCE_AVX2_MAX 1
     #endif
@@ -271,7 +299,7 @@ namespace ksimd
             return (static_cast<Type>(data) & (static_cast<Type>(1) << static_cast<Type>(bit_pos))) != 0;
         }
 
-        #if defined(KSIMD_ARCH_X86_ANY)
+        #if KSIMD_ARCH_X86_ANY
         // leaf: EAX, sub_leaf: ECX
         KSIMD_HEADER_GLOBAL void cpuid(const uint32_t leaf, const uint32_t sub_leaf, uint32_t* abcd)
         {
@@ -316,7 +344,7 @@ namespace ksimd
 
             CpuSupportInfo result{};
 
-            #if defined(KSIMD_ARCH_X86_ANY)
+            #if KSIMD_ARCH_X86_ANY
             uint32_t abcd[4]; // eax, ebx, ecx, edx
 
             cpuid(0, 0, abcd);

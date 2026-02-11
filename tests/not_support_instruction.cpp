@@ -7,7 +7,7 @@
 #include "test.hpp"
 
 
-#if defined(KSIMD_COMPILER_GCC) || defined(KSIMD_COMPILER_CLANG)
+#if KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
     #define TEST_FUNC_ATTR __attribute__((target("avx512f")))
 #else
     #define TEST_FUNC_ATTR

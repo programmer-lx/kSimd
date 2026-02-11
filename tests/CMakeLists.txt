@@ -41,6 +41,8 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+    target_compile_features(${FINAL_TARGET_NAME} PRIVATE cxx_std_23) # 测试的时候，使用C++23的部分特性，但是库的最低标准是C++20
+
     get_target_property(OPTIONS ${FINAL_TARGET_NAME} COMPILE_OPTIONS)
     message(STATUS "${FINAL_TARGET_NAME} compile options: ${OPTIONS}")
 
@@ -76,9 +78,11 @@ endforeach()
 # inline test
 add_executable(inline_test inline_test/inline_cpp_1.cc inline_test/inline_cpp_2.cc inline_test/inline_main.cc)
 target_include_directories(inline_test PRIVATE inline_test)
+target_compile_features(inline_test PRIVATE cxx_std_23)
 add_test(NAME inline_test COMMAND COMMAND $<TARGET_FILE:inline_test>)
 
 # static test
 add_executable(static_test static_test/static_cpp_1.cc static_test/static_cpp_2.cc static_test/static_main.cc)
 target_include_directories(static_test PRIVATE static_test)
+target_compile_features(static_test PRIVATE cxx_std_23)
 add_test(NAME static_test COMMAND COMMAND $<TARGET_FILE:static_test>)

@@ -5,9 +5,6 @@ project(
         VERSION 0.0.0.1
 )
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # options
 option(KSIMD_BUILD_EXAMPLES "" OFF)
 option(KSIMD_BUILD_TESTS "" OFF)
@@ -20,6 +17,7 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FP16/include
 )
+target_compile_features(kSimd INTERFACE cxx_std_20)
 
 if(KSIMD_BUILD_EXAMPLES)
     add_subdirectory(examples)
