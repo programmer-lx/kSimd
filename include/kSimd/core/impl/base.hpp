@@ -159,8 +159,8 @@
 // 要在包含 kSimd 的文件之前，使用这种方式定义宏:
 // #undef KSIMD_DISABLE_AVX2_MAX
 // #define KSIMD_DISABLE_AVX2_MAX // 因为文件会被多次包含，所以需要不断的取消定义再重新定义
-// #undef KSIMD_DISPATCH_THIS_FILE
 //
+// #undef KSIMD_DISPATCH_THIS_FILE
 // #define KSIMD_DISPATCH_THIS_FILE "XXX"
 // #include <kSimd/core/dispatch_this_file.hpp>
 // #include <kSimd/core/dispatch_core.hpp>
