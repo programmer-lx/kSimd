@@ -22,10 +22,11 @@ namespace MyNamespace
     {
         bool flag = false;
 
-        KSIMD_DYN_FUNC_ATTR void kernel(
-            const float* KSIMD_RESTRICT src,
-                  float* KSIMD_RESTRICT dst,
-            const size_t                size
+        template<typename T>
+        KSIMD_DYN_FUNC_ATTR void kernel_generic(
+            const T* KSIMD_RESTRICT src,
+                  T* KSIMD_RESTRICT dst,
+            const size_t            size
         ) noexcept
         {
             if (!flag)
@@ -37,22 +38,22 @@ namespace MyNamespace
             }
 
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-            using batch_t = ns::Batch<float>;
+            using batch_t = ns::Batch<T>;
 
-            const batch_t c10 = ns::set(0.123f);
-            const batch_t c9  = ns::set(-0.456f);
-            const batch_t c8  = ns::set(0.789f);
-            const batch_t c7  = ns::set(-0.101f);
-            const batch_t c6  = ns::set(0.234f);
-            const batch_t c5  = ns::set(-0.567f);
-            const batch_t c4  = ns::set(0.890f);
-            const batch_t c3  = ns::set(-1.234f);
-            const batch_t c2  = ns::set(0.555f);
-            const batch_t c1  = ns::set(1.999f);
-            const batch_t c0  = ns::set(-0.777f);
+            const batch_t c10 = ns::set(T{0.123});
+            const batch_t c9  = ns::set(T{-0.456});
+            const batch_t c8  = ns::set(T{0.789});
+            const batch_t c7  = ns::set(T{-0.101});
+            const batch_t c6  = ns::set(T{0.234});
+            const batch_t c5  = ns::set(T{-0.567});
+            const batch_t c4  = ns::set(T{0.890});
+            const batch_t c3  = ns::set(T{-1.234});
+            const batch_t c2  = ns::set(T{0.555});
+            const batch_t c1  = ns::set(T{1.999});
+            const batch_t c0  = ns::set(T{-0.777});
 
-            const batch_t lower = ns::set(5.0f);
-            const batch_t upper = ns::set(10.0f);
+            const batch_t lower = ns::set(T{5.0});
+            const batch_t upper = ns::set(T{10.0});
 
             auto compute_unit = [&](batch_t x) KSIMD_DYN_FUNC_ATTR
             {
@@ -69,13 +70,13 @@ namespace MyNamespace
 
                 res = ns::if_then_else(res < lower, lower, res);
                 res = ns::if_then_else(res > upper, upper, res);
-                res = ns::vmath::lerp(res, x, ns::set(0.5f));
+                res = ns::vmath::lerp(res, x, ns::set(T{0.5}));
 
                 return res;
             };
 
             size_t i = 0;
-            const size_t step = ns::Lanes<float>;
+            constexpr size_t step = ns::Lanes<T>;
 
             // 主循环
             for (; i + step <= size; i += step)
@@ -91,6 +92,26 @@ namespace MyNamespace
                 ns::storeu_partial(dst + i, compute_unit(x), tail);
             }
         }
+
+        KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN
+        void kernel_f32(
+            const float* KSIMD_RESTRICT src,
+                  float* KSIMD_RESTRICT dst,
+            const size_t                size
+        ) noexcept
+        {
+            kernel_generic(src, dst, size);
+        }
+
+        // KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN
+        // void kernel_f64(
+        //     const double* KSIMD_RESTRICT src,
+        //           double* KSIMD_RESTRICT dst,
+        //     const size_t                 size
+        // ) noexcept
+        // {
+        //     kernel_generic(src, dst, size);
+        // }
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace MyNamespace
 
@@ -98,8 +119,7 @@ namespace MyNamespace
 namespace MyNamespace
 {
     // 生成函数指针表
-    KSIMD_DYN_DISPATCH_FUNC(kernel)
-
+    KSIMD_DYN_DISPATCH_FUNC(kernel_f32)
     // 封装外部接口函数
     void kernel(
         const float* KSIMD_RESTRICT src,
@@ -107,8 +127,18 @@ namespace MyNamespace
         const size_t                size
     ) noexcept
     {
-        KSIMD_DYN_CALL(kernel)(src, dst, size);
+        KSIMD_DYN_CALL(kernel_f32)(src, dst, size);
     }
+
+    // KSIMD_DYN_DISPATCH_FUNC(kernel_f64)
+    // void kernel(
+    //     const double* KSIMD_RESTRICT src,
+    //           double* KSIMD_RESTRICT dst,
+    //     const size_t                size
+    // ) noexcept
+    // {
+    //     KSIMD_DYN_CALL(kernel_f64)(src, dst, size);
+    // }
 } // namespace MyNamespace
 
 int main()
