@@ -20,7 +20,7 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(kernel_enable_all)
+KSIMD_DYN_DISPATCH_FUNC(kernel_enable_all);
 void kernel_enable_all()
 {
     volatile size_t table_size = std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_enable_all));
