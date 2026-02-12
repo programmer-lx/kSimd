@@ -64,8 +64,6 @@ namespace KSIMD_DYN_INSTRUCTION
     void set() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        
-        
 
         constexpr size_t Lanes = ns::Lanes<TYPE_T>;
         alignas(ns::Alignment<TYPE_T>) TYPE_T arr[Lanes];
@@ -882,7 +880,6 @@ namespace KSIMD_DYN_INSTRUCTION
     void reduce_max() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        
 
         constexpr size_t Lanes = ns::Lanes<TYPE_T>;
         alignas(ns::Alignment<TYPE_T>) TYPE_T data[Lanes];
@@ -932,7 +929,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
             FILL_ARRAY(data, TYPE_T(0));
             data[0] = inf<TYPE_T>;
-            EXPECT_TRUE(std::isinf(ns::reduce_max<ksimd::FloatMinMaxOption::CheckNaN>(ns::load(data)))
+            EXPECT_TRUE(std::isinf(ns::reduce_max<ksimd::FloatMinMaxOption::Native>(ns::load(data)))
                 && ns::reduce_max<ksimd::FloatMinMaxOption::Native>(ns::load(data)) > 0);
 
 

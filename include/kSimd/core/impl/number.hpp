@@ -68,14 +68,14 @@ namespace ksimd
         consteval F mantissa_mask()
         {
             // 1位符号，8位指数，23位尾数
-            return (~UINT32_C(0)) >> 9;
+            return std::bit_cast<F>((~UINT32_C(0)) >> 9);
         }
 
         template<is_scalar_type_float_64bits F>
         consteval F mantissa_mask()
         {
             // 1位符号位，11位指数，52位尾数
-            return (~UINT64_C(0)) >> 12;
+            return std::bit_cast<F>((~UINT64_C(0)) >> 12);
         }
     } // namespace detail
 
@@ -156,7 +156,11 @@ namespace ksimd
         const uint_t bits = bitcast_to_uint(f);
         constexpr uint_t exp_mask = bitcast_to_uint(ExpMask<F>);
         constexpr uint_t mantissa_mask = bitcast_to_uint(MantissaMask<F>);
-        return ((bits & exp_mask) == exp_mask) && (bits & mantissa_mask);
+
+        const bool exp_all_ones = ((bits & exp_mask) == exp_mask);
+        const bool mantissa_not_zeros = ((bits & mantissa_mask) != 0);
+
+        return exp_all_ones && mantissa_not_zeros;
     }
 
     template<is_scalar_floating_point F>
@@ -174,5 +178,22 @@ namespace ksimd
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool is_inf(const F f) noexcept
     {
         return (f == Inf<F>) || (f == -Inf<F>);
+    }
+
+    template<is_scalar_type_float_32bits F>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr F rsqrt(const F f) noexcept
+    {
+        // Quake III 算法
+        constexpr F three_half = static_cast<F>(1.5f);
+        F x2 = f * static_cast<F>(0.5f);
+        int32_t i = std::bit_cast<int32_t>(f);
+        i = 0x5f3759df - (i >> 1);
+        F y = std::bit_cast<F>(i);
+        y = y * (three_half - (x2 * y * y)); // 第一次迭代，可添加第二次
+
+        // 如果传入的数 == 0，返回 inf，如果传入负数，返回-NaN，与硬件指令匹配
+        const F res = (f == static_cast<F>(0.0f)) ? Inf<F> : (f < static_cast<F>(0.0f)) ? -QNaN<F> : y;
+
+        return { res };
     }
 }

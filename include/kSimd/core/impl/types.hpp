@@ -87,7 +87,7 @@ namespace ksimd
     namespace vec_size
     {
         // 使用最大宽度，模拟SIMD，避免在进行类型宽度提升或下降时与SIMD的逻辑不对称
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t ScalarSim = sizeof(uint64_t);
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t ScalarSim = 8;
 
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128 = 16;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256 = 32;

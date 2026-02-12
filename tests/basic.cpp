@@ -33,7 +33,7 @@ template<typename T>
 void test_scalar_op_constants()
 {
     namespace ns = ksimd::KSIMD_DYN_INSTRUCTION_SCALAR;
-    static_assert(ns::Lanes<T> == 1);
+    static_assert(ns::Lanes<T> == (8 / sizeof(T)));
     static_assert(ns::Alignment<T> == alignof(T));
 }
 
@@ -71,6 +71,22 @@ TEST(std_float_types, basic)
     #endif
 
     SUCCEED();
+}
+
+TEST(scalar_funcs, basic)
+{
+    EXPECT_FALSE(ksimd::is_NaN(inf<float>));
+    EXPECT_FALSE(ksimd::is_NaN(inf<double>));
+
+    EXPECT_FALSE(ksimd::is_finite(inf<float>));
+    EXPECT_FALSE(ksimd::is_finite(inf<double>));
+    EXPECT_TRUE(ksimd::is_finite(123.f));
+    EXPECT_TRUE(ksimd::is_finite(123.0));
+
+    EXPECT_FALSE(ksimd::is_inf(123.0f));
+    EXPECT_FALSE(ksimd::is_inf(123.0));
+    EXPECT_TRUE(ksimd::is_inf(inf<float>));
+    EXPECT_TRUE(ksimd::is_inf(inf<double>));
 }
 
 int main(int argc, char **argv)
