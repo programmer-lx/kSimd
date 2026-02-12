@@ -23,8 +23,6 @@ namespace KSIMD_DYN_INSTRUCTION
 KSIMD_DYN_DISPATCH_FUNC(kernel_enable_all)
 void kernel_enable_all()
 {
-    KSIMD_DYN_CALL(kernel_enable_all)();
-
     volatile size_t table_size = std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_enable_all));
 
     if (table_size != 2)
@@ -36,5 +34,7 @@ void kernel_enable_all()
     {
         throw std::runtime_error("index of AVX2_MAX must be 0");
     }
+
+    KSIMD_DYN_CALL(kernel_enable_all)();
 }
 #endif

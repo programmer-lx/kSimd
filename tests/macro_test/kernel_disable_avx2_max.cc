@@ -2,6 +2,9 @@
 #include <stdexcept>
 #include <string>
 
+// #undef KSIMD_IS_TESTING
+// #define KSIMD_IS_TESTING
+
 // disable avx2_max before include <kSimd/core/impl/base.hpp>
 #undef KSIMD_DISABLE_AVX2_MAX
 #define KSIMD_DISABLE_AVX2_MAX
@@ -28,8 +31,6 @@ namespace KSIMD_DYN_INSTRUCTION
 KSIMD_DYN_DISPATCH_FUNC(kernel_disable_avx2_max)
 void kernel_disable_avx2_max()
 {
-    KSIMD_DYN_CALL(kernel_disable_avx2_max)();
-
     volatile size_t table_size = std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_disable_avx2_max));
     if (table_size != 1)
     {
@@ -40,5 +41,7 @@ void kernel_disable_avx2_max()
     {
         throw std::runtime_error("index of scalar must be 0");
     }
+
+    KSIMD_DYN_CALL(kernel_disable_avx2_max)();
 }
 #endif

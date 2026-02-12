@@ -1,5 +1,10 @@
 #include <string>
 #include <vector>
+#include <iostream>
+
+// 用户定义的宏，可以用于取消某条路径的分发，需要采用这种方式定义
+// #undef KSIMD_DISABLE_AVX2_MAX
+// #define KSIMD_DISABLE_AVX2_MAX
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "simd_batch_dyn_dispatch.cpp"
@@ -15,12 +20,22 @@ namespace MyNamespace
 {
     namespace KSIMD_DYN_INSTRUCTION
     {
+        bool flag = false;
+
         KSIMD_DYN_FUNC_ATTR void kernel(
             const float* KSIMD_RESTRICT src,
                   float* KSIMD_RESTRICT dst,
             const size_t                size
         ) noexcept
         {
+            if (!flag)
+            {
+                // 可查看当前所分发的路径是什么
+                flag = true;
+                std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+                std::cout << "current instruction: " << str << std::endl;
+            }
+
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
             using batch_t = ns::Batch<float>;
 
@@ -93,13 +108,6 @@ namespace MyNamespace
     ) noexcept
     {
         KSIMD_DYN_CALL(kernel)(src, dst, size);
-
-        // for testing
-        #if KSIMD_COMPILER_MSVC
-        static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel)) == 2); // 分发 SCALAR, AVX2_MAX 路径
-        #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
-        static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel)) == 1); // 只分发 AVX2_MAX 路径
-        #endif
     }
 } // namespace MyNamespace
 

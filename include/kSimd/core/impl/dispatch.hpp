@@ -118,7 +118,7 @@ namespace ksimd
 namespace
 {
     // 测试的时候，这个函数可能不会被使用，而是直接遍历函数指针表
-    #if KSIMD_IS_TESTING
+    #if defined(KSIMD_IS_TESTING)
     [[maybe_unused]]
     #endif
     // 必须使用 static 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
@@ -126,7 +126,7 @@ namespace
     {
         static int i = []()
         {
-            const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
+            [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
 
             // 从最高级的指令往下判断
             #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
