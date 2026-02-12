@@ -174,11 +174,11 @@
 // 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3+F16C开关，那么其实就没必要分发标量了
 #if KSIMD_COMPILER_MSVC
     #ifdef __AVX2__
-        #define KSIMD_FORCE_AVX2_MAX 1
+        #define KSIMD_BASELINE_AVX2_MAX 1
     #endif
 #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
     #if defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
-        #define KSIMD_FORCE_AVX2_MAX 1
+        #define KSIMD_BASELINE_AVX2_MAX 1
     #endif
 #endif
 
@@ -195,7 +195,7 @@
     #if defined(KSIMD_IS_TESTING) || !defined(KSIMD_DISABLE_AVX2_MAX)
         #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1
 
-        #if KSIMD_FORCE_AVX2_MAX
+        #if KSIMD_BASELINE_AVX2_MAX
             #undef KSIMD_INSTRUCTION_FEATURE_AVX2_MAX
             #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
