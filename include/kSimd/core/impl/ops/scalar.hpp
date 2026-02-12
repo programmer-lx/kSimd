@@ -132,12 +132,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<is_scalar_type S>
-    KSIMD_API(Batch<S>) div(Batch<S> lhs, Batch<S> rhs) noexcept
-    {
-        return { lhs.v / rhs.v };
-    }
-
-    template<is_scalar_type S>
     KSIMD_API(Batch<S>) mul_add(Batch<S> a, Batch<S> b, Batch<S> c) noexcept
     {
         return { a.v * b.v + c.v };
@@ -344,6 +338,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- floating point ---
+    template<is_scalar_floating_point S>
+    KSIMD_API(Batch<S>) div(Batch<S> lhs, Batch<S> rhs) noexcept
+    {
+        return { lhs.v / rhs.v };
+    }
+
     template<is_scalar_floating_point S>
     KSIMD_API(Batch<S>) sqrt(Batch<S> v) noexcept
     {
