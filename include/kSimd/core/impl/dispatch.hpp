@@ -113,24 +113,31 @@ namespace ksimd
         };
         static_assert(static_cast<int>(SimdInstructionIndex::Num) > 0);
     }
+}
 
-    // 测试时直接返回索引即可，正式版本才使用运行时CPUID判断
-    KSIMD_HEADER_GLOBAL int dyn_func_index() noexcept
+namespace
+{
+    // 测试的时候，这个函数可能不会被使用，而是直接遍历函数指针表
+    #if KSIMD_IS_TESTING
+    [[maybe_unused]]
+    #endif
+    // 必须使用 static 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
+    static int KSIMD_dyn_func_index() noexcept
     {
         static int i = []()
         {
-            const CpuSupportInfo& supports = get_cpu_support_info();
+            const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
 
             // 从最高级的指令往下判断
-        #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
+            #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
             if (supports.AVX2 && supports.FMA3 && supports.F16C)
             {
-                return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
+                return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
             }
-        #endif
+            #endif
 
             // 返回实际的 fallback index 即可，某些平台，标量可能不是 fallback
-            return detail::underlying(detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
+            return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
         }();
 
         return i;
@@ -149,5 +156,6 @@ namespace ksimd
     }
 
 #define KSIMD_DYN_FUNC_POINTER(func_name) \
-    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[ksimd::dyn_func_index()]
+    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[KSIMD_dyn_func_index()]
+
 #define KSIMD_DYN_CALL(func_name) (KSIMD_DYN_FUNC_POINTER(func_name))

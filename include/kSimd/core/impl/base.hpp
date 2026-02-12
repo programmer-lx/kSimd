@@ -88,7 +88,7 @@
 
 
 // min, max macro
-#if (_WIN32 || _WIN64) && (defined(min) || defined(max))
+#if defined(min) || defined(max)
     #error The "min" "max" macro are defined, we can define NOMINMAX before include <windows.h>.
 #endif
 
@@ -155,6 +155,19 @@
 
 
 // ------------------------------------------- instruction features -------------------------------------------
+// 可通过定义 KSIMD_DISABLE_XXX 来取消某些路径的分发
+// 要在包含 kSimd 的文件之前，使用这种方式定义宏:
+// #undef KSIMD_DISABLE_AVX2_MAX
+// #define KSIMD_DISABLE_AVX2_MAX // 因为文件会被多次包含，所以需要不断的取消定义再重新定义
+// #undef KSIMD_DISPATCH_THIS_FILE
+//
+// #define KSIMD_DISPATCH_THIS_FILE "XXX"
+// #include <kSimd/core/dispatch_this_file.hpp>
+// #include <kSimd/core/dispatch_core.hpp>
+
+// 目前支持的宏:
+// - KSIMD_DISABLE_AVX2_MAX: 取消 AVX2_FMA3_F16C 的分发
+
 // 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3+F16C开关，那么其实就没必要分发标量了
 #if KSIMD_COMPILER_MSVC
     #ifdef __AVX2__
@@ -176,7 +189,7 @@
 // --------- x86指令集 ---------
 #if KSIMD_ARCH_X86_ANY
     // AVX2+FMA3+F16C (AVX2_MAX)
-    #if KSIMD_IS_TESTING || KSIMD_ARCH_X86_ANY
+    #if KSIMD_IS_TESTING || !defined(KSIMD_DISABLE_AVX2_MAX)
         #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1
 
         #if KSIMD_FORCE_AVX2_MAX

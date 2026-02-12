@@ -86,3 +86,10 @@ add_executable(static_test static_test/static_cpp_1.cc static_test/static_cpp_2.
 target_include_directories(static_test PRIVATE static_test)
 target_compile_features(static_test PRIVATE cxx_std_23)
 add_test(NAME static_test COMMAND COMMAND $<TARGET_FILE:static_test>)
+
+# macro test
+add_executable(macro_test macro_test/kernel_disable_avx2_max.cc macro_test/kernel_enable_all.cc macro_test/main.cc)
+target_include_directories(macro_test PRIVATE macro_test)
+target_link_libraries(macro_test PRIVATE kSimd)
+target_compile_features(macro_test PRIVATE cxx_std_23)
+add_test(NAME macro_test COMMAND COMMAND $<TARGET_FILE:macro_test>)
