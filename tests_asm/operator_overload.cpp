@@ -7,7 +7,7 @@
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void kernel(
+    void test(
         float* KSIMD_RESTRICT out_ptr,
         const float* KSIMD_RESTRICT in_ptr,
         float scalar_val
@@ -51,13 +51,13 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(kernel);
-void kernel(
+KSIMD_DYN_DISPATCH_FUNC(test);
+void test(
     float* KSIMD_RESTRICT out_ptr,
     const float* KSIMD_RESTRICT in_ptr,
     float scalar_val
 ) noexcept
 {
-    KSIMD_DYN_CALL(kernel)(out_ptr, in_ptr, scalar_val);
+    KSIMD_DYN_CALL(test)(out_ptr, in_ptr, scalar_val);
 }
 #endif

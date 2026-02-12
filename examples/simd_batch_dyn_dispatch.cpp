@@ -20,21 +20,24 @@ namespace MyNamespace
 {
     namespace KSIMD_DYN_INSTRUCTION
     {
-        bool flag = false;
-
-        template<typename T>
-        KSIMD_DYN_FUNC_ATTR void kernel_generic(
+        template<typename T, bool tag>
+        KSIMD_DYN_FUNC_ATTR void kernel_template(
             const T* KSIMD_RESTRICT src,
                   T* KSIMD_RESTRICT dst,
             const size_t            size
         ) noexcept
         {
-            if (!flag)
+            // 可查看当前所分发的路径是什么
+            std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+            std::cout << "current instruction: " << str << std::endl;
+
+            if constexpr (tag)
             {
-                // 可查看当前所分发的路径是什么
-                flag = true;
-                std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
-                std::cout << "current instruction: " << str << std::endl;
+                std::cout << "has tag" << std::endl;
+            }
+            else
+            {
+                std::cout << "no tag" << std::endl;
             }
 
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
@@ -92,15 +95,10 @@ namespace MyNamespace
                 ns::storeu_partial(dst + i, compute_unit(x), tail);
             }
         }
-
-        KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN
-        void kernel_f32(
-            const float* KSIMD_RESTRICT src,
-                  float* KSIMD_RESTRICT dst,
-            const size_t                size
-        ) noexcept
+        
+        KSIMD_DYN_FUNC_ATTR void kernel_without_template() noexcept
         {
-            kernel_generic(src, dst, size);
+            std::cout << "without template." << std::endl;
         }
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace MyNamespace
@@ -109,21 +107,42 @@ namespace MyNamespace
 namespace MyNamespace
 {
     // 生成函数指针表
-    KSIMD_DYN_DISPATCH_FUNC(kernel_f32);
+    template<typename T, bool tag>
+    KSIMD_DYN_DISPATCH_FUNC(kernel_template, <T, tag>);
+
     // 封装外部接口函数
-    void kernel_f32(
+    void kernel(
         const float* KSIMD_RESTRICT src,
               float* KSIMD_RESTRICT dst,
         const size_t                size
     ) noexcept
     {
-        KSIMD_DYN_CALL(kernel_f32)(src, dst, size);
+        // 直接call
+        KSIMD_DYN_CALL(kernel_template, <float, false>)(src, dst, size);
+    }
+
+    void kernel_with_tag(
+        const float* KSIMD_RESTRICT src,
+              float* KSIMD_RESTRICT dst,
+        const size_t                size
+    ) noexcept
+    {
+        // 先获取函数指针，再call
+        auto fn = KSIMD_DYN_FUNC_POINTER(kernel_template, <float, true>);
+        fn(src, dst, size);
+    }
+    
+    // 非模板分发
+    KSIMD_DYN_DISPATCH_FUNC(kernel_without_template);
+    void kernel_without_template() noexcept
+    {
+        KSIMD_DYN_CALL(kernel_without_template)();
     }
 } // namespace MyNamespace
 
 int main()
 {
-    constexpr size_t NUM = 1000003;
+    constexpr size_t NUM = 100;
 
     // 使用对齐分配器
     std::vector<float, ksimd::AlignedAllocator<float>> src(NUM);
@@ -134,15 +153,12 @@ int main()
         src[i] = (float)i / NUM;
     }
 
-    // 预热
-    MyNamespace::kernel_f32(src.data(), dst.data(), NUM);
+    // 模板分发
+    MyNamespace::kernel(src.data(), dst.data(), NUM);
+    MyNamespace::kernel_with_tag(src.data(), dst.data(), NUM);
 
-    // 正式计时
-    ScopeTimer timer("timer");
-    for (int r = 0; r < 100; ++r)
-    {
-        MyNamespace::kernel_f32(src.data(), dst.data(), NUM);
-    }
+    // 非模板分发
+    MyNamespace::kernel_without_template();
 
     return 0;
 }

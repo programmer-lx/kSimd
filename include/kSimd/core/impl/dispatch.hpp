@@ -58,33 +58,34 @@
 #endif
 
 
-// instruction充当命名空间
-#define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction) &instruction::func_name,
+// instruction充当命名空间, __VA_ARGS__ 是模板实参
+#define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction, ...) &instruction::func_name __VA_ARGS__,
 
 #define KSIMD_DETAIL_ONE_EMPTY_FUNC
 
 // ---------------------------------------------- Function table ----------------------------------------------
 // Scalar
 #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
-    #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SCALAR)
+    #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SCALAR, __VA_ARGS__)
 #else
-    #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
+    #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // AVX_FMA3_F16C
 #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
-    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name) \
-        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_MAX)
+    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_MAX, __VA_ARGS__)
 #else
-    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name) KSIMD_DETAIL_ONE_EMPTY_FUNC
+    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // function table
-#define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
+#define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, ...) \
     /* ------------------------------------- avx family ------------------------------------- */ \
-    KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name) \
+    KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name, __VA_ARGS__) \
     /* ------------------------------------- scalar ------------------------------------- */ \
-    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name)
+    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, __VA_ARGS__)
 
 #if !defined(KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY)
     #error "have not defined DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY to cache the simd function pointers"
@@ -147,13 +148,16 @@ namespace
 #define KSIMD_DETAIL_PFN_TABLE_PREFIX KSIMD_PFN_TABLE_
 #define KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) KSIMD_CONCAT(KSIMD_DETAIL_PFN_TABLE_PREFIX, func_name)
 
-#define KSIMD_DYN_DISPATCH_FUNC(func_name) \
+// __VA_ARGS__ 是模板的完整实参，比如 <T1, T2>，不要漏掉尖括号
+#define KSIMD_DYN_DISPATCH_FUNC(func_name, ...) \
     /* 构建静态数组，存储函数指针，不能添加 static, inline 声明，强制整个程序只能有一份函数表 */ \
-    const decltype(&KSIMD_DYN_INSTRUCTION::func_name) KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[] = { \
-        KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
+    const decltype(&KSIMD_DYN_INSTRUCTION::func_name __VA_ARGS__) KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[] = { \
+        KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, __VA_ARGS__) \
     }
 
-#define KSIMD_DYN_FUNC_POINTER(func_name) \
-    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[KSIMD_dyn_func_index()]
+// __VA_ARGS__ 是模板完整实参
+#define KSIMD_DYN_FUNC_POINTER(func_name, ...) \
+    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) __VA_ARGS__ [KSIMD_dyn_func_index()]
 
-#define KSIMD_DYN_CALL(func_name) (KSIMD_DYN_FUNC_POINTER(func_name))
+// __VA_ARGS__ 是模板完整实参
+#define KSIMD_DYN_CALL(func_name, ...) (KSIMD_DYN_FUNC_POINTER(func_name, __VA_ARGS__))
