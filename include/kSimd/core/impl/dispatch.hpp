@@ -144,15 +144,13 @@ namespace
     }
 }
 
-#define KSIMD_DETAIL_PFN_TABLE_NS K_S_I_M_D__PFN_TABLE
-#define KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) KSIMD_DETAIL_PFN_TABLE_NS::func_name
+#define KSIMD_DETAIL_PFN_TABLE_PREFIX KSIMD_PFN_TABLE_
+#define KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) KSIMD_CONCAT(KSIMD_DETAIL_PFN_TABLE_PREFIX, func_name)
 
 #define KSIMD_DYN_DISPATCH_FUNC(func_name) \
-    /* 构建静态数组，存储函数指针 (使用命名空间包裹，限定只能在类外使用)，不能添加 static, inline 声明，强制整个程序只能有一份函数表 */ \
-    namespace KSIMD_DETAIL_PFN_TABLE_NS { \
-        const decltype(&KSIMD_DYN_INSTRUCTION::func_name) func_name[] = { \
-            KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
-        }; \
+    /* 构建静态数组，存储函数指针，不能添加 static, inline 声明，强制整个程序只能有一份函数表 */ \
+    const decltype(&KSIMD_DYN_INSTRUCTION::func_name) KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[] = { \
+        KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name) \
     }
 
 #define KSIMD_DYN_FUNC_POINTER(func_name) \

@@ -102,16 +102,6 @@ namespace MyNamespace
         {
             kernel_generic(src, dst, size);
         }
-
-        // KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN
-        // void kernel_f64(
-        //     const double* KSIMD_RESTRICT src,
-        //           double* KSIMD_RESTRICT dst,
-        //     const size_t                 size
-        // ) noexcept
-        // {
-        //     kernel_generic(src, dst, size);
-        // }
     } // namespace KSIMD_DYN_INSTRUCTION
 } // namespace MyNamespace
 
@@ -119,9 +109,9 @@ namespace MyNamespace
 namespace MyNamespace
 {
     // 生成函数指针表
-    KSIMD_DYN_DISPATCH_FUNC(kernel_f32)
+    KSIMD_DYN_DISPATCH_FUNC(kernel_f32);
     // 封装外部接口函数
-    void kernel(
+    void kernel_f32(
         const float* KSIMD_RESTRICT src,
               float* KSIMD_RESTRICT dst,
         const size_t                size
@@ -129,16 +119,6 @@ namespace MyNamespace
     {
         KSIMD_DYN_CALL(kernel_f32)(src, dst, size);
     }
-
-    // KSIMD_DYN_DISPATCH_FUNC(kernel_f64)
-    // void kernel(
-    //     const double* KSIMD_RESTRICT src,
-    //           double* KSIMD_RESTRICT dst,
-    //     const size_t                size
-    // ) noexcept
-    // {
-    //     KSIMD_DYN_CALL(kernel_f64)(src, dst, size);
-    // }
 } // namespace MyNamespace
 
 int main()
@@ -155,13 +135,13 @@ int main()
     }
 
     // 预热
-    MyNamespace::kernel(src.data(), dst.data(), NUM);
+    MyNamespace::kernel_f32(src.data(), dst.data(), NUM);
 
     // 正式计时
     ScopeTimer timer("timer");
     for (int r = 0; r < 100; ++r)
     {
-        MyNamespace::kernel(src.data(), dst.data(), NUM);
+        MyNamespace::kernel_f32(src.data(), dst.data(), NUM);
     }
 
     return 0;

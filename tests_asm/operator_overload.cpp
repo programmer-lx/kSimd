@@ -51,7 +51,7 @@ namespace KSIMD_DYN_INSTRUCTION
 }
 
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(kernel)
+KSIMD_DYN_DISPATCH_FUNC(kernel);
 void kernel(
     float* KSIMD_RESTRICT out_ptr,
     const float* KSIMD_RESTRICT in_ptr,

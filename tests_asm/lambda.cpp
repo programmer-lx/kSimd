@@ -77,7 +77,7 @@ namespace MyNamespace
 namespace MyNamespace
 {
     // 生成函数指针表
-    KSIMD_DYN_DISPATCH_FUNC(kernel)
+    KSIMD_DYN_DISPATCH_FUNC(kernel);
 
     // 封装外部接口函数
     void kernel(
