@@ -2,8 +2,8 @@
 
 // #include "kSimd/IDE/IDE_hint.hpp"
 
-#include <cmath>
-#include <cstring>
+#include <cmath>   // sqrt
+#include <cstring> // memcpy, memset
 
 #include <utility> // index_sequence
 
@@ -17,6 +17,14 @@
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
 
+#pragma region--- constants ---
+    template<is_scalar_type>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Lanes = 1;
+
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignof(S);
+#pragma endregion
+
 #pragma region--- types ---
     template<is_scalar_type S>
     struct Batch
@@ -29,14 +37,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         same_bits_uint_t<S> m;
     };
-#pragma endregion
-
-#pragma region--- constants ---
-    template<is_scalar_type>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Lanes = 1;
-
-    template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignof(S);
 #pragma endregion
 
 #pragma region--- any type ---

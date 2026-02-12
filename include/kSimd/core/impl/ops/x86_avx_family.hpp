@@ -20,6 +20,15 @@
 
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
+
+#pragma region--- constants ---
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Lanes = vec_size::Vec256 / sizeof(S);
+
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec256;
+#pragma endregion
+
 #pragma region--- types ---
     template<is_scalar_type>
     struct Batch
@@ -46,7 +55,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         __m256d v;
     };
-    
+
 #if KSIMD_SUPPORT_STD_FLOAT64
     template<>
     struct Batch<std::float64_t>
@@ -66,7 +75,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         __m256 m;
     };
-    
+
 #if KSIMD_SUPPORT_STD_FLOAT32
     template<>
     struct Mask<std::float32_t>
@@ -80,7 +89,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         __m256d m;
     };
-    
+
 #if KSIMD_SUPPORT_STD_FLOAT64
     template<>
     struct Mask<std::float64_t>
@@ -88,14 +97,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m256d m;
     };
 #endif
-#pragma endregion
-
-#pragma region--- constants ---
-    template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Lanes = vec_size::Vec256 / sizeof(S);
-
-    template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec256;
 #pragma endregion
 
 #pragma region--- any types ---
