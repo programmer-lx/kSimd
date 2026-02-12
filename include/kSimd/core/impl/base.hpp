@@ -168,6 +168,9 @@
 // 目前支持的宏:
 // - KSIMD_DISABLE_AVX2_MAX: 取消 AVX2_FMA3_F16C 的分发
 
+// KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
+// 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
+
 // 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3+F16C开关，那么其实就没必要分发标量了
 #if KSIMD_COMPILER_MSVC
     #ifdef __AVX2__
