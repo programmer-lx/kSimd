@@ -7,7 +7,7 @@
 // #define KSIMD_DISABLE_AVX2_MAX
 
 #undef KSIMD_DISPATCH_THIS_FILE
-#define KSIMD_DISPATCH_THIS_FILE "simd_batch_dyn_dispatch.cpp"
+#define KSIMD_DISPATCH_THIS_FILE "dyn_dispatch.cpp"
 #include <kSimd/core/dispatch_this_file.hpp>
 
 #include <kSimd/core/aligned_allocate.hpp>
