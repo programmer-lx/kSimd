@@ -37,8 +37,8 @@
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
 #define KSIMD_DYN_INSTRUCTION "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
 
-#define KSIMD_DYN_INSTRUCTION_SCALAR   SCALAR
-#define KSIMD_DYN_INSTRUCTION_AVX2_MAX AVX2_MAX
+#define KSIMD_DYN_INSTRUCTION_SCALAR   KSIMD_SCALAR
+#define KSIMD_DYN_INSTRUCTION_AVX2_MAX KSIMD_AVX2_MAX
 
 // avx2 max fallback
 #if KSIMD_INSTRUCTION_FEATURE_AVX2_MAX == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
