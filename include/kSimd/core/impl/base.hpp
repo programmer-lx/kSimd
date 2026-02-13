@@ -20,25 +20,29 @@
 
 // C++ standard
 #ifndef __cplusplus
-    #error "requires C++."
+    #error requires C++.
 #endif
 
-#ifdef _MSVC_LANG
-    #define KSIMD_CPP_STANDARD _MSVC_LANG
-#else
-    #define KSIMD_CPP_STANDARD __cplusplus
+#include <version>
+
+// bit_cast
+#if __cpp_lib_bit_cast < 201806L
+    #error requires std::bit_cast
 #endif
 
-#if KSIMD_CPP_STANDARD >= 202002L
-    #define KSIMD_FULL_CPP_20 1
+// concept
+#if __cpp_concepts < 201907L
+    #error requires concepts.
 #endif
 
-#if KSIMD_CPP_STANDARD >= 202302L
-    #define KSIMD_FULL_CPP_23 1
+// lambda template
+#if __cpp_generic_lambdas < 201707L
+    #error requires generic lambdas.
 #endif
 
-#if !KSIMD_FULL_CPP_20
-    #error "requires C++20. We should use -std=c++20 in GCC clang, or use /std:c++20 in MSVC."
+// hex float
+#if __cpp_hex_float >= 201603L
+    #define KSIMD_SUPPORT_STD_HEX_FLOAT 1
 #endif
 
 // C++23 std::floatXXX support

@@ -534,9 +534,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         else /* if constexpr (mode == RoundingMode::Round) */
         {
             __m256 sign_bit = _mm256_set1_ps(SignBitMask<S>);
-            __m256 half = _mm256_set1_ps(0x1.0p-1f);
-            return { _mm256_round_ps(_mm256_add_ps(v.v, _mm256_or_ps(half, _mm256_and_ps(v.v, sign_bit))),
-                                     _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
+
+            __m256 half = _mm256_set1_ps(0.5f);
+
+            // 构造一个与v具有相同符号的0.5
+            __m256 half_with_sign_bit = _mm256_or_ps(half, _mm256_and_ps(v.v, sign_bit));
+
+            return { _mm256_round_ps(_mm256_add_ps(v.v, half_with_sign_bit), _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC) };
         }
     }
 
