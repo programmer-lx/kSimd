@@ -187,7 +187,7 @@ namespace ksimd
         constexpr F three_half = static_cast<F>(1.5f);
         F x2 = f * static_cast<F>(0.5f);
         int32_t i = std::bit_cast<int32_t>(f);
-        i = 0x5f3759df - (i >> 1);
+        i = INT32_C(0x5f3759df) - (i >> 1);
         F y = std::bit_cast<F>(i);
         y = y * (three_half - (x2 * y * y)); // 第一次迭代，可添加第二次
 
