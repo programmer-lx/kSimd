@@ -12,7 +12,7 @@ namespace ksimd
 {
     KSIMD_HEADER_GLOBAL void* aligned_allocate(size_t bytes, size_t alignment) noexcept
     {
-    #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
+        #if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
         return _aligned_malloc(bytes, alignment);
         #else
         void* ptr = nullptr;

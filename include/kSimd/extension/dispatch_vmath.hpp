@@ -13,7 +13,7 @@
 
 namespace ksimd::KSIMD_DYN_INSTRUCTION::vmath
 {
-    // --- any type ---
+#pragma region--- any type ---
     /**
      * @tparam option 是否严格检查NaN的传播 \n
      * 一般情况下，保持option是默认的Native即可，如果v的值是NaN，函数会保证NaN传播。\n
@@ -26,14 +26,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION::vmath
         // 所以一般情况下，保持option是Native即可。如果担心min,或max的值是NaN，可以将option设置为CheckNaN保证NaN的传播
         return max<option>(min_val, min<option>(max_val, v));
     }
+#pragma endregion
 
-    // --- floating point ---
+#pragma region--- floating point ---
     template<is_scalar_floating_point S>
     KSIMD_API(Batch<S>) lerp(Batch<S> a, Batch<S> b, Batch<S> t) noexcept
     {
         // a + (b - a) * t
         return mul_add(sub(b, a), t, a);
     }
-}
+#pragma endregion
+} // namespace ksimd::KSIMD_DYN_INSTRUCTION::vmath
 
 #undef KSIMD_API
