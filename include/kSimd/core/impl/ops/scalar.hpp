@@ -57,15 +57,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S>
     KSIMD_API(Batch<S>) loadu(const S* mem) noexcept
     {
-        Batch<S> res{};
-        std::memcpy(res.v, mem, sizeof(S) * Lanes<S>);
-        return res;
+        return load(mem);
     }
 
     template<is_scalar_type S>
     KSIMD_API(void) storeu(S* mem, Batch<S> v) noexcept
     {
-        std::memcpy(mem, v.v, sizeof(S) * Lanes<S>);
+        store(mem, v);
     }
 
     template<is_scalar_type S>
@@ -91,7 +89,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S>
     KSIMD_API(Batch<S>) zero() noexcept
     {
-        Batch<S> res = { static_cast<S>(0) };
+        Batch<S> res;
+        std::memset(res.v, 0x00, sizeof(S) * Lanes<S>);
         return res;
     }
 
@@ -262,25 +261,15 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S>
     KSIMD_API(void) test_store_mask(S* mem, Mask<S> mask) noexcept
     {
-        [&]<size_t... I>(std::index_sequence<I...>)
-        {
-            ((std::memcpy(mem + I, &mask.m[I], sizeof(S))), ...);
-        }(std::make_index_sequence<Lanes<S>>{});
+        std::memcpy(mem, mask.m, sizeof(S) * Lanes<S>);
     }
 
     template<is_scalar_type S>
     KSIMD_API(Mask<S>) test_load_mask(const S* mem) noexcept
     {
-        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<S>
-        {
-            auto load_one = [&](size_t i)
-            {
-                same_bits_uint_t<S> m;
-                std::memcpy(&m, mem + i, sizeof(S));
-                return m;
-            };
-            return { load_one(I)... };
-        }(std::make_index_sequence<Lanes<S>>{});
+        Mask<S> res;
+        std::memcpy(res.m, mem, sizeof(S) * Lanes<S>);
+        return res;
     }
 #endif
 
