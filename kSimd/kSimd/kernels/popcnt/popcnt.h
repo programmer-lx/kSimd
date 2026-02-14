@@ -39,16 +39,10 @@ KSIMD_KERNEL_BEGIN_EXTERN_C
 
 static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
 {
-    uint64_t m1 = UINT64_C(0x5555555555555555);
-    uint64_t m2 = UINT64_C(0x3333333333333333);
-    uint64_t m4 = UINT64_C(0x0f0f0f0f0f0f0f0f);
-    uint64_t h01 = UINT64_C(0x0101010101010101);
-
-    x -= (x >> 1) & m1;
-    x = (x & m2) + ((x >> 2) & m2);
-    x = (x + (x >> 4)) & m4;
-
-    return (size_t)((x * h01) >> 56);
+    x -= (x >> 1) & UINT64_C(0x5555555555555555);
+    x = (x & UINT64_C(0x3333333333333333)) + ((x >> 2) & UINT64_C(0x3333333333333333));
+    x = (x + (x >> 4)) & UINT64_C(0x0f0f0f0f0f0f0f0f);
+    return (size_t)((x * UINT64_C(0x0101010101010101)) >> 56);
 }
 
 static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
@@ -56,7 +50,6 @@ static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
     x -= (x >> 1) & UINT32_C(0x55555555);
     x = (x & UINT32_C(0x33333333)) + ((x >> 2) & UINT32_C(0x33333333));
     x = (x + (x >> 4)) & UINT32_C(0x0f0f0f0f);
-
     return (size_t)((x * UINT32_C(0x01010101)) >> 24);
 }
 
