@@ -14,7 +14,7 @@ option(KSIMD_BUILD_TESTS "" OFF)
 add_library(kSimd INTERFACE)
 target_include_directories(
         kSimd INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/kSimd
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FP16/include
 )
 target_compile_features(kSimd INTERFACE cxx_std_20)
@@ -25,6 +25,7 @@ endif()
 
 
 if(KSIMD_BUILD_TESTS)
+    set(KSIMD_SOURCE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
     enable_testing()
     add_subdirectory(tests)
 endif()

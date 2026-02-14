@@ -29,6 +29,9 @@
 // scalar
 #define KSIMD_DYN_FUNC_ATTR_SCALAR
 
+// sse4.2
+#define KSIMD_DYN_FUNC_ATTR_SSE42 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.2")
+
 // avx2+fma3+f16c
 #define KSIMD_DYN_FUNC_ATTR_AVX2_MAX KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma,f16c")
 
@@ -118,12 +121,8 @@ namespace ksimd
 
 namespace
 {
-    // 测试的时候，这个函数可能不会被使用，而是直接遍历函数指针表
-    #if defined(KSIMD_IS_TESTING)
-    [[maybe_unused]]
-    #endif
     // 必须使用 内部链接 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
-    int KSIMD_dyn_func_index() noexcept
+    [[maybe_unused]] int KSIMD_dyn_func_index() noexcept
     {
         static int i = []()
         {

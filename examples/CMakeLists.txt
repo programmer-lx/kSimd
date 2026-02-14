@@ -30,3 +30,8 @@ else()
 endif()
 target_include_directories(example_dyn_dispatch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 example_target_actions(example_dyn_dispatch)
+
+# crc32c checksum
+add_executable(example_crc32c_checksum crc32c_checksum.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../kSimd/kSimd/kernels/crc32c/crc32c.cpp)
+target_link_libraries(example_crc32c_checksum PRIVATE kSimd)
+example_target_actions(example_crc32c_checksum)
