@@ -9,7 +9,7 @@
 
 namespace
 {
-    bool support_crc32_intrinsic() noexcept
+    bool KSIMD_KERNEL_CALL_CONV support_crc32_intrinsic() noexcept
     {
         uint32_t abcd[4]{};
         ksimd::detail::cpuid(0, 0, abcd);
@@ -47,13 +47,15 @@ namespace
 
     uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_soft(
         uint32_t origin,
-        const uint8_t* data,
+        const void* data,
         size_t size
     ) noexcept
     {
+        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+
         for (size_t i = 0; i < size; i++)
         {
-            uint8_t index = (origin ^ data[i]) & 0xff;
+            uint8_t index = (origin ^ bytes[i]) & 0xff;
             origin = (origin >> 8) ^ crc32c_table[index];
         }
 
@@ -62,11 +64,12 @@ namespace
 
     KSIMD_DYN_FUNC_ATTR_SSE42 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_sse42(
         uint32_t origin,
-        const uint8_t* data,
+        const void* data,
         size_t size
     ) noexcept
     {
         uint32_t crc = origin;
+        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
 
         size_t i = 0;
 
@@ -74,7 +77,7 @@ namespace
         for (; i + 8 <= size; i += 8)
         {
             uint64_t v;
-            std::memcpy(&v, data + i, sizeof(uint64_t)); // 避免未对齐 UB
+            std::memcpy(&v, bytes + i, sizeof(uint64_t)); // 避免未对齐 UB
             crc = static_cast<uint32_t>(_mm_crc32_u64(crc, v));
         }
         #endif
@@ -82,45 +85,37 @@ namespace
         for (; i + 4 <= size; i += 4)
         {
             uint32_t v;
-            std::memcpy(&v, data + i, sizeof(uint32_t));
+            std::memcpy(&v, bytes + i, sizeof(uint32_t));
             crc = _mm_crc32_u32(crc, v);
         }
 
         for (; i < size; ++i)
         {
-            crc = _mm_crc32_u8(crc, data[i]);
+            crc = _mm_crc32_u8(crc, bytes[i]);
         }
 
         return crc;
     }
-
-    auto ks_fn = []()
-    {
-        if (support_crc32_intrinsic())
-        {
-            return ks_update_crc32c_sse42;
-        }
-        else
-        {
-            return ks_update_crc32c_soft;
-        }
-    }();
 }
 
-KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(
-    uint32_t origin,
-    const uint8_t* data,
-    size_t size
-)
+KSIMD_KERNEL_CRC32C_API ks_pfn_update_crc32c_t ks_update_crc32c = []() -> ks_pfn_update_crc32c_t
 {
-    return ks_fn(origin, data, size);
-}
+    if (support_crc32_intrinsic())
+    {
+        return ks_update_crc32c_sse42;
+    }
+
+    // fallback
+    return ks_update_crc32c_soft;
+}();
+
+
 
 // for testing
 #ifdef KSIMD_KERNEL_IS_TESTING
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_soft(
     uint32_t origin,
-    const uint8_t* data,
+    const void* data,
     size_t size
 )
 {
@@ -129,7 +124,7 @@ KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_so
 
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_sse42(
     uint32_t origin,
-    const uint8_t* data,
+    const void* data,
     size_t size
 )
 {

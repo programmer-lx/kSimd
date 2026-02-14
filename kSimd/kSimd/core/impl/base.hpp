@@ -240,6 +240,7 @@ namespace ksimd
     {
         static constexpr unsigned Scalar = 1;
 
+        unsigned POPCNT     : 1 = 0;
         unsigned FXSR       : 1 = 0;
 
         // SSE family
@@ -277,6 +278,7 @@ namespace ksimd
             FMA3        = 12, // EAX 1 ECX 0, ECX 12
             SSE4_1      = 19, // EAX 1 ECX 0, ECX 19
             SSE4_2      = 20, // EAX 1 ECX 0, ECX 20
+            POPCNT      = 23, // EAX 1 ECX 0, ECX 23
             XSAVE       = 26, // EAX 1 ECX 0, ECX 26
             OS_XSAVE    = 27, // EAX 1 ECX 0, ECX 27
             AVX         = 28, // EAX 1 ECX 0, ECX 28
@@ -390,6 +392,8 @@ namespace ksimd
                 cpuid(1, 0, abcd);
                 const uint32_t ecx = abcd[2];
                 const uint32_t edx = abcd[3];
+
+                result.POPCNT = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::POPCNT);
 
                 // ------------------------- FXSR -------------------------
                 result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);

@@ -231,13 +231,13 @@ TEST(crc32c, checksum_test_large_1024)
 
 inline uint32_t ks_crc32c_oneshot_soft(const void* data, size_t size) {
     uint32_t crc = ks_begin_crc32c();
-    crc = ks_test_update_crc32c_soft(crc, (const uint8_t*)data, size);
+    crc = ks_test_update_crc32c_soft(crc, data, size);
     return ks_end_crc32c(crc);
 }
 
 inline uint32_t ks_crc32c_oneshot_sse42(const void* data, size_t size) {
     uint32_t crc = ks_begin_crc32c();
-    crc = ks_test_update_crc32c_sse42(crc, (const uint8_t*)data, size);
+    crc = ks_test_update_crc32c_sse42(crc, data, size);
     return ks_end_crc32c(crc);
 }
 
