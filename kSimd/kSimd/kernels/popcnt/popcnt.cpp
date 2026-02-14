@@ -15,12 +15,22 @@ namespace
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
         size_t i = 0;
+
+        // for each u64
         for (; i + 8 <= byte_size; i += 8)
         {
             cnt += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i));
         }
 
-        // for each rest bytes
+        // for u32 (only one)
+        if (i + 4 <= byte_size)
+        {
+            cnt += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i));
+
+            i += 4;
+        }
+
+        // for each rest u8
         for (; i < byte_size; ++i)
         {
             cnt += ks_popcnt8_soft(data[i]);

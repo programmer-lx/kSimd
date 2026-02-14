@@ -3,8 +3,14 @@
 /*
 #define KSIMD_KERNEL_POPCNT_AS_DLL to use this kernel as DLL.
 
-To calculate 1bit count in a buffer:
+To calculate count of 1bit in a buffer:
 size_t count = ks_popcnt_buffer(&buffer, byte size of buffer);
+
+If just calculate the count of 1bit of only one integer, use software simulation:
+size_t count = ks_popcnt64_soft(uint64_t x)
+size_t count = ks_popcnt32_soft(uint32_t x)
+size_t count = ks_popcnt16_soft(uint16_t x)
+size_t count = ks_popcnt8_soft(uint8_t x)
 */
 
 #ifdef __cplusplus
@@ -45,10 +51,27 @@ static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
     return (size_t)((x * h01) >> 56);
 }
 
+static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
+{
+    x -= (x >> 1) & UINT32_C(0x55555555);
+    x = (x & UINT32_C(0x33333333)) + ((x >> 2) & UINT32_C(0x33333333));
+    x = (x + (x >> 4)) & UINT32_C(0x0f0f0f0f);
+
+    return (size_t)((x * UINT32_C(0x01010101)) >> 24);
+}
+
+static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt16_soft(uint16_t x)
+{
+    x = x - ((x >> 1) & UINT16_C(0x5555));
+    x = (x & UINT16_C(0x3333)) + ((x >> 2) & UINT16_C(0x3333));
+    x = (x + (x >> 4)) & UINT16_C(0x0f0f);
+    return (size_t)((x + (x >> 8)) & UINT16_C(0x001f));
+}
+
 static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt8_soft(uint8_t x) {
-    x = (x & 0x55) + ((x >> 1) & 0x55); // 每 2 位一组：01 01 01 01
-    x = (x & 0x33) + ((x >> 2) & 0x33); // 每 4 位一组：00 11 00 11
-    return (size_t)((x + (x >> 4)) & 0x0F); // 最后合并高 4 位和低 4 位
+    x = (x & UINT8_C(0x55)) + ((x >> 1) & UINT8_C(0x55));
+    x = (x & UINT8_C(0x33)) + ((x >> 2) & UINT8_C(0x33));
+    return (size_t)((x + (x >> 4)) & UINT8_C(0x0f));
 }
 
 typedef size_t (KSIMD_KERNEL_CALL_CONV *ks_pfn_popcnt_buffer_t)(const void* buffer, size_t byte_size);

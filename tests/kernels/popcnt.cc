@@ -7,6 +7,23 @@
 #include "../test.hpp"
 #include "kSimd/kernels/popcnt/popcnt.h"
 
+template<typename T>
+    requires (std::is_integral_v<T> && !std::is_signed_v<T>)
+size_t test_popcnt_ref(T x)
+{
+    size_t cnt = 0;
+    for (int i = 0; i < (int)(sizeof(T) * 8); ++i)
+    {
+        // 使用 T(1) 确保位移宽度与 T 一致
+        // 判断非零即加 1
+        if ((x >> i) & T(1))
+        {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
 TEST(popcnt, intrinsic_support)
 {
     const ksimd::CpuSupportInfo info = ksimd::get_cpu_support_info();
@@ -20,14 +37,50 @@ TEST(popcnt, popcnt8_soft)
     {
         uint8_t val = static_cast<uint8_t>(i);
 
-        #if defined(_MSC_VER)
-        int expected = __popcnt16(val); // MSVC 最小是 16 位版本
-        #else
-        int expected = __builtin_popcount(val);
-        #endif
+        size_t expected = test_popcnt_ref(val);
 
-        EXPECT_EQ(ks_popcnt8_soft(val), static_cast<size_t>(expected))
+        EXPECT_EQ(ks_popcnt8_soft(val), expected)
             << "Failed at value: " << i;
+    }
+}
+
+TEST(popcnt, popcnt16_soft)
+{
+    // u16 只有 65536 种情况，可以直接全量穷举
+    for (int i = 0; i <= 0xFFFF; ++i)
+    {
+        uint16_t val = static_cast<uint16_t>(i);
+        size_t expected = test_popcnt_ref(val);
+
+        EXPECT_EQ(ks_popcnt16_soft(val), expected)
+            << "Failed at value: 0x" << std::hex << i;
+    }
+}
+
+TEST(popcnt, popcnt32_soft)
+{
+    // 1. 基础边界测试
+    EXPECT_EQ(ks_popcnt32_soft(0u), 0u);
+    EXPECT_EQ(ks_popcnt32_soft(0xFFFFFFFFu), 32u);
+    EXPECT_EQ(ks_popcnt32_soft(1u), 1u);
+    EXPECT_EQ(ks_popcnt32_soft(1u << 31), 1u);
+
+    // 2. 特殊位模式测试
+    EXPECT_EQ(ks_popcnt32_soft(0x55555555u), 16u); // 0101...
+    EXPECT_EQ(ks_popcnt32_soft(0x33333333u), 16u); // 0011...
+    EXPECT_EQ(ks_popcnt32_soft(0x0F0F0F0Fu), 16u); // 00001111...
+
+    // 3. 随机采样对比测试 (测试 100,000 个随机数)
+    std::mt19937 gen(42); // 固定种子保证测试可复现
+    std::uniform_int_distribution<uint32_t> dis(0, 0xFFFFFFFFu);
+
+    for (int i = 0; i < 100000; ++i)
+    {
+        uint32_t val = dis(gen);
+        size_t expected = test_popcnt_ref(val);
+
+        ASSERT_EQ(ks_popcnt32_soft(val), expected)
+            << "Failed at random value: 0x" << std::hex << val;
     }
 }
 
@@ -54,11 +107,7 @@ TEST(popcnt, popcnt64_soft)
 
     for (uint64_t val : test_cases)
     {
-        #if defined(_MSC_VER)
-        int expected = (int)__popcnt64(val);
-        #else
-        int expected = __builtin_popcountll(val);
-        #endif
+        size_t expected = test_popcnt_ref(val);
         EXPECT_EQ(ks_popcnt64_soft(val), static_cast<size_t>(expected))
             << "Failed at value: 0x" << std::hex << val;
     }
@@ -68,11 +117,7 @@ static size_t reference_popcnt(const void* buffer, size_t size) {
     const uint8_t* p = static_cast<const uint8_t*>(buffer);
     size_t count = 0;
     for (size_t i = 0; i < size; ++i) {
-        #if defined(_MSC_VER)
-        count += __popcnt16(p[i]); // MSVC 处理单字节
-        #else
-        count += __builtin_popcount(p[i]); // GCC/Clang 处理单字节
-        #endif
+        count += test_popcnt_ref(p[i]);
     }
     return count;
 }
