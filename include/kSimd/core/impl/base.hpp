@@ -267,31 +267,31 @@ namespace ksimd
     namespace detail
     {
         // clang-format off
-        enum class CpuFeatureIndex_EAX1 : uint32_t
+        enum class CpuFeatureIndex_EAX1_ECX0 : uint32_t
         {
             // see https://en.wikipedia.org/wiki/CPUID
 
-            // ECX 寄存器的 feature
-            SSE3        = 0 , // EAX 1, ECX  0
-            SSSE3       = 9 , // EAX 1, ECX  9
-            FMA3        = 12, // EAX 1, ECX 12
-            SSE4_1      = 19, // EAX 1, ECX 19
-            SSE4_2      = 20, // EAX 1, ECX 20
-            XSAVE       = 26, // EAX 1, ECX 26
-            OS_XSAVE    = 27, // EAX 1, ECX 27
-            AVX         = 28, // EAX 1, ECX 28
-            F16C        = 29, // EAX 1, ECX 29
+            // ECX
+            SSE3        = 0 , // EAX 1 ECX 0, ECX  0
+            SSSE3       = 9 , // EAX 1 ECX 0, ECX  9
+            FMA3        = 12, // EAX 1 ECX 0, ECX 12
+            SSE4_1      = 19, // EAX 1 ECX 0, ECX 19
+            SSE4_2      = 20, // EAX 1 ECX 0, ECX 20
+            XSAVE       = 26, // EAX 1 ECX 0, ECX 26
+            OS_XSAVE    = 27, // EAX 1 ECX 0, ECX 27
+            AVX         = 28, // EAX 1 ECX 0, ECX 28
+            F16C        = 29, // EAX 1 ECX 0, ECX 29
 
-            // EDX 寄存器的 feature
-            FXSR        = 24, // EAX 1, EDX 24
-            SSE         = 25, // EAX 1, EDX 25
-            SSE2        = 26, // EAX 1, EDX 26
+            // EDX
+            FXSR        = 24, // EAX 1 ECX 0, EDX 24
+            SSE         = 25, // EAX 1 ECX 0, EDX 25
+            SSE2        = 26, // EAX 1 ECX 0, EDX 26
         };
 
-        enum class CpuFeatureIndex_EAX7 : uint32_t
+        enum class CpuFeatureIndex_EAX7_ECX0 : uint32_t
         {
-            AVX2        = 5 , // EAX 7, EBX  5
-            AVX_512_F   = 16, // EAX 7, EBX 16
+            AVX2        = 5 , // EAX 7 ECX 0, EBX  5
+            AVX_512_F   = 16, // EAX 7 ECX 0, EBX 16
         };
 
         enum class CpuXSaveStateIndex : uint64_t
@@ -393,23 +393,23 @@ namespace ksimd
             const uint32_t edx = abcd[3];
 
             // ------------------------- FXSR -------------------------
-            result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1::FXSR);
+            result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
             if (!result.FXSR)
             {
                 return result;
             }
 
             // ------------------------- SSE family -------------------------
-            result.SSE = bit_is_open(edx, CpuFeatureIndex_EAX1::SSE);
-            result.SSE2 = result.SSE && bit_is_open(edx, CpuFeatureIndex_EAX1::SSE2);
-            result.SSE3 = result.SSE2 && bit_is_open(ecx, CpuFeatureIndex_EAX1::SSE3);
-            result.SSSE3 = result.SSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1::SSSE3);
-            result.SSE4_1 = result.SSSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1::SSE4_1);
-            result.SSE4_2 = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1::SSE4_2);
+            result.SSE = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
+            result.SSE2 = result.SSE && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
+            result.SSE3 = result.SSE2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
+            result.SSSE3 = result.SSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
+            result.SSE4_1 = result.SSSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
+            result.SSE4_2 = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
 
 
-            result.XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1::XSAVE);
-            result.OS_XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1::OS_XSAVE);
+            result.XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
+            result.OS_XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
             // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
             if (!result.XSAVE || !result.OS_XSAVE)
             {
@@ -422,9 +422,9 @@ namespace ksimd
             const bool os_support_avx =
                     bit_is_open(xcr0, CpuXSaveStateIndex::SSE) && bit_is_open(xcr0, CpuXSaveStateIndex::AVX);
 
-            result.AVX = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1::AVX) && os_support_avx;
-            result.F16C = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1::F16C);
-            result.FMA3 = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1::FMA3);
+            result.AVX = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
+            result.F16C = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
+            result.FMA3 = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
 
             // ------------------ EAX 7 ------------------
             if (max_leaf < 7) // 因为要读取EAX 7，所以 max leaf 必须 >= 7
@@ -436,7 +436,7 @@ namespace ksimd
             cpuid(7, 0, abcd);
             const uint32_t ebx = abcd[1];
 
-            result.AVX2 = result.AVX && bit_is_open(ebx, CpuFeatureIndex_EAX7::AVX2);
+            result.AVX2 = result.AVX && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
 
 
             // ------------------------- AVX-512 family -------------------------
@@ -444,7 +444,7 @@ namespace ksimd
                                             bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_LOW_256) &&
                                             bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_HIGH_256);
 
-            result.AVX512_F = result.AVX2 && bit_is_open(ebx, CpuFeatureIndex_EAX7::AVX_512_F) && os_support_avx_512;
+            result.AVX512_F = result.AVX2 && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX_512_F) && os_support_avx_512;
             #else
             // arm NEON
             #endif
