@@ -79,17 +79,14 @@
 #endif
 
 
-// call conv
-#if defined(_MSC_VER) && !defined(_M_ARM) && !defined(_M_ARM64) && !defined(_M_HYBRID_X86_ARM64) && !defined(_M_ARM64EC) && (!_MANAGED) && (!_M_CEE) && (!defined(_M_IX86_FP) || (_M_IX86_FP > 1)) && !defined(KSIMD_VECTORCALL_ENABLED)
-    #define KSIMD_VECTORCALL_ENABLED 1
-#endif
+// simd inline op 的调用约定
+#if defined(_MSC_VER) && !defined(_M_ARM) && !defined(_M_ARM64) && !defined(_M_HYBRID_X86_ARM64) && \
+    !defined(_M_ARM64EC) && (!_MANAGED) && (!_M_CEE) && (!defined(_M_IX86_FP) || (_M_IX86_FP > 1))
 
-#if KSIMD_VECTORCALL_ENABLED
     #define KSIMD_CALL_CONV __vectorcall
 #else
     #define KSIMD_CALL_CONV
 #endif
-
 
 // min, max macro
 #if defined(min) || defined(max)
@@ -109,6 +106,10 @@
 
 #if KSIMD_COMPILER_MSVC
 
+    #define KSIMD_DLL_LOCAL
+    #define KSIMD_DLL_IMPORT __declspec(dllexport)
+    #define KSIMD_DLL_EXPORT __declspec(dllimport)
+
     #define KSIMD_RESTRICT __restrict
     #define KSIMD_NOINLINE __declspec(noinline)
     #define KSIMD_FORCE_INLINE __forceinline
@@ -123,6 +124,10 @@
     #define KSIMD_FUNC_ATTR_INTRINSIC_TARGETS(...)
 
 #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG // GCC clang
+
+    #define KSIMD_DLL_LOCAL  __attribute__((visibility("hidden")))
+    #define KSIMD_DLL_IMPORT __attribute__((visibility("default")))
+    #define KSIMD_DLL_EXPORT __attribute__((visibility("default")))
 
     #define KSIMD_RESTRICT __restrict__
     #define KSIMD_NOINLINE __attribute__((noinline))
