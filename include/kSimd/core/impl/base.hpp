@@ -379,72 +379,65 @@ namespace ksimd
 
             cpuid(0, 0, abcd);
             const uint32_t max_leaf = abcd[0];
+            bool os_support_avx = false;
+            uint64_t xcr0 = 0;
 
 
-            // ------------------ EAX 1 ------------------
-            if (max_leaf < 1) // 因为要读取EAX 1，所以 max leaf 必须 >= 1
+            // ------------------ EAX 1 ECX 0 ------------------
+            if (max_leaf >= 1)
             {
-                return result;
+                // 查询 EAX 1, ECX 0
+                cpuid(1, 0, abcd);
+                const uint32_t ecx = abcd[2];
+                const uint32_t edx = abcd[3];
+
+                // ------------------------- FXSR -------------------------
+                result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
+
+                // ------------------------- SSE family -------------------------
+                result.SSE = result.FXSR && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
+                result.SSE2 = result.SSE && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
+                result.SSE3 = result.SSE2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
+                result.SSSE3 = result.SSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
+                result.SSE4_1 = result.SSSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
+                result.SSE4_2 = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
+
+                // xsave os_xsave
+                result.XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
+                result.OS_XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
+
+                // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
+                if (result.XSAVE && result.OS_XSAVE)
+                {
+                    xcr0 = xgetbv(0);
+
+                    // ------------------------- AVX -------------------------
+                    os_support_avx =
+                            bit_is_open(xcr0, CpuXSaveStateIndex::SSE) && bit_is_open(xcr0, CpuXSaveStateIndex::AVX);
+
+                    result.AVX = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
+                    result.F16C = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
+                    result.FMA3 = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
+                }
             }
 
-            // 查询 EAX 1, ECX 0
-            cpuid(1, 0, abcd);
-            const uint32_t ecx = abcd[2];
-            const uint32_t edx = abcd[3];
-
-            // ------------------------- FXSR -------------------------
-            result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
-            if (!result.FXSR)
+            // ------------------ EAX 7 ECX 0 ------------------
+            if (max_leaf >= 7)
             {
-                return result;
+                // EAX 7, ECX 0
+                cpuid(7, 0, abcd);
+                const uint32_t ebx = abcd[1];
+
+                result.AVX2 = result.AVX && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
+
+
+                // ------------------------- AVX-512 family -------------------------
+                const bool os_support_avx_512 = os_support_avx && bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_K0_K7) &&
+                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_LOW_256) &&
+                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_HIGH_256);
+
+                result.AVX512_F = result.AVX2 && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX_512_F) && os_support_avx_512;
             }
-
-            // ------------------------- SSE family -------------------------
-            result.SSE = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
-            result.SSE2 = result.SSE && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
-            result.SSE3 = result.SSE2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
-            result.SSSE3 = result.SSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
-            result.SSE4_1 = result.SSSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
-            result.SSE4_2 = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
-
-
-            result.XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
-            result.OS_XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
-            // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
-            if (!result.XSAVE || !result.OS_XSAVE)
-            {
-                return result;
-            }
-
-            const uint64_t xcr0 = xgetbv(0);
-
-            // ------------------------- AVX family -------------------------
-            const bool os_support_avx =
-                    bit_is_open(xcr0, CpuXSaveStateIndex::SSE) && bit_is_open(xcr0, CpuXSaveStateIndex::AVX);
-
-            result.AVX = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
-            result.F16C = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
-            result.FMA3 = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
-
-            // ------------------ EAX 7 ------------------
-            if (max_leaf < 7) // 因为要读取EAX 7，所以 max leaf 必须 >= 7
-            {
-                return result;
-            }
-
-            // EAX 7, ECX 0
-            cpuid(7, 0, abcd);
-            const uint32_t ebx = abcd[1];
-
-            result.AVX2 = result.AVX && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
-
-
-            // ------------------------- AVX-512 family -------------------------
-            const bool os_support_avx_512 = os_support_avx && bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_K0_K7) &&
-                                            bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_LOW_256) &&
-                                            bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_HIGH_256);
-
-            result.AVX512_F = result.AVX2 && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX_512_F) && os_support_avx_512;
             #else
             // arm NEON
             #endif
