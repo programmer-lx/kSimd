@@ -17,7 +17,7 @@ kernel function must be pure C function.
 #endif
 
 #if !KSIMD_KERNEL_COMPILER_MSVC && !KSIMD_KERNEL_COMPILER_GCC && !KSIMD_KERNEL_COMPILER_CLANG
-    #error Unknown compiler, only support msvc, g++, clang++.
+    #error Unknown compiler, only support msvc, gcc, clang.
 #endif
 
 

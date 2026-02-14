@@ -34,7 +34,7 @@ def generate_asm_for_file(src_path: Path):
         "-fno-asynchronous-unwind-tables",
         "-S", str(src_path),
         "-o", str(asm_path),
-        f'-I{project_root / "include"}',
+        f'-I{project_root / "kSimd"}',
         f'-I{project_root / "tests_asm"}'
     ]
 
