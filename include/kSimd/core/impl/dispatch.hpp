@@ -122,8 +122,8 @@ namespace
     #if defined(KSIMD_IS_TESTING)
     [[maybe_unused]]
     #endif
-    // 必须使用 static 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
-    static int KSIMD_dyn_func_index() noexcept
+    // 必须使用 内部链接 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
+    int KSIMD_dyn_func_index() noexcept
     {
         static int i = []()
         {
