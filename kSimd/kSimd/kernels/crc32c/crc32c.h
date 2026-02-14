@@ -1,5 +1,17 @@
 #pragma once
 
+/*
+#define KSIMD_KERNEL_CRC32C_AS_DLL to use this kernel as DLL.
+
+To compute CRC32C of a buffer:
+1. uint32_t crc = ks_begin_crc32c();                       --- get the initial checksum value.
+2. for (chunk in buffer)                                   --- or you can update crc32c only once.
+   {
+       crc = ks_update_crc32c(crc, &chunk, size of chunk); --- update crc32c checksum.
+   }
+3. crc = ks_end_crc32c(crc);                               --- get the final value.
+ */
+
 #ifdef __cplusplus
     #include <cstdint>
     #include <cstddef>
