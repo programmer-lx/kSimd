@@ -11,17 +11,8 @@ namespace
 {
     bool KSIMD_KERNEL_CALL_CONV support_crc32_intrinsic() noexcept
     {
-        uint32_t abcd[4]{};
-        ksimd::detail::cpuid(0, 0, abcd);
-        const uint32_t max_leaf = abcd[0];
-        if (max_leaf >= 1)
-        {
-            ksimd::detail::cpuid(1, 0, abcd);
-            // SSE4.2: EAX 1, ECX 20
-            const uint32_t ecx = abcd[2];
-            return (ecx & (1 << 20)) != 0;
-        }
-        return false;
+        const auto& info = ksimd::get_cpu_support_info();
+        return static_cast<bool>(info.SSE4_2);
     }
     
     consteval std::array<uint32_t, 256> make_crc32c_table()
