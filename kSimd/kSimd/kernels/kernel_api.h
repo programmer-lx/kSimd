@@ -57,4 +57,4 @@ kernel function must be pure C function.
 
 
 /* macro for unit test */
-/* #define KSIMD_KERNEL_IS_TESTING */
+/* #ifdef KSIMD_IS_TESTING */
