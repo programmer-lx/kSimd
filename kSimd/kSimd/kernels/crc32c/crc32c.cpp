@@ -96,23 +96,28 @@ namespace
 
         return crc;
     }
+
+    auto ks_update_crc32c_fn = []()
+    {
+        if (support_crc32_intrinsic())
+        {
+            return ks_update_crc32c_sse42;
+        }
+
+        // fallback
+        return ks_update_crc32c_soft;
+    }();
 }
 
-KSIMD_KERNEL_CRC32C_API ks_pfn_update_crc32c_t ks_update_crc32c = []() -> ks_pfn_update_crc32c_t
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(uint32_t origin, const void* data, size_t size)
 {
-    if (support_crc32_intrinsic())
-    {
-        return ks_update_crc32c_sse42;
-    }
-
-    // fallback
-    return ks_update_crc32c_soft;
-}();
+    return ks_update_crc32c_fn(origin, data, size);
+}
 
 
 
 // for testing
-#ifdef KSIMD_KERNEL_IS_TESTING
+#ifdef KSIMD_IS_TESTING
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_soft(
     uint32_t origin,
     const void* data,

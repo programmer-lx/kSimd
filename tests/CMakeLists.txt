@@ -97,13 +97,13 @@ add_test(NAME macro_test COMMAND $<TARGET_FILE:macro_test>)
 # crc32c kernel
 add_executable(crc32c_kernel kernels/crc32c.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/crc32c/crc32c.cpp)
 target_link_libraries(crc32c_kernel PRIVATE kSimd gtest)
-target_compile_definitions(crc32c_kernel PRIVATE KSIMD_KERNEL_IS_TESTING)
+target_compile_definitions(crc32c_kernel PRIVATE KSIMD_IS_TESTING)
 target_compile_features(crc32c_kernel PRIVATE cxx_std_23)
 add_test(NAME crc32c_kernel COMMAND $<TARGET_FILE:crc32c_kernel>)
 
 # popcnt kernel
 add_executable(popcnt_kernel kernels/popcnt.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/popcnt/popcnt.cpp)
 target_link_libraries(popcnt_kernel PRIVATE kSimd gtest)
-target_compile_definitions(popcnt_kernel PRIVATE KSIMD_KERNEL_IS_TESTING KSIMD_IS_TESTING)
+target_compile_definitions(popcnt_kernel PRIVATE KSIMD_IS_TESTING)
 target_compile_features(popcnt_kernel PRIVATE cxx_std_23)
 add_test(NAME popcnt_kernel COMMAND $<TARGET_FILE:popcnt_kernel>)

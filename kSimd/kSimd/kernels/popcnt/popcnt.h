@@ -67,13 +67,11 @@ static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt8_soft(uint8_t x) {
     return (size_t)((x + (x >> 4)) & UINT8_C(0x0f));
 }
 
-typedef size_t (KSIMD_KERNEL_CALL_CONV *ks_pfn_popcnt_buffer_t)(const void* buffer, size_t byte_size);
-
-extern KSIMD_KERNEL_POPCNT_API ks_pfn_popcnt_buffer_t ks_popcnt_buffer;
+KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, size_t byte_size);
 
 
 /* for testing */
-#ifdef KSIMD_KERNEL_IS_TESTING
+#ifdef KSIMD_IS_TESTING
 
 KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, size_t byte_size);
 KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size);

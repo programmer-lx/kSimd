@@ -37,7 +37,7 @@ void kernel_disable_avx2_max()
         throw std::runtime_error("we should disable AVX2_MAX");
     }
 
-    if (KSIMD_dyn_func_index() != 0)
+    if (ksimd::detail::dyn_func_index() != 0)
     {
         throw std::runtime_error("index of scalar must be 0");
     }

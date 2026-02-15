@@ -35,6 +35,9 @@
 // sse4.2
 #define KSIMD_DYN_FUNC_ATTR_SSE42 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.2")
 
+// avx2
+#define KSIMD_DYN_FUNC_ATTR_AVX2 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2")
+
 // avx2+fma3+f16c
 #define KSIMD_DYN_FUNC_ATTR_AVX2_MAX KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma,f16c")
 
@@ -119,31 +122,28 @@ namespace ksimd
             Num
         };
         static_assert(static_cast<int>(SimdInstructionIndex::Num) > 0);
-    }
-}
 
-namespace
-{
-    // 必须使用 内部链接 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
-    [[maybe_unused]] int KSIMD_dyn_func_index() noexcept
-    {
-        static int i = []()
+        // 必须使用 内部链接 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
+        [[maybe_unused]] static int dyn_func_index() noexcept
         {
-            [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
-
-            // 从最高级的指令往下判断
-            #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
-            if (supports.AVX2 && supports.FMA3 && supports.F16C)
+            static int i = []()
             {
-                return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
-            }
-            #endif
+                [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
 
-            // 返回实际的 fallback index 即可，某些平台，标量可能不是 fallback
-            return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
-        }();
+                // 从最高级的指令往下判断
+                #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
+                if (supports.AVX2 && supports.FMA3 && supports.F16C)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
+                }
+                #endif
 
-        return i;
+                // 返回实际的 fallback index 即可，某些平台，标量可能不是 fallback
+                return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
+            }();
+
+            return i;
+        }
     }
 }
 
@@ -159,7 +159,7 @@ namespace
 
 // __VA_ARGS__ 是模板完整实参
 #define KSIMD_DYN_FUNC_POINTER(func_name, ...) \
-    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) __VA_ARGS__ [KSIMD_dyn_func_index()]
+    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) __VA_ARGS__ [ksimd::detail::dyn_func_index()]
 
 // __VA_ARGS__ 是模板完整实参
 #define KSIMD_DYN_CALL(func_name, ...) (KSIMD_DYN_FUNC_POINTER(func_name, __VA_ARGS__))

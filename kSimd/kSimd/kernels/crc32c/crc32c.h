@@ -36,16 +36,16 @@ To compute CRC32C of a buffer:
 
 KSIMD_KERNEL_BEGIN_EXTERN_C
 
-typedef uint32_t (KSIMD_KERNEL_CALL_CONV *ks_pfn_update_crc32c_t)(uint32_t origin, const void* data, size_t size);
-
 #define ks_begin_crc32c() (UINT32_C(0xffffffff))
-extern KSIMD_KERNEL_CRC32C_API ks_pfn_update_crc32c_t ks_update_crc32c;
+
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(uint32_t origin, const void* data, size_t size);
+
 #define ks_end_crc32c(crc) ((crc) ^ UINT32_C(0xffffffff))
 
 
 
 /* for testing */
-#ifdef KSIMD_KERNEL_IS_TESTING
+#ifdef KSIMD_IS_TESTING
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_soft(
     uint32_t origin,
     const void* data,

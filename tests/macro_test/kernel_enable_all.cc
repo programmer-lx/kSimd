@@ -30,7 +30,7 @@ void kernel_enable_all()
         throw std::runtime_error("we should enable all intrinsics");
     }
 
-    if (KSIMD_dyn_func_index() != 0)
+    if (ksimd::detail::dyn_func_index() != 0)
     {
         throw std::runtime_error("index of AVX2_MAX must be 0");
     }
