@@ -8,7 +8,7 @@
 
 namespace
 {
-    ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, ks_bytesize_t byte_size) noexcept
+    ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, size_t size) noexcept
     {
         ks_pop_bitcount_t cnt  = 0;
         ks_pop_bitcount_t cnt1 = 0;
@@ -19,7 +19,6 @@ namespace
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
         size_t i = 0;
-        const size_t size = static_cast<size_t>(byte_size);
 
         #if KSIMD_ARCH_X86_64
         // for each u64 x 4
@@ -65,7 +64,7 @@ namespace
     }
 
     KSIMD_DYN_FUNC_ATTR_POPCNT ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV
-    ks_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size) noexcept
+    ks_popcnt_buffer_x86_popcnt(const void* buffer, size_t size) noexcept
     {
         ks_pop_bitcount_t cnt  = 0;
         ks_pop_bitcount_t cnt1 = 0;
@@ -76,7 +75,6 @@ namespace
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
         size_t i = 0;
-        const size_t size = static_cast<size_t>(byte_size);
 
         #if KSIMD_ARCH_X86_64
         // for each u64 x 4
@@ -166,7 +164,7 @@ namespace
 
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, ks_bytesize_t byte_size)
 {
-    return ks_popcnt_fn()(buffer, byte_size);
+    return ks_popcnt_fn()(buffer, static_cast<size_t>(byte_size));
 }
 
 
@@ -175,12 +173,12 @@ KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffe
 
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, ks_bytesize_t byte_size)
 {
-    return ks_popcnt_buffer_soft(buffer, byte_size);
+    return ks_popcnt_buffer_soft(buffer, static_cast<size_t>(byte_size));
 }
 
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size)
 {
-    return ks_popcnt_buffer_x86_popcnt(buffer, byte_size);
+    return ks_popcnt_buffer_x86_popcnt(buffer, static_cast<size_t>(byte_size));
 }
 
 #endif
