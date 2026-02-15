@@ -8,21 +8,22 @@
 
 namespace
 {
-    ks_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, size_t byte_size) noexcept
+    ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, ks_bytesize_t byte_size) noexcept
     {
-        ks_bitcount_t cnt  = 0;
-        ks_bitcount_t cnt1 = 0;
-        ks_bitcount_t cnt2 = 0;
-        ks_bitcount_t cnt3 = 0;
-        ks_bitcount_t cnt4 = 0;
+        ks_pop_bitcount_t cnt  = 0;
+        ks_pop_bitcount_t cnt1 = 0;
+        ks_pop_bitcount_t cnt2 = 0;
+        ks_pop_bitcount_t cnt3 = 0;
+        ks_pop_bitcount_t cnt4 = 0;
 
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
         size_t i = 0;
+        const size_t size = static_cast<size_t>(byte_size);
 
         #if KSIMD_ARCH_X86_64
         // for each u64 x 4
-        for (; i + 32 <= byte_size; i += 32)
+        for (; i + 32 <= size; i += 32)
         {
             cnt1 += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i     ));
             cnt2 += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i +  8));
@@ -31,13 +32,13 @@ namespace
         }
 
         // for each u64
-        for (; i + 8 <= byte_size; i += 8)
+        for (; i + 8 <= size; i += 8)
         {
             cnt += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i));
         }
         #elif KSIMD_ARCH_X86_32
         // for each u32 x 4
-        for (; i + 16 <= byte_size; i += 16)
+        for (; i + 16 <= size; i += 16)
         {
             cnt1 += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i     ));
             cnt2 += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i +  4));
@@ -46,16 +47,16 @@ namespace
         }
 
         // for each u32
-        for (; i + 4 <= byte_size; i += 4)
+        for (; i + 4 <= size; i += 4)
         {
             cnt += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i));
         }
         #else
-        #erorr unknown x86 arch
+        #error unknown x86 arch
         #endif
 
         // for each rest u8
-        for (; i < byte_size; ++i)
+        for (; i < size; ++i)
         {
             cnt += ks_popcnt8_soft(data[i]);
         }
@@ -63,22 +64,23 @@ namespace
         return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
 
-    KSIMD_DYN_FUNC_ATTR_POPCNT ks_bitcount_t KSIMD_KERNEL_CALL_CONV
-    ks_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size) noexcept
+    KSIMD_DYN_FUNC_ATTR_POPCNT ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV
+    ks_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size) noexcept
     {
-        ks_bitcount_t cnt  = 0;
-        ks_bitcount_t cnt1 = 0;
-        ks_bitcount_t cnt2 = 0;
-        ks_bitcount_t cnt3 = 0;
-        ks_bitcount_t cnt4 = 0;
+        ks_pop_bitcount_t cnt  = 0;
+        ks_pop_bitcount_t cnt1 = 0;
+        ks_pop_bitcount_t cnt2 = 0;
+        ks_pop_bitcount_t cnt3 = 0;
+        ks_pop_bitcount_t cnt4 = 0;
 
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
         size_t i = 0;
+        const size_t size = static_cast<size_t>(byte_size);
 
         #if KSIMD_ARCH_X86_64
         // for each u64 x 4
-        for (; i + 32 <= byte_size; i += 32)
+        for (; i + 32 <= size; i += 32)
         {
             uint64_t v1;
             uint64_t v2;
@@ -97,7 +99,7 @@ namespace
         }
 
         // for each u64
-        for (; i + 8 <= byte_size; i += 8)
+        for (; i + 8 <= size; i += 8)
         {
             uint64_t u64;
             std::memcpy(&u64, data + i, 8);
@@ -105,7 +107,7 @@ namespace
         }
         #elif KSIMD_ARCH_X86_32
         // for each u32 x 4
-        for (; i + 16 <= byte_size; i += 16)
+        for (; i + 16 <= size; i += 16)
         {
             uint32_t v1;
             uint32_t v2;
@@ -124,7 +126,7 @@ namespace
         }
 
         // for each u32
-        for (; i + 4 <= byte_size; i += 4)
+        for (; i + 4 <= size; i += 4)
         {
             uint32_t u64;
             std::memcpy(&u64, data + i, 4);
@@ -135,7 +137,7 @@ namespace
         #endif
 
         // for each rest u8
-        for (; i < byte_size; ++i)
+        for (; i < size; ++i)
         {
             cnt += ks_popcnt8_soft(data[i]);
         }
@@ -143,35 +145,40 @@ namespace
         return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
 
-    auto ks_popcnt_fn = []()
+    auto ks_popcnt_fn()
     {
-        const ksimd::CpuSupportInfo& support = ksimd::get_cpu_support_info();
-
-        if (support.POPCNT)
+        static auto fn = []()
         {
-            return ks_popcnt_buffer_x86_popcnt;
-        }
+            const ksimd::CpuSupportInfo& support = ksimd::get_cpu_support_info();
 
-        // fallback to soft
-        return ks_popcnt_buffer_soft;
-    }();
+            if (support.POPCNT)
+            {
+                return ks_popcnt_buffer_x86_popcnt;
+            }
+
+            // fallback to soft
+            return ks_popcnt_buffer_soft;
+        }();
+
+        return fn;
+    }
 }
 
-KSIMD_KERNEL_POPCNT_API ks_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, size_t byte_size)
+KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, ks_bytesize_t byte_size)
 {
-    return ks_popcnt_fn(buffer, byte_size);
+    return ks_popcnt_fn()(buffer, byte_size);
 }
 
 
 /* for testing */
 #ifdef KSIMD_IS_TESTING
 
-KSIMD_KERNEL_POPCNT_API ks_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, size_t byte_size)
+KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, ks_bytesize_t byte_size)
 {
     return ks_popcnt_buffer_soft(buffer, byte_size);
 }
 
-KSIMD_KERNEL_POPCNT_API ks_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size)
+KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size)
 {
     return ks_popcnt_buffer_x86_popcnt(buffer, byte_size);
 }

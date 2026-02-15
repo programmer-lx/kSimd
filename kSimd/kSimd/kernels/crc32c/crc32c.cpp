@@ -39,10 +39,11 @@ namespace
     uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_soft(
         uint32_t origin,
         const void* data,
-        size_t size
+        ks_bytesize_t byte_size
     ) noexcept
     {
         const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+        const size_t size = static_cast<size_t>(byte_size);
 
         for (size_t i = 0; i < size; i++)
         {
@@ -56,11 +57,12 @@ namespace
     KSIMD_DYN_FUNC_ATTR_SSE42 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_sse42(
         uint32_t origin,
         const void* data,
-        size_t size
+        ks_bytesize_t byte_size
     ) noexcept
     {
         uint32_t crc = origin;
         const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+        const size_t size = static_cast<size_t>(byte_size);
 
         size_t i = 0;
 
@@ -88,21 +90,30 @@ namespace
         return crc;
     }
 
-    auto ks_update_crc32c_fn = []()
+    auto ks_update_crc32c_fn()
     {
-        if (support_crc32_intrinsic())
+        static auto fn = []()
         {
-            return ks_update_crc32c_sse42;
-        }
+            if (support_crc32_intrinsic())
+            {
+                return ks_update_crc32c_sse42;
+            }
 
-        // fallback
-        return ks_update_crc32c_soft;
-    }();
+            // fallback
+            return ks_update_crc32c_soft;
+        }();
+
+        return fn;
+    }
 }
 
-KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(uint32_t origin, const void* data, size_t size)
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+)
 {
-    return ks_update_crc32c_fn(origin, data, size);
+    return ks_update_crc32c_fn()(origin, data, size);
 }
 
 
@@ -112,7 +123,7 @@ KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(uint32_
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_soft(
     uint32_t origin,
     const void* data,
-    size_t size
+    ks_bytesize_t size
 )
 {
     return ks_update_crc32c_soft(origin, data, size);
@@ -121,7 +132,7 @@ KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_so
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_sse42(
     uint32_t origin,
     const void* data,
-    size_t size
+    ks_bytesize_t size
 )
 {
     return ks_update_crc32c_sse42(origin, data, size);

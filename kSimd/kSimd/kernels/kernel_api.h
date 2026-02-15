@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef __cplusplus
+#include <cstdint>
+#else
+#include <stdint.h>
+#endif
+
 /*
 kernel function must be pure C function.
 */
@@ -54,6 +60,10 @@ kernel function must be pure C function.
     #define KSIMD_KERNEL_BEGIN_EXTERN_C
     #define KSIMD_KERNEL_END_EXTERN_C
 #endif
+
+
+/* fixed type define: 这些类型不随着平台的变化而变化，确保导出的ABI稳定 */
+typedef uint64_t ks_bytesize_t;
 
 
 /* macro for unit test */

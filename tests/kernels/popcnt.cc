@@ -9,9 +9,9 @@
 
 template<typename T>
     requires (std::is_integral_v<T> && !std::is_signed_v<T>)
-ks_bitcount_t test_popcnt_ref(T x)
+ks_pop_bitcount_t test_popcnt_ref(T x)
 {
-    ks_bitcount_t cnt = 0;
+    ks_pop_bitcount_t cnt = 0;
     for (int i = 0; i < (int)(sizeof(T) * 8); ++i)
     {
         // 使用 T(1) 确保位移宽度与 T 一致
@@ -37,7 +37,7 @@ TEST(popcnt, popcnt8_soft)
     {
         uint8_t val = static_cast<uint8_t>(i);
 
-        ks_bitcount_t expected = test_popcnt_ref(val);
+        ks_pop_bitcount_t expected = test_popcnt_ref(val);
 
         EXPECT_EQ(ks_popcnt8_soft(val), expected)
             << "Failed at value: " << i;
@@ -50,7 +50,7 @@ TEST(popcnt, popcnt16_soft)
     for (int i = 0; i <= 0xFFFF; ++i)
     {
         uint16_t val = static_cast<uint16_t>(i);
-        ks_bitcount_t expected = test_popcnt_ref(val);
+        ks_pop_bitcount_t expected = test_popcnt_ref(val);
 
         EXPECT_EQ(ks_popcnt16_soft(val), expected)
             << "Failed at value: 0x" << std::hex << i;
@@ -77,7 +77,7 @@ TEST(popcnt, popcnt32_soft)
     for (int i = 0; i < 100000; ++i)
     {
         uint32_t val = dis(gen);
-        ks_bitcount_t expected = test_popcnt_ref(val);
+        ks_pop_bitcount_t expected = test_popcnt_ref(val);
 
         ASSERT_EQ(ks_popcnt32_soft(val), expected)
             << "Failed at random value: 0x" << std::hex << val;
@@ -107,15 +107,15 @@ TEST(popcnt, popcnt64_soft)
 
     for (uint64_t val : test_cases)
     {
-        ks_bitcount_t expected = test_popcnt_ref(val);
+        ks_pop_bitcount_t expected = test_popcnt_ref(val);
         EXPECT_EQ(ks_popcnt64_soft(val), static_cast<size_t>(expected))
             << "Failed at value: 0x" << std::hex << val;
     }
 }
 
-static ks_bitcount_t reference_popcnt(const void* buffer, size_t size) {
+static ks_pop_bitcount_t reference_popcnt(const void* buffer, size_t size) {
     const uint8_t* p = static_cast<const uint8_t*>(buffer);
-    ks_bitcount_t count = 0;
+    ks_pop_bitcount_t count = 0;
     for (size_t i = 0; i < size; ++i) {
         count += test_popcnt_ref(p[i]);
     }
@@ -147,7 +147,7 @@ TEST(popcnt, popcnt_buffer_soft)
     std::vector<uint8_t> random_buffer(large_size);
     for(auto& b : random_buffer) b = (uint8_t)dis(gen);
 
-    ks_bitcount_t expected_rand = reference_popcnt(random_buffer.data(), large_size);
+    ks_pop_bitcount_t expected_rand = reference_popcnt(random_buffer.data(), large_size);
     EXPECT_EQ(ks_test_popcnt_buffer_soft(random_buffer.data(), large_size), expected_rand)
         << "Failed at large random buffer test";
 }
@@ -187,7 +187,7 @@ TEST(popcnt, x86)
         std::vector<uint8_t> large_buffer(large_len);
         for (auto& b : large_buffer) b = static_cast<uint8_t>(dist(gen));
 
-        ks_bitcount_t expected = reference_popcnt(large_buffer.data(), large_len);
+        ks_pop_bitcount_t expected = reference_popcnt(large_buffer.data(), large_len);
         EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(large_buffer.data(), large_len), expected)
             << "Failed at large random buffer";
     }
@@ -198,7 +198,7 @@ TEST(popcnt, x86)
         size_t pattern_len = strlen(pattern);
 
         // 我们故意在不同的偏移量上调用函数
-        ks_bitcount_t ref_val = reference_popcnt(pattern, pattern_len);
+        ks_pop_bitcount_t ref_val = reference_popcnt(pattern, pattern_len);
 
         // 模拟从非对齐地址开始读取
         EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(pattern, pattern_len), ref_val);
