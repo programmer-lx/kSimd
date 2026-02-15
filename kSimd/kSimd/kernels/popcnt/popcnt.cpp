@@ -20,6 +20,7 @@ namespace
 
         size_t i = 0;
 
+        #if KSIMD_ARCH_X86_64
         // for each u64 x 4
         for (; i + 32 <= byte_size; i += 32)
         {
@@ -34,6 +35,24 @@ namespace
         {
             cnt += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i));
         }
+        #elif KSIMD_ARCH_X86_32
+        // for each u32 x 4
+        for (; i + 16 <= byte_size; i += 16)
+        {
+            cnt1 += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i     ));
+            cnt2 += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i +  4));
+            cnt3 += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i +  8));
+            cnt4 += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i + 12));
+        }
+
+        // for each u32
+        for (; i + 4 <= byte_size; i += 4)
+        {
+            cnt += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i));
+        }
+        #else
+        #erorr unknown x86 arch
+        #endif
 
         // for each rest u8
         for (; i < byte_size; ++i)
@@ -57,6 +76,7 @@ namespace
 
         size_t i = 0;
 
+        #if KSIMD_ARCH_X86_64
         // for each u64 x 4
         for (; i + 32 <= byte_size; i += 32)
         {
@@ -83,6 +103,36 @@ namespace
             std::memcpy(&u64, data + i, 8);
             cnt += _mm_popcnt_u64(u64);
         }
+        #elif KSIMD_ARCH_X86_32
+        // for each u32 x 4
+        for (; i + 16 <= byte_size; i += 16)
+        {
+            uint32_t v1;
+            uint32_t v2;
+            uint32_t v3;
+            uint32_t v4;
+
+            std::memcpy(&v1, data + i     , 4);
+            std::memcpy(&v2, data + i +  4, 4);
+            std::memcpy(&v3, data + i +  8, 4);
+            std::memcpy(&v4, data + i + 12, 4);
+
+            cnt1 += _mm_popcnt_u32(v1);
+            cnt2 += _mm_popcnt_u32(v2);
+            cnt3 += _mm_popcnt_u32(v3);
+            cnt4 += _mm_popcnt_u32(v4);
+        }
+
+        // for each u32
+        for (; i + 4 <= byte_size; i += 4)
+        {
+            uint32_t u64;
+            std::memcpy(&u64, data + i, 4);
+            cnt += _mm_popcnt_u32(u64);
+        }
+        #else
+        #error unknown x86 arch
+        #endif
 
         // for each rest u8
         for (; i < byte_size; ++i)

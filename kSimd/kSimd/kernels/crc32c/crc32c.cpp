@@ -77,7 +77,7 @@ namespace
         for (; i + 8 <= size; i += 8)
         {
             uint64_t v;
-            std::memcpy(&v, bytes + i, sizeof(uint64_t)); // 避免未对齐 UB
+            std::memcpy(&v, bytes + i, 8); // 避免未对齐 UB
             crc = static_cast<uint32_t>(_mm_crc32_u64(crc, v));
         }
         #endif
@@ -85,7 +85,7 @@ namespace
         for (; i + 4 <= size; i += 4)
         {
             uint32_t v;
-            std::memcpy(&v, bytes + i, sizeof(uint32_t));
+            std::memcpy(&v, bytes + i, 4);
             crc = _mm_crc32_u32(crc, v);
         }
 
