@@ -20,6 +20,12 @@ kernel function must be pure C function.
     #error Unknown compiler, only support msvc, gcc, clang.
 #endif
 
+/* inline */
+#if KSIMD_KERNEL_COMPILER_MSVC
+    #define KSIMD_KERNEL_FORCE_INLINE __forceinline
+#elif KSIMD_KERNEL_COMPILER_GCC || KSIMD_KERNEL_COMPILER_CLANG
+    #define KSIMD_KERNEL_FORCE_INLINE inline __attribute__((always_inline))
+#endif
 
 /* DLL import/export */
 #if KSIMD_KERNEL_COMPILER_MSVC

@@ -37,7 +37,7 @@ size_t count = ks_popcnt8_soft(uint8_t x)
 
 KSIMD_KERNEL_BEGIN_EXTERN_C
 
-static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
+static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
 {
     x -= (x >> 1) & UINT64_C(0x5555555555555555);
     x = (x & UINT64_C(0x3333333333333333)) + ((x >> 2) & UINT64_C(0x3333333333333333));
@@ -45,7 +45,7 @@ static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
     return (size_t)((x * UINT64_C(0x0101010101010101)) >> 56);
 }
 
-static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
+static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
 {
     x -= (x >> 1) & UINT32_C(0x55555555);
     x = (x & UINT32_C(0x33333333)) + ((x >> 2) & UINT32_C(0x33333333));
@@ -53,7 +53,7 @@ static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
     return (size_t)((x * UINT32_C(0x01010101)) >> 24);
 }
 
-static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt16_soft(uint16_t x)
+static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt16_soft(uint16_t x)
 {
     x = x - ((x >> 1) & UINT16_C(0x5555));
     x = (x & UINT16_C(0x3333)) + ((x >> 2) & UINT16_C(0x3333));
@@ -61,7 +61,8 @@ static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt16_soft(uint16_t x)
     return (size_t)((x + (x >> 8)) & UINT16_C(0x001f));
 }
 
-static inline size_t KSIMD_KERNEL_CALL_CONV ks_popcnt8_soft(uint8_t x) {
+static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt8_soft(uint8_t x)
+{
     x = (x & UINT8_C(0x55)) + ((x >> 1) & UINT8_C(0x55));
     x = (x & UINT8_C(0x33)) + ((x >> 2) & UINT8_C(0x33));
     return (size_t)((x + (x >> 4)) & UINT8_C(0x0f));
