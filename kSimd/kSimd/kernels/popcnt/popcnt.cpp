@@ -93,12 +93,6 @@ namespace
         return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
 
-    KSIMD_DYN_FUNC_ATTR_AVX2 size_t KSIMD_KERNEL_CALL_CONV
-    ks_popcnt_buffer_x86_avx2(const void* buffer, size_t byte_size) noexcept
-    {
-        return 0;
-    }
-
     auto ks_popcnt_fn = []()
     {
         const ksimd::CpuSupportInfo& support = ksimd::get_cpu_support_info();
