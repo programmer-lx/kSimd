@@ -8,13 +8,13 @@
 
 namespace
 {
-    size_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, size_t byte_size) noexcept
+    ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, size_t byte_size) noexcept
     {
-        size_t cnt  = 0;
-        size_t cnt1 = 0;
-        size_t cnt2 = 0;
-        size_t cnt3 = 0;
-        size_t cnt4 = 0;
+        ks_uint64_t cnt  = 0;
+        ks_uint64_t cnt1 = 0;
+        ks_uint64_t cnt2 = 0;
+        ks_uint64_t cnt3 = 0;
+        ks_uint64_t cnt4 = 0;
 
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
@@ -63,14 +63,14 @@ namespace
         return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
 
-    KSIMD_DYN_FUNC_ATTR_POPCNT size_t KSIMD_KERNEL_CALL_CONV
+    KSIMD_DYN_FUNC_ATTR_POPCNT ks_uint64_t KSIMD_KERNEL_CALL_CONV
     ks_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size) noexcept
     {
-        size_t cnt  = 0;
-        size_t cnt1 = 0;
-        size_t cnt2 = 0;
-        size_t cnt3 = 0;
-        size_t cnt4 = 0;
+        ks_uint64_t cnt  = 0;
+        ks_uint64_t cnt1 = 0;
+        ks_uint64_t cnt2 = 0;
+        ks_uint64_t cnt3 = 0;
+        ks_uint64_t cnt4 = 0;
 
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
@@ -157,7 +157,7 @@ namespace
     }();
 }
 
-KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, size_t byte_size)
+KSIMD_KERNEL_POPCNT_API ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, size_t byte_size)
 {
     return ks_popcnt_fn(buffer, byte_size);
 }
@@ -166,12 +166,12 @@ KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const voi
 /* for testing */
 #ifdef KSIMD_IS_TESTING
 
-KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, size_t byte_size)
+KSIMD_KERNEL_POPCNT_API ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, size_t byte_size)
 {
     return ks_popcnt_buffer_soft(buffer, byte_size);
 }
 
-KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size)
+KSIMD_KERNEL_POPCNT_API ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size)
 {
     return ks_popcnt_buffer_x86_popcnt(buffer, byte_size);
 }

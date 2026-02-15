@@ -37,45 +37,48 @@ size_t count = ks_popcnt8_soft(uint8_t x)
 
 KSIMD_KERNEL_BEGIN_EXTERN_C
 
-static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
+/* 32位操作系统上，如果一个buffer超过了512MB，size_t就会溢出，所以强制使用uint64类型 */
+typedef uint64_t ks_uint64_t;
+
+static KSIMD_KERNEL_FORCE_INLINE ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt64_soft(uint64_t x)
 {
     x -= (x >> 1) & UINT64_C(0x5555555555555555);
     x = (x & UINT64_C(0x3333333333333333)) + ((x >> 2) & UINT64_C(0x3333333333333333));
     x = (x + (x >> 4)) & UINT64_C(0x0f0f0f0f0f0f0f0f);
-    return (size_t)((x * UINT64_C(0x0101010101010101)) >> 56);
+    return (ks_uint64_t)((x * UINT64_C(0x0101010101010101)) >> 56);
 }
 
-static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
+static KSIMD_KERNEL_FORCE_INLINE ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt32_soft(uint32_t x)
 {
     x -= (x >> 1) & UINT32_C(0x55555555);
     x = (x & UINT32_C(0x33333333)) + ((x >> 2) & UINT32_C(0x33333333));
     x = (x + (x >> 4)) & UINT32_C(0x0f0f0f0f);
-    return (size_t)((x * UINT32_C(0x01010101)) >> 24);
+    return (ks_uint64_t)((x * UINT32_C(0x01010101)) >> 24);
 }
 
-static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt16_soft(uint16_t x)
+static KSIMD_KERNEL_FORCE_INLINE ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt16_soft(uint16_t x)
 {
     x = x - ((x >> 1) & UINT16_C(0x5555));
     x = (x & UINT16_C(0x3333)) + ((x >> 2) & UINT16_C(0x3333));
     x = (x + (x >> 4)) & UINT16_C(0x0f0f);
-    return (size_t)((x + (x >> 8)) & UINT16_C(0x001f));
+    return (ks_uint64_t)((x + (x >> 8)) & UINT16_C(0x001f));
 }
 
-static KSIMD_KERNEL_FORCE_INLINE size_t KSIMD_KERNEL_CALL_CONV ks_popcnt8_soft(uint8_t x)
+static KSIMD_KERNEL_FORCE_INLINE ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt8_soft(uint8_t x)
 {
     x = (x & UINT8_C(0x55)) + ((x >> 1) & UINT8_C(0x55));
     x = (x & UINT8_C(0x33)) + ((x >> 2) & UINT8_C(0x33));
-    return (size_t)((x + (x >> 4)) & UINT8_C(0x0f));
+    return (ks_uint64_t)((x + (x >> 4)) & UINT8_C(0x0f));
 }
 
-KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, size_t byte_size);
+KSIMD_KERNEL_POPCNT_API ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer(const void* buffer, size_t byte_size);
 
 
 /* for testing */
 #ifdef KSIMD_IS_TESTING
 
-KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, size_t byte_size);
-KSIMD_KERNEL_POPCNT_API size_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size);
+KSIMD_KERNEL_POPCNT_API ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, size_t byte_size);
+KSIMD_KERNEL_POPCNT_API ks_uint64_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, size_t byte_size);
 
 #endif
 
