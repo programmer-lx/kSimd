@@ -9,12 +9,6 @@
 
 namespace
 {
-    bool KSIMD_KERNEL_CALL_CONV support_crc32_intrinsic() noexcept
-    {
-        const auto& info = ksimd::get_cpu_support_info();
-        return static_cast<bool>(info.SSE4_2);
-    }
-    
     consteval std::array<uint32_t, 256> make_crc32c_table()
     {
         constexpr uint32_t POLY = 0x82F63B78; // 反转后的多项式
@@ -94,7 +88,9 @@ namespace
     {
         static auto fn = []()
         {
-            if (support_crc32_intrinsic())
+            const auto& support = ksimd::get_cpu_support_info();
+
+            if (support.SSE4_2)
             {
                 return ks_update_crc32c_sse42;
             }

@@ -1,5 +1,16 @@
 #pragma once
 
+#if defined(_MSC_VER)
+    #include <intrin.h>
+#else
+    #include <cpuid.h>
+#endif
+
+#include <cstdint>
+
+#include <type_traits>
+#include <version>
+
 // compiler detect
 #if defined(_MSC_VER) && !defined(__clang__)
     #define KSIMD_COMPILER_MSVC 1
@@ -22,8 +33,6 @@
 #ifndef __cplusplus
     #error requires C++.
 #endif
-
-#include <version>
 
 // bit_cast
 #if __cpp_lib_bit_cast < 201806L
@@ -223,16 +232,6 @@
 #if !KSIMD_DETAIL_INST_FEATURE_FALLBACK
     #error "we must define a fallback instruction."
 #endif
-
-#if defined(_MSC_VER)
-    #include <intrin.h>
-#else
-    #include <cpuid.h>
-#endif
-
-#include <cstdint>
-
-#include <type_traits>
 
 namespace ksimd
 {
