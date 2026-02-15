@@ -10,11 +10,24 @@ namespace
 {
     size_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffer_soft(const void* buffer, size_t byte_size) noexcept
     {
-        size_t cnt = 0;
+        size_t cnt  = 0;
+        size_t cnt1 = 0;
+        size_t cnt2 = 0;
+        size_t cnt3 = 0;
+        size_t cnt4 = 0;
 
         const uint8_t* data = reinterpret_cast<const uint8_t*>(buffer);
 
         size_t i = 0;
+
+        // for each u64 x 4
+        for (; i + 32 <= byte_size; i += 32)
+        {
+            cnt1 += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i     ));
+            cnt2 += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i +  8));
+            cnt3 += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i + 16));
+            cnt4 += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i + 24));
+        }
 
         // for each u64
         for (; i + 8 <= byte_size; i += 8)
@@ -28,7 +41,7 @@ namespace
             cnt += ks_popcnt8_soft(data[i]);
         }
 
-        return cnt;
+        return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
 
     KSIMD_DYN_FUNC_ATTR_POPCNT size_t KSIMD_KERNEL_CALL_CONV
