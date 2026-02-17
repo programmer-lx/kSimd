@@ -33,8 +33,8 @@ template<typename T>
 void test_scalar_op_constants()
 {
     namespace ns = ksimd::KSIMD_DYN_INSTRUCTION_SCALAR;
-    static_assert(ns::Lanes<T> == (8 / sizeof(T)));
-    static_assert(ns::Alignment<T> == alignof(T));
+    EXPECT_TRUE(ns::lanes(ns::Traits<T>{}) == (8 / sizeof(T)));
+    EXPECT_TRUE(ns::Alignment == alignof(std::max_align_t));
 }
 
 TEST(dyn_dispatch, constants)
@@ -49,8 +49,6 @@ TEST(dyn_dispatch, constants)
     test_scalar_op_constants<uint32_t>();
     test_scalar_op_constants<int64_t>();
     test_scalar_op_constants<uint64_t>();
-
-    SUCCEED();
 }
 
 TEST(std_float_types, basic)

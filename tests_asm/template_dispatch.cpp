@@ -13,37 +13,35 @@ namespace KSIMD_DYN_INSTRUCTION
     ) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        ns::Traits<T> t;
+        
         using batch_t = ns::Batch<T>;
-        const batch_t c  = ns::set(T{-0.777});
+        const batch_t c  = ns::set(t, T{-0.777});
 
-        const batch_t lower = ns::set(T{5.0});
-        const batch_t upper = ns::set(T{10.0});
+        const batch_t lower = ns::set(t, T{5.0});
+        const batch_t upper = ns::set(t, T{10.0});
 
         size_t i = 0;
-        constexpr size_t step = ns::Lanes<T>;
+        const size_t step = ns::lanes(t);
 
         // 主循环
         for (; i + step <= size; i += step)
         {
-            batch_t x = ns::load(src + i);
+            batch_t x = ns::load(t, src + i);
 
-            batch_t res = ns::mul_add(c, x, c);
-            res = ns::if_then_else(res < lower, lower, res);
-            res = ns::if_then_else(res > upper, upper, res);
+            batch_t res = ns::mul_add(t, c, x, c);
 
-            ns::store(dst + i, res);
+            ns::store(t, dst + i, res);
         }
 
         // 尾处理
         if (const size_t tail = size - i; tail > 0)
         {
-            batch_t x = ns::loadu_partial(src + i, tail);
+            batch_t x = ns::loadu_partial(t, src + i, tail);
 
-            batch_t res = ns::mul_add(c, x, c);
-            res = ns::if_then_else(res < lower, lower, res);
-            res = ns::if_then_else(res > upper, upper, res);
+            batch_t res = ns::mul_add(t, c, x, c);
 
-            ns::storeu_partial(dst + i, res, tail);
+            ns::storeu_partial(t, dst + i, res, tail);
         }
     }
 } // namespace KSIMD_DYN_INSTRUCTION
@@ -51,7 +49,7 @@ namespace KSIMD_DYN_INSTRUCTION
 #if KSIMD_ONCE
 // 生成函数指针表
 template<typename T, bool tag>
-KSIMD_DLL_LOCAL KSIMD_DYN_DISPATCH_FUNC(test_generic, <T, tag>);
+KSIMD_DYN_DISPATCH_FUNC(test_generic, <T, tag>);
 
 // 封装外部接口函数
 void test(

@@ -12,6 +12,47 @@
 KSIMD_WARNING_PUSH
 KSIMD_IGNORE_WARNING_MSVC(4723) // ignore warning: divide by 0
 
+
+// ------------------------------------------ div ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void div() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
+        
+        // 
+
+        const size_t Lanes = ns::lanes(t);
+        alignas(ns::Alignment) FLOAT_T test[Lanes];
+
+        // 常规数值测试
+        ns::store(t, test, ns::div(t, ns::set(t, FLOAT_T(100)), ns::set(t, FLOAT_T(4))));
+        for (size_t i = 0; i < Lanes; ++i) {
+            // 使用标准 EXPECT_NEAR 验证除法精度
+            EXPECT_NEAR(static_cast<double>(test[i]), 25.0, 1e-7);
+        }
+
+        if constexpr (ksimd::is_scalar_floating_point<FLOAT_T>)
+        {
+            // 1.0 / 0.0 = Inf
+            ns::store(t, test, ns::div(t, ns::set(t, FLOAT_T(1)), ns::set(t, FLOAT_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
+
+            // 0.0 / 0.0 = NaN
+            ns::store(t, test, ns::div(t, ns::set(t, FLOAT_T(0)), ns::set(t, FLOAT_T(0))));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+
+            // Inf / Inf = NaN
+            ns::store(t, test, ns::div(t, ns::set(t, inf<FLOAT_T>), ns::set(t, inf<FLOAT_T>)));
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
+        }
+    }
+}
+#if KSIMD_ONCE
+TEST_ONCE_DYN(div)
+#endif
+
 // ------------------------------------------ rcp ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
@@ -20,10 +61,10 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         if constexpr (ksimd::is_scalar_type_float_32bits<FLOAT_T>)
         {
-            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
             
-            constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-            alignas(ns::Alignment<FLOAT_T>) FLOAT_T test[Lanes];
+            const size_t Lanes = ns::lanes(t);
+            alignas(ns::Alignment) FLOAT_T test[Lanes];
 
             EXPECT_TRUE(std::isinf(inf<FLOAT_T>));
             EXPECT_TRUE(std::isinf(-inf<FLOAT_T>));
@@ -32,13 +73,13 @@ namespace KSIMD_DYN_INSTRUCTION
             EXPECT_TRUE(ksimd::is_inf(-inf<FLOAT_T>));
 
             // 1. 常规数值 1/4 = 0.25
-            ns::store(test, ns::rcp(ns::set(FLOAT_T(4))));
+            ns::store(t, test, ns::rcp(t, ns::set(t, FLOAT_T(4))));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_NEAR(static_cast<double>(test[i]), 0.25, FLOAT_T_EPSILON_RCP);
             }
 
             // 2. 边界：1/Inf = 0
-            ns::store(test, ns::rcp(ns::set(inf<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, inf<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_EQ(test[i], FLOAT_T(0));
@@ -46,7 +87,7 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             // 1 / -Inf = -0
-            ns::store(test, ns::rcp(ns::set(-inf<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, -inf<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_EQ(test[i], FLOAT_T(-0));
@@ -54,18 +95,18 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             // 1/0 = Inf
-            ns::store(test, ns::rcp(ns::set(FLOAT_T(0))));
+            ns::store(t, test, ns::rcp(t, ns::set(t, FLOAT_T(0))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == inf<FLOAT_T>);
 
             // 1/-0 = Inf
-            ns::store(test, ns::rcp(ns::set(FLOAT_T(-0))));
+            ns::store(t, test, ns::rcp(t, ns::set(t, FLOAT_T(-0))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == inf<FLOAT_T>);
 
             // 3. 1/NaN = NaN
-            ns::store(test, ns::rcp(ns::set(qNaN<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, qNaN<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
 
-            ns::store(test, ns::rcp(ns::set(-qNaN<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, -qNaN<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
@@ -74,16 +115,16 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sqrt() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
         
-        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-        alignas(ns::Alignment<FLOAT_T>) FLOAT_T test[Lanes];
+        const size_t Lanes = ns::lanes(t);
+        alignas(ns::Alignment) FLOAT_T test[Lanes];
 
-        ns::store(test, ns::sqrt(ns::set(FLOAT_T(16))));
+        ns::store(t, test, ns::sqrt(t, ns::set(t, FLOAT_T(16))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(static_cast<double>(test[i]), 4.0, 1e-7);
 
         // 负数开方为 NaN
-        ns::store(test, ns::sqrt(ns::set(FLOAT_T(-1))));
+        ns::store(t, test, ns::sqrt(t, ns::set(t, FLOAT_T(-1))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
     }
 
@@ -93,21 +134,21 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         if constexpr (ksimd::is_scalar_type_float_32bits<FLOAT_T>)
         {
-            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
             
-            constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-            alignas(ns::Alignment<FLOAT_T>) FLOAT_T test[Lanes];
+            const size_t Lanes = ns::lanes(t);
+            alignas(ns::Alignment) FLOAT_T test[Lanes];
 
-            ns::store(test, ns::rsqrt(ns::set(FLOAT_T(4))));
+            ns::store(t, test, ns::rsqrt(t, ns::set(t, FLOAT_T(4))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(test[i], 0.5, FLOAT_T_EPSILON_RSQRT);
 
-            ns::store(test, ns::rsqrt(ns::set(FLOAT_T(0))));
+            ns::store(t, test, ns::rsqrt(t, ns::set(t, FLOAT_T(0))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
 
-            ns::store(test, ns::rsqrt(ns::set(FLOAT_T(-0))));
+            ns::store(t, test, ns::rsqrt(t, ns::set(t, FLOAT_T(-0))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(test[i]));
 
-            ns::store(test, ns::rsqrt(ns::set(FLOAT_T(-2))));
+            ns::store(t, test, ns::rsqrt(t, ns::set(t, FLOAT_T(-2))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
@@ -124,23 +165,23 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void float_not_comparison(size_t idx) noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
         
-        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-        alignas(ns::Alignment<FLOAT_T>) FLOAT_T res_normal[Lanes];
-        alignas(ns::Alignment<FLOAT_T>) FLOAT_T res_not[Lanes];
+        const size_t Lanes = ns::lanes(t);
+        alignas(ns::Alignment) FLOAT_T res_normal[Lanes];
+        alignas(ns::Alignment) FLOAT_T res_not[Lanes];
 
         // 只有浮点数需要验证 NaN 的特殊取反逻辑
         if constexpr (std::is_floating_point_v<FLOAT_T>) 
         {
-            auto v_nan = ns::set(qNaN<FLOAT_T>);
-            auto v_val = ns::set(FLOAT_T(2.0));
+            auto v_nan = ns::set(t, qNaN<FLOAT_T>);
+            auto v_val = ns::set(t, FLOAT_T(2.0));
 
             // =========================================================================
             // 1. Greater vs Not Greater
             // =========================================================================
-            ns::test_store_mask(res_normal, ns::greater(v_nan, v_val));
-            ns::test_store_mask(res_not,    ns::not_greater(v_nan, v_val));
+            ns::test_store_mask(t, res_normal, ns::greater(t, v_nan, v_val));
+            ns::test_store_mask(t, res_not,    ns::not_greater(t, v_nan, v_val));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 // NaN > 2.0 -> False
@@ -152,8 +193,8 @@ namespace KSIMD_DYN_INSTRUCTION
             // =========================================================================
             // 2. Less Equal vs Not Less Equal
             // =========================================================================
-            ns::test_store_mask(res_normal, ns::less_equal(v_nan, v_val));
-            ns::test_store_mask(res_not,    ns::not_less_equal(v_nan, v_val));
+            ns::test_store_mask(t, res_normal, ns::less_equal(t, v_nan, v_val));
+            ns::test_store_mask(t, res_not,    ns::not_less_equal(t, v_nan, v_val));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 // NaN <= 2.0 -> False
@@ -171,7 +212,7 @@ namespace KSIMD_DYN_INSTRUCTION
             // 3. 验证与“相反操作”的差异
             // 关键：not_greater(NaN, val) != less_equal(NaN, val)
             // =========================================================================
-            ns::test_store_mask(res_normal, ns::less_equal(v_nan, v_val));
+            ns::test_store_mask(t, res_normal, ns::less_equal(t, v_nan, v_val));
             // 此时 res_not 存的是 not_greater 的结果 (True)
             // 而 res_normal 存的是 less_equal 的结果 (False)
             for (size_t i = 0; i < Lanes; ++i) {
@@ -198,21 +239,21 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void nan_finite_checks() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
         
-        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-        alignas(ns::Alignment<FLOAT_T>) FLOAT_T test[Lanes];
+        const size_t Lanes = ns::lanes(t);
+        alignas(ns::Alignment) FLOAT_T test[Lanes];
 
         // any_NaN: 只要有一个是 NaN 就返回 True
-        ns::test_store_mask(test, ns::any_NaN(ns::set(qNaN<FLOAT_T>), ns::set(FLOAT_T(1))));
+        ns::test_store_mask(t, test, ns::any_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
 
         // all_NaN: 两个都是 NaN 才返回 True
-        ns::test_store_mask(test, ns::all_NaN(ns::set(qNaN<FLOAT_T>), ns::set(FLOAT_T(1))));
+        ns::test_store_mask(t, test, ns::all_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
 
         // all_finite: 两个都必须是有限数
-        ns::test_store_mask(test, ns::all_finite(ns::set(FLOAT_T(1)), ns::set(inf<FLOAT_T>)));
+        ns::test_store_mask(t, test, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, inf<FLOAT_T>)));
         EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
     }
 }
@@ -226,31 +267,31 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void round_ops() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
         
-        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-        alignas(ns::Alignment<FLOAT_T>) FLOAT_T res[Lanes];
+        const size_t Lanes = ns::lanes(t);
+        alignas(ns::Alignment) FLOAT_T res[Lanes];
 
         // 1. Round Down (Floor)
-        ns::store(res, ns::round<ksimd::RoundingMode::Down>(ns::set(FLOAT_T(-2.1))));
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Down>(t,ns::set(t, FLOAT_T(-2.1))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], FLOAT_T(-3.0));
 
         // 2. Round Up (Ceil)
-        ns::store(res, ns::round<ksimd::RoundingMode::Up>(ns::set(FLOAT_T(2.1))));
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Up>(t,ns::set(t, FLOAT_T(2.1))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], FLOAT_T(3.0));
 
         // 3. Round To Zero (Truncate)
-        ns::store(res, ns::round<ksimd::RoundingMode::ToZero>(ns::set(FLOAT_T(-2.9))));
+        ns::store(t, res, ns::round<ksimd::RoundingMode::ToZero>(t,ns::set(t, FLOAT_T(-2.9))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], FLOAT_T(-2.0));
 
         // 4. Round Nearest (Ties to Even)
-        ns::store(res, ns::round<ksimd::RoundingMode::Nearest>(ns::set(FLOAT_T(2.5)))); // 2.5 -> 2.0
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Nearest>(t,ns::set(t, FLOAT_T(2.5)))); // 2.5 -> 2.0
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], FLOAT_T(2.0));
-        ns::store(res, ns::round<ksimd::RoundingMode::Nearest>(ns::set(FLOAT_T(3.5)))); // 3.5 -> 4.0
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Nearest>(t,ns::set(t, FLOAT_T(3.5)))); // 3.5 -> 4.0
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], FLOAT_T(4.0));
 
         // 5. Round (Away from Zero)
-        ns::store(res, ns::round<ksimd::RoundingMode::Round>(ns::set(FLOAT_T(-2.5)))); // -2.5 -> -3.0
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Round>(t,ns::set(t, FLOAT_T(-2.5)))); // -2.5 -> -3.0
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], FLOAT_T(-3.0));
     }
 }
@@ -264,13 +305,13 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void round_edge_cases() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
         
-        constexpr size_t Lanes = ns::Lanes<FLOAT_T>;
-        alignas(ns::Alignment<FLOAT_T>) FLOAT_T res[Lanes];
+        const size_t Lanes = ns::lanes(t);
+        alignas(ns::Alignment) FLOAT_T res[Lanes];
 
         // 验证 -0.0 的符号位在 Round 后保留
-        ns::store(res, ns::round<ksimd::RoundingMode::Round>(ns::set(FLOAT_T(-0.0))));
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Round>(t,ns::set(t, FLOAT_T(-0.0))));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(res[i], FLOAT_T(0.0));
             EXPECT_TRUE(std::signbit(res[i]));
@@ -279,7 +320,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 验证超大整数（超过尾数精度范围）不被舍入破坏
         // 对于 float，2^24 以上本身就是整数
         FLOAT_T big_val = std::pow(FLOAT_T(2), FLOAT_T(std::numeric_limits<FLOAT_T>::digits) + FLOAT_T(1));
-        ns::store(res, ns::round<ksimd::RoundingMode::Up>(ns::set(big_val)));
+        ns::store(t, res, ns::round<ksimd::RoundingMode::Up>(t,ns::set(t, big_val)));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], big_val);
     }
 }
