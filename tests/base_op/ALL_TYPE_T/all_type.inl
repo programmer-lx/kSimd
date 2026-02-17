@@ -103,7 +103,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> arr(Lanes);;
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> arr(Lanes);
 
         // 1. 无参 sequence(): [0, 1, 2, ...]
         ns::store(t, arr.data(), ns::sequence(t));
@@ -148,8 +148,8 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> in(Lanes);;
-        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> out(Lanes);;
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> in(Lanes);
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> out(Lanes);
 
         for (size_t i = 0; i < Lanes; ++i) {
             in[i] = TYPE_T(i + 7);
