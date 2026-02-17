@@ -1,6 +1,6 @@
 // using ALL_TYPE_T = uint32_t;
 
-#if _WIN32 || WIN64
+#if defined(_WIN32) || defined(WIN64)
     #ifndef NOMINMAX
     #define NOMINMAX
     #endif
@@ -69,22 +69,22 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<TYPE_T> t;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T arr[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> arr(Lanes);
 
         // 测试常规数值广播
         TYPE_T val = TYPE_T(42);
         ns::Batch<TYPE_T> v = ns::set(t, val);
-        ns::store(t, arr, v);
+        ns::store(t, arr.data(), v);
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(arr[i], val);
 
         // 针对浮点数的特殊值测试
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // NaN 广播
-            ns::store(t, arr, ns::set(t, qNaN<TYPE_T>));
+            ns::store(t, arr.data(), ns::set(t, qNaN<TYPE_T>));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(arr[i]));
 
             // Inf 广播
-            ns::store(t, arr, ns::set(t, inf<TYPE_T>));
+            ns::store(t, arr.data(), ns::set(t, inf<TYPE_T>));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isinf(arr[i]));
         }
     }
@@ -103,31 +103,31 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T arr[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> arr(Lanes);;
 
         // 1. 无参 sequence(): [0, 1, 2, ...]
-        ns::store(t, arr, ns::sequence(t));
+        ns::store(t, arr.data(), ns::sequence(t));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(i));
         }
 
         // 2. 带 base: [base, base + 1, ...]
         TYPE_T base = TYPE_T(10);
-        ns::store(t, arr, ns::sequence(t, base));
+        ns::store(t, arr.data(), ns::sequence(t, base));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(base + static_cast<TYPE_T>(i)));
         }
 
         // 3. 带 base 和 stride: [base, base + stride, ...]
         TYPE_T b_v = TYPE_T(5), stride = TYPE_T(2);
-        ns::store(t, arr, ns::sequence(t, b_v, stride));
+        ns::store(t, arr.data(), ns::sequence(t, b_v, stride));
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(b_v + static_cast<TYPE_T>(i) * stride));
         }
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             TYPE_T f_base = TYPE_T(1.5), f_stride = TYPE_T(-0.5);
-            ns::store(t, arr, ns::sequence(t, f_base, f_stride));
+            ns::store(t, arr.data(), ns::sequence(t, f_base, f_stride));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_NEAR(arr[i], f_base + static_cast<TYPE_T>(i) * f_stride, TYPE_T(1e-6));
             }
@@ -148,15 +148,15 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T in[Lanes];
-        alignas(ns::Alignment) TYPE_T out[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> in(Lanes);;
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> out(Lanes);;
 
         for (size_t i = 0; i < Lanes; ++i) {
             in[i] = TYPE_T(i + 7);
             out[i] = TYPE_T(0);
         }
 
-        ns::store(t, out, ns::load(t, in));
+        ns::store(t, out.data(), ns::load(t, in.data()));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(out[i], in[i]);
     }
 }
@@ -175,11 +175,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         const size_t Lanes = ns::lanes(t);
         // 分配略大空间以模拟非对齐
-        alignas(ns::Alignment) TYPE_T buffer_in[Lanes + 1];
-        alignas(ns::Alignment) TYPE_T buffer_out[Lanes + 1];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> buffer_in(Lanes + 1);
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> buffer_out(Lanes + 1);
 
-        TYPE_T* u_in = buffer_in + 1;
-        TYPE_T* u_out = buffer_out + 1;
+        TYPE_T* u_in = buffer_in.data() + 1;
+        TYPE_T* u_out = buffer_out.data() + 1;
 
         for (size_t i = 0; i < Lanes; ++i) {
             u_in[i] = TYPE_T(i * 3 + 1);
@@ -203,16 +203,16 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T in[Lanes * 2];
-        alignas(ns::Alignment) TYPE_T out[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> in(Lanes * 2);
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> out(Lanes * 2);
 
         for (size_t i = 0; i < Lanes * 2; ++i) in[i] = TYPE_T(i + 1);
 
         // 1. loadu_partial & zero-padding check
         for (size_t n = 0; n <= Lanes; ++n) {
-            std::memset(out, 0xAA, sizeof(out)); // 干扰值
-            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in, n);
-            ns::store(t, out, v);
+            std::memset(out.data(), 0xAA, sizeof(TYPE_T) * out.size()); // 干扰值
+            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in.data(), n);
+            ns::store(t, out.data(), v);
 
             for (size_t i = 0; i < Lanes; ++i) {
                 if (i < n) EXPECT_EQ(out[i], in[i]);
@@ -226,7 +226,7 @@ namespace KSIMD_DYN_INSTRUCTION
             for (size_t i = 0; i < Lanes; ++i) out[i] = sentinel;
 
             ns::Batch<TYPE_T> v = ns::set(t, TYPE_T(99));
-            ns::storeu_partial(t, out, v, n);
+            ns::storeu_partial(t, out.data(), v, n);
 
             for (size_t i = 0; i < Lanes; ++i) {
                 if (i < n) EXPECT_EQ(out[i], TYPE_T(99));
@@ -236,25 +236,25 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 3. Unaligned safety
         if constexpr (Lanes > 1) {
-            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in + 1, 1);
-            ns::store(t, out, v);
+            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in.data() + 1, 1);
+            ns::store(t, out.data(), v);
             EXPECT_EQ(out[0], in[1]);
             EXPECT_EQ(out[1], TYPE_T(0));
         }
 
         // 4. Overflow tolerance (n > Lanes)
         {
-            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in, Lanes + 10);
-            ns::store(t, out, v);
+            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in.data(), Lanes + 10);
+            ns::store(t, out.data(), v);
             EXPECT_EQ(out[Lanes - 1], in[Lanes - 1]);
         }
 
         // load 0
         {
             FILL_ARRAY(in, TYPE_T(99));
-            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in, 0);
+            ns::Batch<TYPE_T> v = ns::loadu_partial(t, in.data(), 0);
             FILL_ARRAY(out, TYPE_T(10));
-            ns::storeu(t, out, v);
+            ns::storeu(t, out.data(), v);
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(out[i] == 0);
@@ -263,9 +263,9 @@ namespace KSIMD_DYN_INSTRUCTION
         // store 0
         {
             FILL_ARRAY(in, TYPE_T(99));
-            ns::Batch<TYPE_T> v = ns::load(t, in);
+            ns::Batch<TYPE_T> v = ns::load(t, in.data());
             FILL_ARRAY(out, TYPE_T(10));
-            ns::storeu_partial(t, out, v, 0);
+            ns::storeu_partial(t, out.data(), v, 0);
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(out[i] == 10);

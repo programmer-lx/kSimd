@@ -4,6 +4,7 @@
 
 #include <cmath> // sqrt
 #include <cstring> // memcpy, memset
+#include <cstddef> // std::max_align_t
 
 #include <utility> // index_sequence
 
