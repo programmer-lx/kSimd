@@ -8,7 +8,7 @@
 
 #include <utility> // index_sequence
 
-#include "op_helpers.hpp"
+#include "op.hpp"
 #include "kSimd/core/impl/dispatch.hpp"
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
