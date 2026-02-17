@@ -18,7 +18,9 @@ namespace
         {
             // do something...
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-            constexpr size_t lanes = ns::Lanes<T>;
+            ns::Traits<T> t;
+
+            const size_t lanes = ns::lanes(t);
 
             size_t i = 0;
             for (; i + lanes <= size; i += lanes)

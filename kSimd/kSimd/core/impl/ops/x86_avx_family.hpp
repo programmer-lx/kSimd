@@ -1,7 +1,5 @@
 // do not use include guard
 
-// #include "kSimd/IDE/IDE_hint.hpp"
-
 #include <xmmintrin.h> // SSE
 #include <emmintrin.h> // SSE2
 #include <pmmintrin.h> // SSE3
@@ -9,12 +7,14 @@
 #include <smmintrin.h> // SSE4.1
 #include <immintrin.h> // AVX+
 
-#include <cstring> // memcpy
+#include <cstring>
 
 #include "op.hpp"
-#include "kSimd/core/impl/dispatch.hpp"
+#include "kSimd/core/impl/dispatch.hpp" // IWYU pragma: keep
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
+
+#include "kSimd/IDE/IDE_hint.hpp"
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
 

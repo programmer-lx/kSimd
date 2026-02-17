@@ -1,17 +1,18 @@
 // do not use include guard
 
-// #include "kSimd/IDE/IDE_hint.hpp"
+#include <cmath>
+#include <cstring>
+#include <cstddef>
 
-#include <cmath> // sqrt
-#include <cstring> // memcpy, memset
-#include <cstddef> // std::max_align_t
-
-#include <utility> // index_sequence
+#include <utility>
 
 #include "op.hpp"
-#include "kSimd/core/impl/dispatch.hpp"
+
+#include "kSimd/core/impl/dispatch.hpp" // IWYU pragma: keep
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
+
+#include "kSimd/IDE/IDE_hint.hpp"
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
 

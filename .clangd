@@ -1,0 +1,10 @@
+CompileFlags:
+  CompilationDatabase: build/vsc
+  Add: [
+    -D KSIMD_IDE_ANALYSIS,    # 自定义的IDE分析宏
+  ]
+
+Diagnostics:
+  UnusedIncludes: None
+  Suppress:
+    - "pp_including_mainfile_in_preamble" # 禁用头文件递归包含的误报

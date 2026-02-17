@@ -1,6 +1,7 @@
 cmake-build-*/
 .idea/
 build*/
+.vscode/
 doc_autogen/
 
 # asm
