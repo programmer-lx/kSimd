@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: build/vsc
+  CompilationDatabase: build
   Add: [
     -D KSIMD_IDE_ANALYSIS,    # 自定义的IDE分析宏
   ]
