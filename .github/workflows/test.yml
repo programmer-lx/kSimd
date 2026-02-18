@@ -36,9 +36,10 @@ jobs:
       - name: Run Tests
         run: |
           if [ "${{ matrix.arch }}" = "x86" ]; then
-            python scripts/test_scalar_x86.py --test_mode=max
+            python scripts/test_x86.py --test_mode=max
           else
-            python scripts/test_neon.py --test_mode=max
+            python scripts/test_arm.py --test_mode=max --sve_bits=128
+            python scripts/test_arm.py --test_mode=max --sve_bits=256
           fi
 
       - name: Generate & Test GNU Asm Files

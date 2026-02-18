@@ -48,7 +48,6 @@ def main():
                 f"-DCMAKE_C_COMPILER={c_comp}",
                 f"-DCMAKE_CXX_COMPILER={cxx_comp}",
                 "-DKSIMD_BUILD_TESTS=ON",
-                "-DKSIMD_TEST_X86=ON",    # 开启 X86 变量
                 f"-DKSIMD_TEST_OPTION={test_opt}",
                 "-DCMAKE_EXE_LINKER_FLAGS=-static"
             ]

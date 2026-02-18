@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 
-#ifdef KSIMD_TEST_X86
+#include "kSimd/kernels/popcnt/popcnt.h"
+
+#ifdef KSIMD_ARCH_X86_ANY
 
 #include <vector>
 #include <random>
 #include <numeric>
 
 #include "../test.hpp"
-#include "kSimd/kernels/popcnt/popcnt.h"
 
 template<typename T>
     requires (std::is_integral_v<T> && !std::is_signed_v<T>)

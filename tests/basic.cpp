@@ -2,7 +2,7 @@
 
 #include <string>
 
-#if defined(KSIMD_TEST_NEON)
+#if defined(KSIMD_ARCH_ARM_ANY)
     #include <arm_sve.h>
 #endif
 
@@ -22,7 +22,7 @@ namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(int index) noexcept
     {
-        #ifdef KSIMD_TEST_X86
+        #ifdef KSIMD_ARCH_X86_ANY
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
@@ -32,7 +32,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         EXPECT_TRUE(result);
 
-        #elif KSIMD_TEST_NEON
+        #elif KSIMD_ARCH_ARM_ANY
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         
@@ -56,13 +56,13 @@ KSIMD_DYN_DISPATCH_FUNC(kernel_dyn_impl);
 
 TEST(dyn_dispatch, pfn_table)
 {
-#ifdef KSIMD_TEST_X86
+#ifdef KSIMD_ARCH_X86_ANY
 
     // 0: avx2_max
     // 1: scalar
     EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 2);
 
-#elif defined(KSIMD_TEST_NEON)
+#elif KSIMD_ARCH_ARM_ANY
 
     // 0: neon
     // 1: scalar
@@ -79,8 +79,27 @@ TEST(dyn_dispatch, pfn_table)
 
 TEST(dyn_dispatch, sve_vector_size)
 {
-#if defined(KSIMD_TEST_NEON)
-    EXPECT_EQ(svcntb(), 16); // SVE-128
+#if KSIMD_ARCH_ARM_ANY
+    [[maybe_unused]] float a = []() KSIMD_DYN_FUNC_ATTR_SVE
+    {
+        svbool_t pg = svptrue_b32();
+
+        svfloat32_t v1 = svdup_f32(1.0f);
+        svfloat32_t v2 = svdup_f32(2.0f);
+
+        svfloat32_t res = svadd_f32_z(pg, v1, v2);
+
+        return svlasta_f32(pg, res);
+    }();
+
+    #if KSIMD_TEST_SVE_BITS == 128
+    #pragma message("SVE bits = 128")
+    [[maybe_unused]] bool b = []() KSIMD_DYN_FUNC_ATTR_SVE
+    {
+        EXPECT_EQ(svcntb(), 16); // SVE-128
+        return true;
+    }();
+    #endif
 #endif
 }
 

@@ -25,9 +25,9 @@ To compute CRC32C of a buffer:
 #ifdef KSIMD_KERNEL_CRC32C_AS_DLL
     /* shared lib */
     #ifdef KSIMD_KERNEL_CRC32C_EXPORT /* cpp file should define this macro. */
-        #define KSIMD_KERNEL_CRC32C_API KSIMD_KERNEL_DLL_EXPORT
+        #define KSIMD_KERNEL_CRC32C_API KSIMD_DLL_EXPORT
     #else
-        #define KSIMD_KERNEL_CRC32C_API KSIMD_KERNEL_DLL_IMPORT
+        #define KSIMD_KERNEL_CRC32C_API KSIMD_DLL_IMPORT
     #endif
 #else
     /* static lib */

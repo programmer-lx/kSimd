@@ -16,6 +16,7 @@ def run_command(command, env=None):
 def main():
     parser = argparse.ArgumentParser(description="arm NEON & SVE-128 Testing (Ubuntu) with QEMU")
     parser.add_argument("--test_mode", choices=["min", "max"], default="min")
+    parser.add_argument("--sve_bits", type=int, choices=[128, 256, 512], default=128)
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent.resolve()
@@ -44,10 +45,9 @@ def main():
             "-G", "Ninja Multi-Config",
             f"-DCMAKE_C_COMPILER={c_compiler}",
             f"-DCMAKE_CXX_COMPILER={cxx_compiler}",
-            "-DCMAKE_C_FLAGS=--target=aarch64-linux-gnu -march=armv9-a+sve",
-            "-DCMAKE_CXX_FLAGS=--target=aarch64-linux-gnu -march=armv9-a+sve",
+            "-DCMAKE_C_FLAGS=--target=aarch64-linux-gnu -march=armv8-a",
+            "-DCMAKE_CXX_FLAGS=--target=aarch64-linux-gnu -march=armv8-a",
             "-DKSIMD_BUILD_TESTS=ON",
-            "-DKSIMD_TEST_NEON=ON",    # 开启 NEON 变量
             f"-DKSIMD_TEST_OPTION={test_opt}",
             # 静态链接使得 QEMU 运行不需要额外的库搜索路径
             "-DCMAKE_EXE_LINKER_FLAGS=-static"
@@ -55,13 +55,20 @@ def main():
         if os.environ.get("GITHUB_ACTIONS") != "true":
             config_args.append(f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}")
 
+        width = args.sve_bits; # SVE bit-width
+        print(f"SVE bit width = {width}")
+
+        # 向cmake传递SVE宽度信息
+        config_args.append(f"-DKSIMD_TEST_SVE_BITS={width}")
+
         run_command(config_args)
 
         # 2. 编译
         run_command(["cmake", "--build", str(current_build_dir), "--config", build_cfg])
 
         # 3. 测试
-        sve_test_env = {"QEMU_CPU": "max,sve-max-vq=1"} # SVE-128
+        width_str = str(width // 128)
+        sve_test_env = {"QEMU_CPU": f"max,sve-max-vq={width_str}"}
         run_command([
             "ctest", "--output-on-failure", "--test-dir", str(current_build_dir), "-C", build_cfg
         ], env=sve_test_env)

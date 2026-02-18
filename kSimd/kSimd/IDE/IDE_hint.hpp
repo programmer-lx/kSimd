@@ -13,10 +13,4 @@
 
     #undef KSIMD_DYN_FUNC_ATTR
     #define KSIMD_DYN_FUNC_ATTR
-
-    // scalar x86 testing
-    #define KSIMD_TEST_X86
-
-    // NEON testing
-    #define KSIMD_TEST_NEON
 #endif

@@ -20,7 +20,7 @@ namespace
 
         size_t i = 0;
 
-        #if KSIMD_ARCH_X86_64
+        #if KSIMD_ARCH_X86_64 || KSIMD_ARCH_ARM_64
         // for each u64 x 4
         for (; i + 32 <= size; i += 32)
         {
@@ -35,7 +35,7 @@ namespace
         {
             cnt += ks_popcnt64_soft(*reinterpret_cast<const uint64_t*>(data + i));
         }
-        #elif KSIMD_ARCH_X86_32
+        #elif KSIMD_ARCH_X86_32 || KSIMD_ARCH_ARM_32
         // for each u32 x 4
         for (; i + 16 <= size; i += 16)
         {
@@ -51,7 +51,7 @@ namespace
             cnt += ks_popcnt32_soft(*reinterpret_cast<const uint32_t*>(data + i));
         }
         #else
-        #error unknown x86 arch
+        #error unknown arch
         #endif
 
         // for each rest u8

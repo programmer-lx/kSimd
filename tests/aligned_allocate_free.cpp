@@ -2,7 +2,7 @@
 
 #include "test.hpp"
 
-#ifdef KSIMD_TEST_X86
+#ifdef KSIMD_ARCH_X86_ANY
 
 #include <vector>
 

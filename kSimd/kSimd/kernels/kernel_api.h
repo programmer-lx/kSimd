@@ -1,47 +1,16 @@
 #pragma once
 
 #ifdef __cplusplus
-#include <cstdint>
+    #include <cstdint>
 #else
-#include <stdint.h>
+    #include <stdint.h>
 #endif
+
+#include "kSimd/macros.h"
 
 /*
 kernel function must be pure C function.
 */
-
-#if defined(_MSC_VER) && !defined(__clang__)
-    #define KSIMD_KERNEL_COMPILER_MSVC 1
-#elif defined(__GNUC__) && !defined(__clang__)
-    #define KSIMD_KERNEL_COMPILER_GCC 1
-#elif defined(__clang__)
-    #define KSIMD_KERNEL_COMPILER_CLANG 1
-#endif
-
-#if defined(KSIMD_KERNEL_COMPILER_MSVC) + defined(KSIMD_KERNEL_COMPILER_GCC) + defined(KSIMD_KERNEL_COMPILER_CLANG) != 1
-    #error We should only define one compiler macro.
-#endif
-
-#if !KSIMD_KERNEL_COMPILER_MSVC && !KSIMD_KERNEL_COMPILER_GCC && !KSIMD_KERNEL_COMPILER_CLANG
-    #error Unknown compiler, only support msvc, gcc, clang.
-#endif
-
-/* inline */
-#if KSIMD_KERNEL_COMPILER_MSVC
-    #define KSIMD_KERNEL_FORCE_INLINE __forceinline
-#elif KSIMD_KERNEL_COMPILER_GCC || KSIMD_KERNEL_COMPILER_CLANG
-    #define KSIMD_KERNEL_FORCE_INLINE inline __attribute__((always_inline))
-#endif
-
-/* DLL import/export */
-#if KSIMD_KERNEL_COMPILER_MSVC
-    #define KSIMD_KERNEL_DLL_IMPORT __declspec(dllimport)
-    #define KSIMD_KERNEL_DLL_EXPORT __declspec(dllexport)
-#elif KSIMD_KERNEL_COMPILER_GCC || KSIMD_KERNEL_COMPILER_CLANG
-    #define KSIMD_KERNEL_DLL_IMPORT __attribute__((visibility("default")))
-    #define KSIMD_KERNEL_DLL_EXPORT __attribute__((visibility("default")))
-#endif
-
 
 /* calling convention */
 /* use __stdcall on windows, default on other OS. */

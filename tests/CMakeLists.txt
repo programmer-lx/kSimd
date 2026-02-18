@@ -39,13 +39,8 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
 #    target_compile_definitions(kSimd PUBLIC KSIMD_IS_TESTING)
     target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_IS_TESTING)
 
-    # 根据目标平台，设置不同的宏
-    if(KSIMD_TEST_X86)
-        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_X86)
-    endif()
-    if(KSIMD_TEST_NEON)
-        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_NEON)
-    endif()
+    # 传递SVE宽度宏
+    target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_SVE_BITS=${KSIMD_TEST_SVE_BITS})
 
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -104,7 +99,7 @@ target_compile_features(macro_test PRIVATE cxx_std_23)
 add_test(NAME macro_test COMMAND macro_test)
 
 # crc32c kernel
-if(KSIMD_TEST_X86)
+if(KSIMD_ARCH_X86_ANY)
     add_executable(crc32c_kernel kernels/crc32c.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/crc32c/crc32c.cpp)
     target_link_libraries(crc32c_kernel PRIVATE kSimd gtest)
     target_compile_definitions(crc32c_kernel PRIVATE KSIMD_IS_TESTING)
@@ -113,7 +108,7 @@ if(KSIMD_TEST_X86)
 endif()
 
 # popcnt kernel
-if(KSIMD_TEST_X86)
+if(KSIMD_ARCH_X86_ANY)
     add_executable(popcnt_kernel kernels/popcnt.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/popcnt/popcnt.cpp)
     target_link_libraries(popcnt_kernel PRIVATE kSimd gtest)
     target_compile_definitions(popcnt_kernel PRIVATE KSIMD_IS_TESTING)
