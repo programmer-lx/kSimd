@@ -44,6 +44,10 @@ def main():
     sde_bin = os.path.abspath(sde_bin)
     print(f"Using SDE found at: {sde_bin}")
 
+    sde_root = os.path.dirname(sde_bin)
+    os.environ["SDE_ROOT"] = sde_root
+    print(f"Force setting SDE_ROOT to: {sde_root}")
+
     # 编译器矩阵
     config = []
 
