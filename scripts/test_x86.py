@@ -4,6 +4,17 @@ import os
 import argparse
 from pathlib import Path
 import shutil
+import platform
+
+CURRENT_OS = platform.system()
+SDE_NAME = str("")
+if CURRENT_OS == "Windows":
+    SDE_NAME = "sde"
+elif CURRENT_OS == "Linux":
+    SDE_NAME = "sde64"
+else:
+    print("Error: unknown os.")
+    sys.exit(1)
 
 def run_command(command, env=None):
     command = [str(c) for c in command]
@@ -26,17 +37,27 @@ def main():
     build_base = project_root / "build" / "x86"
 
     # 查找 SDE 可执行文件
-    sde_bin = shutil.which("sde64")
+    sde_bin = shutil.which(str(SDE_NAME))
     if not sde_bin:
-        print("Error: 'sde64' not found in PATH. Please check SDE installation.")
+        print("Error: 'sde or sde64' not found in PATH. Please check SDE installation.")
         sys.exit(1)
     print(f"Using SDE found at: {sde_bin}")
 
     # 编译器矩阵
-    configs = [
-        ("Clang-17", "clang-17", "clang++-17", "clang17"),
-        ("GCC-13", "gcc-13", "g++-13", "gcc13")
-    ]
+    config = []
+
+    if CURRENT_OS == "Windows":
+        configs = [
+            ("Clang-17", "clang", "clang++", "clang17"),
+            ("MSVC", "cl", "cl", "msvc")
+        ]
+    
+    if CURRENT_OS == "Linux":
+        configs = [
+            ("Clang-17", "clang-17", "clang++-17", "clang17"),
+            ("GCC-13", "gcc-13", "g++-13", "gcc13")
+        ]
+
     if args.test_mode == "min":
         configs = configs[:1]
 
