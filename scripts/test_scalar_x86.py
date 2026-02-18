@@ -52,7 +52,7 @@ def main():
                 f"-DKSIMD_TEST_OPTION={test_opt}",
                 "-DCMAKE_EXE_LINKER_FLAGS=-static"
             ]
-            if os.environ.get("GITHUB_ACTIONS") == "true":
+            if os.environ.get("GITHUB_ACTIONS") != "true":
                 config_args.append(f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}")
 
             run_command(config_args)

@@ -52,7 +52,7 @@ def main():
             # 静态链接使得 QEMU 运行不需要额外的库搜索路径
             "-DCMAKE_EXE_LINKER_FLAGS=-static"
         ]
-        if os.environ.get("GITHUB_ACTIONS") == "true":
+        if os.environ.get("GITHUB_ACTIONS") != "true":
             config_args.append(f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}")
 
         run_command(config_args)
