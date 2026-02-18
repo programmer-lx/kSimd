@@ -6,11 +6,11 @@ from pathlib import Path
 import shutil
 import platform
 
-CURRENT_OS = platform.system()
+CURRENT_OS = str.lower(platform.system())
 SDE_NAME = str("")
-if CURRENT_OS == "Windows":
+if CURRENT_OS == "windows":
     SDE_NAME = "sde"
-elif CURRENT_OS == "Linux":
+elif CURRENT_OS == "linux":
     SDE_NAME = "sde64"
 else:
     print("Error: unknown os.")
@@ -34,7 +34,7 @@ def main():
     # 路径定义
     script_dir = Path(__file__).parent.resolve()
     project_root = script_dir.parent
-    build_base = project_root / "build" / "x86"
+    build_base = project_root / "build" / f"{CURRENT_OS}_x86"
 
     # 查找 SDE 可执行文件
     sde_bin = shutil.which(str(SDE_NAME))
@@ -46,13 +46,13 @@ def main():
     # 编译器矩阵
     config = []
 
-    if CURRENT_OS == "Windows":
+    if CURRENT_OS == "windows":
         configs = [
             ("Clang-17", "clang", "clang++", "clang17"),
             ("MSVC", "cl", "cl", "msvc")
         ]
     
-    if CURRENT_OS == "Linux":
+    if CURRENT_OS == "linux":
         configs = [
             ("Clang-17", "clang-17", "clang++-17", "clang17"),
             ("GCC-13", "gcc-13", "g++-13", "gcc13")
@@ -99,7 +99,7 @@ def main():
                 ctest_bin, "--output-on-failure", "--test-dir", current_build_dir, "-C", build_cfg
             ])
 
-    print("\n[SUCCESS] All X86 SDE (AVX-512) tests passed.")
+    print("\n[SUCCESS] All X86 tests passed.")
 
 if __name__ == "__main__":
     main()

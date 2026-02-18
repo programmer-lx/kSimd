@@ -80,7 +80,7 @@ namespace
     // leaf: EAX, sub_leaf: ECX
     void cpuid(const uint32_t leaf, const uint32_t sub_leaf, uint32_t* abcd)
     {
-        #if KSIMD_COMPILER_MSVC
+        #if defined(_MSC_VER)
 
         int regs[4];
         __cpuidex(regs, static_cast<int>(leaf), static_cast<int>(sub_leaf));
@@ -89,7 +89,7 @@ namespace
             abcd[i] = static_cast<uint32_t>(regs[i]);
         }
 
-        #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
+        #else
 
         uint32_t a;
         uint32_t b;
@@ -101,25 +101,21 @@ namespace
         abcd[2] = c;
         abcd[3] = d;
 
-        #else
-        #error unknown compiler
         #endif
     }
 
     uint64_t xgetbv(uint32_t idx)
     {
-        #if KSIMD_COMPILER_MSVC
+        #if defined(_MSC_VER)
 
         return _xgetbv(idx);
 
-        #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
+        #else
 
         uint32_t eax, edx;
         __asm__ volatile("xgetbv" : "=a"(eax), "=d"(edx) : "c"(idx));
         return (static_cast<uint64_t>(edx) << 32) | eax;
 
-        #else
-        #error unknown compiler
         #endif
     }
     #endif // arch x86 any

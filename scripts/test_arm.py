@@ -4,6 +4,9 @@ import argparse
 import os
 from pathlib import Path
 import shutil
+import platform
+
+CURRENT_OS = str.lower(platform.system())
 
 def run_command(command, env=None):
     print(f"\n[RUNNING] {' '.join(command)}")
@@ -21,7 +24,7 @@ def main():
 
     script_dir = Path(__file__).parent.resolve()
     project_root = script_dir.parent
-    build_base = project_root / "build" / "arm_neon"
+    build_base = project_root / "build" / f"{CURRENT_OS}_arm_neon"
 
     qemu_bin = shutil.which("qemu-aarch64-static") or shutil.which("qemu-aarch64")
     print(f"qemu bin path: {qemu_bin}")
@@ -73,7 +76,7 @@ def main():
             "ctest", "--output-on-failure", "--test-dir", str(current_build_dir), "-C", build_cfg
         ], env=sve_test_env)
 
-    print("\n[SUCCESS] All NEON tests passed via QEMU simulation.")
+    print("\n[SUCCESS] All ARM tests passed.")
 
 if __name__ == "__main__":
     main()
