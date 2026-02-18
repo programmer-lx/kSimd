@@ -25,13 +25,13 @@ jobs:
         with:
           platforms: ${{ matrix.arch == 'arm' && 'arm64' || 'x86_64' }}
 
-      # - name: Install Compilers
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y clang-17 lld-17 ninja-build
-      #     if [ "${{ matrix.arch }}" = "arm" ]; then
-      #       sudo apt-get install -y g++-aarch64-linux-gnu
-      #     fi
+      - name: Install Compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-17 lld-17 ninja-build
+          if [ "${{ matrix.arch }}" = "arm" ]; then
+            sudo apt-get install -y g++-aarch64-linux-gnu
+          fi
 
       - name: Run Tests
         run: |
