@@ -1,11 +1,5 @@
 #pragma once
 
-#if defined(_MSC_VER)
-    #include <intrin.h>
-#else
-    #include <cpuid.h>
-#endif
-
 #include <cstdint>
 
 #include <type_traits>
@@ -74,17 +68,43 @@
 #endif
 
 
+// OS detect
+#if defined(_WIN32) || defined(_WIN64)
+    #define KSIMD_OS_WINDOWS 1
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+    #define KSIMD_OS_MACOS 1
+#endif
+
+#if defined(__linux__)
+    #define KSIMD_OS_LINUX 1
+#endif
+
+
 // arch
 // ----------------------------- x86 64-bit -----------------------------
 #if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
     #define KSIMD_ARCH_X86_64 1
     #define KSIMD_ARCH_X86_ANY 1
+
 // ----------------------------- x86 32-bit -----------------------------
 #elif defined(_M_IX86) || defined(__i386__)
     #define KSIMD_ARCH_X86_32 1
     #define KSIMD_ARCH_X86_ANY 1
+
+// ----------------------------- ARM 64-bit -----------------------------
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    #define KSIMD_ARCH_ARM_64 1
+    #define KSIMD_ARCH_ARM_ANY 1
+
+// ----------------------------- ARM 32-bit -----------------------------
+#elif defined(__arm__) || defined(_M_ARM) || defined(__arm64_32__)
+    #define KSIMD_ARCH_ARM_32 1
+    #define KSIMD_ARCH_ARM_ANY 1
+
 #else
-    #error "Unknown arch, kSimd can only support x86 arch."
+    #error "Unknown arch, kSimd can only support x86 and arm."
 #endif
 
 
@@ -222,6 +242,14 @@
 
 #endif // x86 instructions
 
+// --------- arm指令集 ---------
+#if KSIMD_ARCH_ARM_ANY
+    // NEON
+    #if defined(KSIMD_IS_TESTING) || (!KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #define KSIMD_INSTRUCTION_FEATURE_NEON 1
+    #endif
+#endif // arm instructions
+
 // Scalar
 #if defined(KSIMD_IS_TESTING) || (!KSIMD_DETAIL_INST_FEATURE_FALLBACK)
     #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
@@ -239,6 +267,7 @@ namespace ksimd
     {
         static constexpr unsigned Scalar = 1;
 
+        // --- x86 ---
         unsigned POPCNT     : 1 = 0;
         unsigned FXSR       : 1 = 0;
 
@@ -261,51 +290,16 @@ namespace ksimd
         unsigned AVX2       : 1 = 0;
 
         // AVX-512 family
-        unsigned AVX512_F   : 1 = 0; // AVX512F支持FMA运算，不需要单独划分FMA3支持
+        unsigned AVX512_F   : 1 = 0;
+
+        // --- arm ---
+        unsigned NEON       : 1 = 0;
+        unsigned SVE        : 1 = 0;
+        unsigned ARM_CRC32  : 1 = 0;
     };
 
     namespace detail
     {
-        // clang-format off
-        enum class CpuFeatureIndex_EAX1_ECX0 : uint32_t
-        {
-            // see https://en.wikipedia.org/wiki/CPUID
-
-            // ECX
-            SSE3        = 0 , // EAX 1 ECX 0, ECX  0
-            SSSE3       = 9 , // EAX 1 ECX 0, ECX  9
-            FMA3        = 12, // EAX 1 ECX 0, ECX 12
-            SSE4_1      = 19, // EAX 1 ECX 0, ECX 19
-            SSE4_2      = 20, // EAX 1 ECX 0, ECX 20
-            POPCNT      = 23, // EAX 1 ECX 0, ECX 23
-            XSAVE       = 26, // EAX 1 ECX 0, ECX 26
-            OS_XSAVE    = 27, // EAX 1 ECX 0, ECX 27
-            AVX         = 28, // EAX 1 ECX 0, ECX 28
-            F16C        = 29, // EAX 1 ECX 0, ECX 29
-
-            // EDX
-            FXSR        = 24, // EAX 1 ECX 0, EDX 24
-            SSE         = 25, // EAX 1 ECX 0, EDX 25
-            SSE2        = 26, // EAX 1 ECX 0, EDX 26
-        };
-
-        enum class CpuFeatureIndex_EAX7_ECX0 : uint32_t
-        {
-            AVX2        = 5 , // EAX 7 ECX 0, EBX  5
-            AVX_512_F   = 16, // EAX 7 ECX 0, EBX 16
-        };
-
-        enum class CpuXSaveStateIndex : uint64_t
-        {
-            // see https://en.wikipedia.org/wiki/CPUID XSAVE State-components
-
-            SSE                 = 1 , // XMM0-XMM15 and MXCSR
-            AVX                 = 2 , // YMM0-YMM15
-            AVX_512_K0_K7       = 5 , // opmask registers k0-k7
-            AVX_512_LOW_256     = 6 , // ZMM0-ZMM15
-            AVX_512_HIGH_256    = 7 , // ZMM16-ZMM31
-        };
-
         template<typename T>
         using underlying_t =
             std::conditional_t<
@@ -320,134 +314,7 @@ namespace ksimd
         {
             return static_cast<underlying_t<T>>(val);
         }
-
-        template<typename T, typename U>
-        constexpr bool bit_is_open(T data, U bit_pos) noexcept
-        {
-            static_assert(sizeof(T) == sizeof(U));
-
-            using Type = underlying_t<U>;
-            return (static_cast<Type>(data) & (static_cast<Type>(1) << static_cast<Type>(bit_pos))) != 0;
-        }
-
-        #if KSIMD_ARCH_X86_ANY
-        // leaf: EAX, sub_leaf: ECX
-        KSIMD_HEADER_GLOBAL void cpuid(const uint32_t leaf, const uint32_t sub_leaf, uint32_t* abcd)
-        {
-            #if defined(_MSC_VER)
-            int regs[4];
-            __cpuidex(regs, static_cast<int>(leaf), static_cast<int>(sub_leaf));
-            for (int i = 0; i < 4; ++i)
-            {
-                abcd[i] = static_cast<uint32_t>(regs[i]);
-            }
-            #else
-            uint32_t a;
-            uint32_t b;
-            uint32_t c;
-            uint32_t d;
-            __cpuid_count(leaf, sub_leaf, a, b, c, d);
-            abcd[0] = a;
-            abcd[1] = b;
-            abcd[2] = c;
-            abcd[3] = d;
-            #endif
-        }
-
-        KSIMD_HEADER_GLOBAL uint64_t xgetbv(uint32_t idx)
-        {
-            #if defined(_MSC_VER)
-            return _xgetbv(idx);
-            #else
-            uint32_t eax, edx;
-            __asm__ volatile("xgetbv" : "=a"(eax), "=d"(edx) : "c"(idx));
-            return (static_cast<uint64_t>(edx) << 32) | eax;
-            #endif
-        }
-        #endif // arch x86 any
     }
 
-    KSIMD_HEADER_GLOBAL const CpuSupportInfo& get_cpu_support_info() noexcept
-    {
-        static CpuSupportInfo info = []()
-        {
-            using namespace detail;
-
-            CpuSupportInfo result{};
-
-            #if KSIMD_ARCH_X86_ANY
-            uint32_t abcd[4]; // eax, ebx, ecx, edx
-
-            cpuid(0, 0, abcd);
-            const uint32_t max_leaf = abcd[0];
-            bool os_support_avx = false;
-            uint64_t xcr0 = 0;
-
-
-            // ------------------ EAX 1 ECX 0 ------------------
-            if (max_leaf >= 1)
-            {
-                // 查询 EAX 1, ECX 0
-                cpuid(1, 0, abcd);
-                const uint32_t ecx = abcd[2];
-                const uint32_t edx = abcd[3];
-
-                result.POPCNT = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::POPCNT);
-
-                // ------------------------- FXSR -------------------------
-                result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
-
-                // ------------------------- SSE family -------------------------
-                result.SSE = result.FXSR && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
-                result.SSE2 = result.SSE && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
-                result.SSE3 = result.SSE2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
-                result.SSSE3 = result.SSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
-                result.SSE4_1 = result.SSSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
-                result.SSE4_2 = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
-
-                // xsave os_xsave
-                result.XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
-                result.OS_XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
-
-                // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
-                if (result.XSAVE && result.OS_XSAVE)
-                {
-                    xcr0 = xgetbv(0);
-
-                    // ------------------------- AVX -------------------------
-                    os_support_avx =
-                            bit_is_open(xcr0, CpuXSaveStateIndex::SSE) && bit_is_open(xcr0, CpuXSaveStateIndex::AVX);
-
-                    result.AVX = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
-                    result.F16C = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
-                    result.FMA3 = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
-                }
-            }
-
-            // ------------------ EAX 7 ECX 0 ------------------
-            if (max_leaf >= 7)
-            {
-                // EAX 7, ECX 0
-                cpuid(7, 0, abcd);
-                const uint32_t ebx = abcd[1];
-
-                result.AVX2 = result.AVX && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
-
-
-                // ------------------------- AVX-512 family -------------------------
-                const bool os_support_avx_512 = os_support_avx && bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_K0_K7) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_LOW_256) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_HIGH_256);
-
-                result.AVX512_F = result.AVX2 && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX_512_F) && os_support_avx_512;
-            }
-            #else
-            // arm NEON
-            #endif
-
-            return result;
-        }();
-
-        return info;
-    }
+    const CpuSupportInfo& get_cpu_support_info() noexcept;
 }

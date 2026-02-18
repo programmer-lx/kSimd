@@ -1,8 +1,17 @@
 #define KSIMD_KERNEL_CRC32C_EXPORT
 #include "kSimd/kernels/crc32c/crc32c.h"
 
+#include "kSimd/core/impl/base.hpp"
+
+#if KSIMD_ARCH_X86_ANY
+    #include <nmmintrin.h> // SSE4.2 CRC32 intrinsic
+#elif KSIMD_ARCH_ARM_ANY
+    #include <arm_acle.h>
+#else
+    #error unknown arch
+#endif
+
 #include <cstring> // memcpy
-#include <nmmintrin.h> // SSE4.2 CRC32 intrinsic
 #include <array> // CRC32C table
 
 #include "kSimd/core/impl/dispatch.hpp"
@@ -47,6 +56,7 @@ namespace
         return origin;
     }
 
+#if KSIMD_ARCH_X86_ANY
     KSIMD_DYN_FUNC_ATTR_SSE42 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_sse42(
         uint32_t origin,
         const void* data,
@@ -81,17 +91,64 @@ namespace
 
         return crc;
     }
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    KSIMD_DYN_FUNC_ATTR_ARM_CRC32 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_arm(
+        uint32_t origin,
+        const void* data,
+        size_t size
+    ) noexcept
+    {
+        uint32_t crc = origin;
+        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+
+        size_t i = 0;
+
+        #if KSIMD_ARCH_ARM_64
+        for (; i + 8 <= size; i += 8)
+        {
+            uint64_t v;
+            std::memcpy(&v, bytes + i, 8); // 避免未对齐 UB
+            crc = __crc32cd(crc, v);
+        }
+        #endif
+
+        for (; i + 4 <= size; i += 4)
+        {
+            uint32_t v;
+            std::memcpy(&v, bytes + i, 4);
+            crc = __crc32cw(crc, v);
+        }
+
+        for (; i < size; ++i)
+        {
+            crc = __crc32cb(crc, bytes[i]);
+        }
+
+        return crc;
+    }
+#endif
 
     auto ks_update_crc32c_fn()
     {
         static auto fn = []()
         {
-            const auto& support = ksimd::get_cpu_support_info();
+            [[maybe_unused]] const auto& support = ksimd::get_cpu_support_info();
 
+            #if KSIMD_ARCH_X86_ANY
             if (support.SSE4_2)
             {
                 return ks_update_crc32c_sse42;
             }
+            #endif
+
+            #if KSIMD_ARCH_ARM_ANY
+            if (support.ARM_CRC32)
+            {
+                return ks_update_crc32c_arm;
+            }
+            #endif
 
             // fallback
             return ks_update_crc32c_soft;

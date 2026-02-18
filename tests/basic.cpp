@@ -1,7 +1,14 @@
 #include "test.hpp"
 
 #include <string>
+
+#if defined(KSIMD_CTEST_NEON)
+    #include <arm_sve.h>
+#endif
+
+#if __has_include(<stdfloat>)
 #include <stdfloat>
+#endif
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
@@ -13,8 +20,31 @@
 
 namespace KSIMD_DYN_INSTRUCTION
 {
-    KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(const float*, const size_t, float*) noexcept
+    KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(int index) noexcept
     {
+        #ifdef KSIMD_CTEST_X86
+
+        std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+
+        bool result =
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX2_MAX) && index == 0);
+
+        EXPECT_TRUE(result);
+
+        #elif defined(KSIMD_CTEST_NEON)
+
+        std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+        
+        bool result =
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 0);
+
+        EXPECT_TRUE(result);
+
+        #else
+        #error unknown test arch
+        #endif
     }
 }
 
@@ -24,9 +54,34 @@ namespace KSIMD_DYN_INSTRUCTION
 // export impl function
 KSIMD_DYN_DISPATCH_FUNC(kernel_dyn_impl);
 
-TEST(dyn_dispatch, pfn_table_size)
+TEST(dyn_dispatch, pfn_table)
 {
+#ifdef KSIMD_CTEST_X86
+
+    // 0: avx2_max
+    // 1: scalar
     EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 2);
+
+#elif defined(KSIMD_CTEST_NEON)
+
+    // 0: neon
+    // 1: scalar
+    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 2);
+
+#endif
+
+    // try call
+    for (size_t i = 0; i < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)); ++i)
+    {
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)[i](i);
+    }
+}
+
+TEST(dyn_dispatch, sve_vector_size)
+{
+#if defined(KSIMD_CTEST_NEON)
+    EXPECT_EQ(svcntb(), 16); // SVE-128
+#endif
 }
 
 template<typename T>

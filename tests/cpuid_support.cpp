@@ -1,10 +1,19 @@
 #include <kSimd/core/impl/base.hpp>
+#include <kSimd/core/impl/dispatch.hpp>
 
 #include "test.hpp"
 
+#if defined(KSIMD_CTEST_X86)
+    #include <immintrin.h>
+#endif
+
+#include "kSimd/IDE/IDE_hint.hpp"
+
 TEST(cpuid, support)
 {
-    const auto& result = ksimd::get_cpu_support_info();
+    [[maybe_unused]] const auto& result = ksimd::get_cpu_support_info();
+
+#if defined(KSIMD_CTEST_X86)
 
     EXPECT_TRUE(result.FXSR == true);
 
@@ -22,8 +31,28 @@ TEST(cpuid, support)
     EXPECT_TRUE(result.FMA3 == true);
     EXPECT_TRUE(result.AVX2 == true);
 
-    // EXPECT_TRUE(result.AVX512_F == true); // not support
+    // EXPECT_TRUE(result.AVX512_F == true);
+
+#elif defined(KSIMD_CTEST_NEON)
+
+    EXPECT_TRUE(result.NEON == true);
+    EXPECT_TRUE(result.SVE == true);
+
+#else
+    #error unknown arch
+#endif
 }
+
+#if defined(KSIMD_CTEST_X86)
+// TEST(avx512_test, test)
+// {
+//     [[maybe_unused]] bool result = []() KSIMD_DYN_FUNC_ATTR_AVX512F
+//     {
+//         [[maybe_unused]] auto avx512f_var = _mm512_set1_ps(1.0f);
+//         return true;
+//     }();
+// }
+#endif
 
 int main(int argc, char **argv)
 {

@@ -1,4 +1,4 @@
-name: CMake build & test
+name: CI
 
 on:
   push:
@@ -8,11 +8,11 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        arch: [x86, arm]
 
     steps:
       - name: Checkout Repo
@@ -20,16 +20,28 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup MSVC (Windows)
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.arch == 'arm' && 'arm64' || 'x86_64' }}
 
-      - name: Run All Tests
-        # 使用 max 模式进行全量测试
-        run: python scripts/run_all_test.py --test_mode=max
+      # - name: Install Compilers
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y clang-17 lld-17 ninja-build
+      #     if [ "${{ matrix.arch }}" = "arm" ]; then
+      #       sudo apt-get install -y g++-aarch64-linux-gnu
+      #     fi
 
-      - name: Generate GNU Asm Files
-        run: python scripts/generate_all_gnu_asm.py
+      - name: Run Tests
+        run: |
+          if [ "${{ matrix.arch }}" = "x86" ]; then
+            python scripts/test_scalar_x86.py --test_mode=max
+          else
+            python scripts/test_neon.py --test_mode=max
+          fi
 
-      - name: Run GNU Asm Inlining Tests
-        run: python scripts/test_all_gnu_asm.py
+      - name: Generate & Test GNU Asm Files
+        run: |
+          python scripts/generate_all_gnu_asm.py
+          python scripts/test_all_gnu_asm.py

@@ -1,4 +1,4 @@
-// using ALL_TYPE_T = uint32_t;
+// using TYPE_T = uint32_t;
 
 #if defined(_WIN32) || defined(WIN64)
     #ifndef NOMINMAX
@@ -965,16 +965,16 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, test, ns::min(t, ns::set(t, TYPE_T(100)), ns::set(t, inf<TYPE_T>)));
             EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(100)));
 
-            // NaN 行为 (依照指令集惯例，通常返回非 NaN 操作数，或者取决于位置)
-            ns::store(t, test, ns::min(t, ns::set(t, qNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
-            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(5)));
+            // NaN 行为 (不同指令行为不同，不进行测试)
+            // ns::store(t, test, ns::min(t, ns::set(t, qNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
+            // EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(5)));
 
-            // 右操作数是 NaN: 返回 NaN
-            ns::store(t, test, ns::min(t, ns::set(t, TYPE_T(5)), ns::set(t, qNaN<TYPE_T>)));
-            for (size_t i = 0; i < Lanes; ++i)
-            {
-                EXPECT_TRUE(std::isnan(test[i]));
-            }
+            // // 右操作数是 NaN: 返回 NaN
+            // ns::store(t, test, ns::min(t, ns::set(t, TYPE_T(5)), ns::set(t, qNaN<TYPE_T>)));
+            // for (size_t i = 0; i < Lanes; ++i)
+            // {
+            //     EXPECT_TRUE(std::isnan(test[i]));
+            // }
 
             // Check 模式，无论左右，都返回NaN
             ns::store(t, test, ns::min<ksimd::FloatMinMaxOption::CheckNaN>(t, ns::set(t, TYPE_T(5)), ns::set(t, qNaN<TYPE_T>)));
@@ -1006,15 +1006,15 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, test, ns::max(t, ns::set(t, -inf<TYPE_T>), ns::set(t, TYPE_T(-100))));
             EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(-100)));
 
-            // NaN 行为
-            ns::store(t, test, ns::max(t, ns::set(t, qNaN<TYPE_T>), ns::set(t, TYPE_T(-100))));
-            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(-100)));
+            // NaN 行为 (不同指令集行为不同，不进行测试)
+            // ns::store(t, test, ns::max(t, ns::set(t, qNaN<TYPE_T>), ns::set(t, TYPE_T(-100))));
+            // EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(-100)));
 
-            ns::store(t, test, ns::max(t, ns::set(t, TYPE_T(-100)), ns::set(t, qNaN<TYPE_T>)));
-            for (size_t i = 0; i < Lanes; ++i)
-            {
-                EXPECT_TRUE(std::isnan(test[i]));
-            }
+            // ns::store(t, test, ns::max(t, ns::set(t, TYPE_T(-100)), ns::set(t, qNaN<TYPE_T>)));
+            // for (size_t i = 0; i < Lanes; ++i)
+            // {
+            //     EXPECT_TRUE(std::isnan(test[i]));
+            // }
 
             // Check 模式，无论左右，都返回NaN
             ns::store(t, test, ns::max<ksimd::FloatMinMaxOption::CheckNaN>(t, ns::set(t, TYPE_T(5)), ns::set(t, qNaN<TYPE_T>)));

@@ -38,6 +38,15 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
 
 #    target_compile_definitions(kSimd PUBLIC KSIMD_IS_TESTING)
     target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_IS_TESTING)
+
+    # 根据目标平台，设置不同的宏
+    if(KSIMD_CTEST_X86)
+        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_CTEST_X86)
+    endif()
+    if(KSIMD_CTEST_NEON)
+        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_CTEST_NEON)
+    endif()
+
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -46,7 +55,7 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     get_target_property(OPTIONS ${FINAL_TARGET_NAME} COMPILE_OPTIONS)
     message(STATUS "${FINAL_TARGET_NAME} compile options: ${OPTIONS}")
 
-    add_test(NAME ${FINAL_TARGET_NAME} COMMAND $<TARGET_FILE:${FINAL_TARGET_NAME}>)
+    add_test(NAME ${FINAL_TARGET_NAME} COMMAND ${FINAL_TARGET_NAME})
 endfunction()
 
 
@@ -79,31 +88,35 @@ endforeach()
 add_executable(inline_test inline_test/inline_cpp_1.cc inline_test/inline_cpp_2.cc inline_test/inline_main.cc)
 target_include_directories(inline_test PRIVATE inline_test)
 target_compile_features(inline_test PRIVATE cxx_std_23)
-add_test(NAME inline_test COMMAND $<TARGET_FILE:inline_test>)
+add_test(NAME inline_test COMMAND inline_test)
 
 # static test
 add_executable(static_test static_test/static_cpp_1.cc static_test/static_cpp_2.cc static_test/static_main.cc)
 target_include_directories(static_test PRIVATE static_test)
 target_compile_features(static_test PRIVATE cxx_std_23)
-add_test(NAME static_test COMMAND $<TARGET_FILE:static_test>)
+add_test(NAME static_test COMMAND static_test)
 
 # macro test
 add_executable(macro_test macro_test/kernel_disable_avx2_max.cc macro_test/kernel_enable_all.cc macro_test/main.cc)
 target_include_directories(macro_test PRIVATE macro_test)
 target_link_libraries(macro_test PRIVATE kSimd)
 target_compile_features(macro_test PRIVATE cxx_std_23)
-add_test(NAME macro_test COMMAND $<TARGET_FILE:macro_test>)
+add_test(NAME macro_test COMMAND macro_test)
 
 # crc32c kernel
-add_executable(crc32c_kernel kernels/crc32c.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/crc32c/crc32c.cpp)
-target_link_libraries(crc32c_kernel PRIVATE kSimd gtest)
-target_compile_definitions(crc32c_kernel PRIVATE KSIMD_IS_TESTING)
-target_compile_features(crc32c_kernel PRIVATE cxx_std_23)
-add_test(NAME crc32c_kernel COMMAND $<TARGET_FILE:crc32c_kernel>)
+if(KSIMD_CTEST_X86)
+    add_executable(crc32c_kernel kernels/crc32c.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/crc32c/crc32c.cpp)
+    target_link_libraries(crc32c_kernel PRIVATE kSimd gtest)
+    target_compile_definitions(crc32c_kernel PRIVATE KSIMD_IS_TESTING)
+    target_compile_features(crc32c_kernel PRIVATE cxx_std_23)
+    add_test(NAME crc32c_kernel COMMAND crc32c_kernel)
+endif()
 
 # popcnt kernel
-add_executable(popcnt_kernel kernels/popcnt.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/popcnt/popcnt.cpp)
-target_link_libraries(popcnt_kernel PRIVATE kSimd gtest)
-target_compile_definitions(popcnt_kernel PRIVATE KSIMD_IS_TESTING)
-target_compile_features(popcnt_kernel PRIVATE cxx_std_23)
-add_test(NAME popcnt_kernel COMMAND $<TARGET_FILE:popcnt_kernel>)
+if(KSIMD_CTEST_X86)
+    add_executable(popcnt_kernel kernels/popcnt.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/popcnt/popcnt.cpp)
+    target_link_libraries(popcnt_kernel PRIVATE kSimd gtest)
+    target_compile_definitions(popcnt_kernel PRIVATE KSIMD_IS_TESTING)
+    target_compile_features(popcnt_kernel PRIVATE cxx_std_23)
+    add_test(NAME popcnt_kernel COMMAND popcnt_kernel)
+endif()

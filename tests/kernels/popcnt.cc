@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#ifdef KSIMD_CTEST_X86
+
 #include <vector>
 #include <random>
 #include <numeric>
@@ -245,6 +247,8 @@ TEST(popcnt, speed_test)
     // 打印总数只是为了确保运算没被优化
     std::cout << "Total ones counted: " << total_ones << std::endl;
 }
+
+#endif
 
 int main(int argc, char **argv)
 {

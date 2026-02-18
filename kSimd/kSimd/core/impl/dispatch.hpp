@@ -10,11 +10,17 @@
 
 // 该宏用于判断分发到了哪一层指令集
 // KSIMD_DYN_DISPATCH_LEVEL values
+
+// scalar
 #define KSIMD_DYN_DISPATCH_LEVEL_SCALAR         1
 
+// AVX family
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX_START      2
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX       3
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        4
+
+// arm NEON
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON           5
 
 
 // --------------------------------- FUNC_ATTR ---------------------------------
@@ -41,18 +47,39 @@
 // avx2+fma3+f16c
 #define KSIMD_DYN_FUNC_ATTR_AVX2_MAX KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma,f16c")
 
+// avx512f
+#define KSIMD_DYN_FUNC_ATTR_AVX512F KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx512f")
+
+// neon
+#define KSIMD_DYN_FUNC_ATTR_NEON
+
+// arm crc32
+#define KSIMD_DYN_FUNC_ATTR_ARM_CRC32
+
 
 // --------------------------------- KSIMD_DYN_INSTRUCTION ---------------------------------
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
 #define KSIMD_DYN_INSTRUCTION "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
 
+// scalar
 #define KSIMD_DYN_INSTRUCTION_SCALAR   KSIMD_SCALAR
+
+// avx family
 #define KSIMD_DYN_INSTRUCTION_AVX2_MAX KSIMD_AVX2_MAX
+
+// neon
+#define KSIMD_DYN_INSTRUCTION_NEON     KSIMD_NEON
 
 // avx2 max fallback
 #if KSIMD_INSTRUCTION_FEATURE_AVX2_MAX == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #undef KSIMD_DYN_INSTRUCTION_FALLBACK
     #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_AVX2_MAX
+#endif
+
+// neon may fallback
+#if KSIMD_DYN_INSTRUCTION_NEON == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_NEON
 #endif
 
 // scalar fallback
@@ -89,10 +116,22 @@
     #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
+// NEON
+#if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
+    #define KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_NEON, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_NEON_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
 // function table
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, ...) \
     /* ------------------------------------- avx family ------------------------------------- */ \
     KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name, __VA_ARGS__) \
+    \
+    /* ------------------------------------- arm neon ------------------------------------- */ \
+    KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, __VA_ARGS__) \
+    \
     /* ------------------------------------- scalar ------------------------------------- */ \
     KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, __VA_ARGS__)
 
@@ -115,6 +154,10 @@ namespace ksimd
             KSIMD_DYN_INSTRUCTION_AVX2_MAX,
         #endif
 
+        #if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
+            KSIMD_DYN_INSTRUCTION_NEON,
+        #endif
+
         #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
             KSIMD_DYN_INSTRUCTION_SCALAR,
         #endif
@@ -135,6 +178,13 @@ namespace ksimd
                 if (supports.AVX2 && supports.FMA3 && supports.F16C)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
+                }
+                #endif
+
+                #if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
+                if (supports.NEON)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_NEON);
                 }
                 #endif
 

@@ -1,10 +1,12 @@
+#include "test.hpp"
+
+#ifdef KSIMD_CTEST_X86
+
 #include <iostream>
 
 #include <immintrin.h>
 
 #include "kSimd/core/impl/base.hpp"
-
-#include "test.hpp"
 
 
 #if KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
@@ -62,7 +64,7 @@ TEST(not_support, avx512_failed)
 
     SUCCEED();
 }
-
+#endif
 
 int main(int argc, char **argv)
 {

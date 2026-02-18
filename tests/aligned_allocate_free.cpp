@@ -1,3 +1,9 @@
+#include "kSimd/IDE/IDE_hint.hpp"
+
+#include "test.hpp"
+
+#ifdef KSIMD_CTEST_X86
+
 #include <vector>
 
 #include <xmmintrin.h>
@@ -5,8 +11,6 @@
 
 #include <kSimd/core/aligned_allocate.hpp>
 #include <kSimd/core/impl/dispatch.hpp>
-
-#include "test.hpp"
 
 
 TEST(aligned_allocate, alignment_test)
@@ -73,6 +77,7 @@ TEST(aligned_allocate, std_vector)
         EXPECT_NEAR(result, expected, 1e-4f);
     }();
 }
+#endif
 
 int main(int argc, char **argv)
 {

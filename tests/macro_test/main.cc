@@ -6,6 +6,7 @@
 
 int main()
 {
+    #if KSIMD_CTEST_X86
     try
     {
         kernel_disable_avx2_max();
@@ -16,6 +17,7 @@ int main()
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
+    #endif
 
     return EXIT_SUCCESS;
 }

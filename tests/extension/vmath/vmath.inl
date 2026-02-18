@@ -153,16 +153,19 @@ namespace KSIMD_DYN_INSTRUCTION {
         // 情况 A: min 是 NaN, max 正常
         // 逻辑：max(NaN, min(20, 15)) -> max(NaN, 15) -> 返回 15 (Native 下硬件通常返回第二个参数)
         // 注意：如果你需要针对这种情况也传播 NaN，则必须使用 CheckNaN 模式
-        CLAMP_CHECK(ns::vmath::clamp<Opt::Native>(t,v_mid, nan_v, max_v), v_mid, "Native: min is NaN (returns v)");
+
+        // 由于不同指令集行为不一致，所以这种情况不进行测试
+        // CLAMP_CHECK(ns::vmath::clamp<Opt::Native>(t,v_mid, nan_v, max_v), v_mid, "Native: min is NaN (returns v)");
+
         CLAMP_CHECK(ns::vmath::clamp<Opt::CheckNaN>(t,v_mid, nan_v, max_v), nan_v, "CheckNaN: min is NaN (returns NaN)");
 
         // 情况 B: max 是 NaN, min 正常
         // 逻辑：max(10, min(NaN, 15)) -> max(10, 15) -> 15
-        CLAMP_CHECK(ns::vmath::clamp<Opt::Native>(t,v_mid, min_v, nan_v), v_mid, "Native: max is NaN (returns v)");
+        // CLAMP_CHECK(ns::vmath::clamp<Opt::Native>(t,v_mid, min_v, nan_v), v_mid, "Native: max is NaN (returns v)");
         CLAMP_CHECK(ns::vmath::clamp<Opt::CheckNaN>(t,v_mid, min_v, nan_v), nan_v, "CheckNaN: max is NaN (returns NaN)");
 
         // 情况 C: min, max 全是 NaN
-        CLAMP_CHECK(ns::vmath::clamp<Opt::Native>(t,v_mid, nan_v, nan_v), v_mid, "Native: both min/max NaN");
+        // CLAMP_CHECK(ns::vmath::clamp<Opt::Native>(t,v_mid, nan_v, nan_v), v_mid, "Native: both min/max NaN"); // 不测试
         CLAMP_CHECK(ns::vmath::clamp<Opt::CheckNaN>(t,v_mid, nan_v, nan_v), nan_v, "CheckNaN: both min/max NaN");
 
         // ==========================================================

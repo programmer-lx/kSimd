@@ -1,9 +1,10 @@
+#include <gtest/gtest.h>
+
+#ifdef KSIMD_CTEST_X86
+
 #include "kSimd/kernels/crc32c/crc32c.h"
 
 #include "kSimd/core/impl/base.hpp"
-
-#include <gtest/gtest.h>
-
 
 TEST(crc32c, checksum_test_empty)
 {
@@ -252,6 +253,7 @@ TEST(crc32c, standard_values) {
     std::vector<uint8_t> zeros(32, 0);
     EXPECT_EQ(ks_crc32c_oneshot_soft(zeros.data(), 32), 0x8A9136AA);
 }
+#endif
 
 int main(int argc, char **argv)
 {

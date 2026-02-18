@@ -25,4 +25,9 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
     #include "impl/ops/x86_avx_family.hpp"
 #endif
 
+// arm NEON
+#if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON
+    #include "impl/ops/arm_neon.hpp"
+#endif
+
 // clang-format on
