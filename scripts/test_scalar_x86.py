@@ -53,7 +53,7 @@ def main():
                 "-DCMAKE_EXE_LINKER_FLAGS=-static"
             ]
             if os.environ.get("GITHUB_ACTIONS") == "true":
-                config_args += f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}"
+                config_args.append(f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}")
 
             run_command(config_args)
 
