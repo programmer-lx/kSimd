@@ -45,10 +45,6 @@ def main():
     sde_bin = os.path.abspath(sde_bin)
     print(f"Using SDE found at: {sde_bin}")
 
-    sde_root = os.path.dirname(sde_bin)
-    os.environ["SDE_ROOT"] = sde_root
-    print(f"Force setting SDE_ROOT to: {sde_root}")
-
     # 编译器矩阵
     config = []
 
@@ -86,7 +82,7 @@ def main():
                 f"-DCMAKE_CXX_COMPILER={cxx_comp}",
                 "-DKSIMD_BUILD_TESTS=ON",
                 f"-DKSIMD_TEST_OPTION={test_opt}",
-                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-spr;-err_filename;sde-error-log.txt;-chip_check_stderr;1;-knob_check;1;--"
+                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin} -spr --"
             ]
 
             if CURRENT_OS == "linux":
