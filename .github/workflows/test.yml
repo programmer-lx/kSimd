@@ -67,17 +67,18 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
 
-      - name: Run Tests
-        run: |
-          if [ "${{ matrix.arch }}" = "x86" ]; then
-            python3 scripts/test_x86.py --test_mode=max
-          else
-            python3 scripts/test_arm.py --test_mode=max --sve_bits=128
-            python3 scripts/test_arm.py --test_mode=max --sve_bits=256
-          fi
+      - name: Run x86 Tests (windows/linux)
+        if: matrix.arch == 'x86'
+        run: python scripts/test_x86.py --test_mode=max
 
-          
+      - name: Run ARM Tests (linux)
+        if: matrix.arch == 'arm'
+        run: |
+          python scripts/test_arm.py --test_mode=max --sve_bits=128
+          python scripts/test_arm.py --test_mode=max --sve_bits=256
+
+
       - name: Generate & Test GNU Asm Files
         run: |
-          python3 scripts/generate_all_gnu_asm.py
-          python3 scripts/test_all_gnu_asm.py
+          python scripts/generate_all_gnu_asm.py
+          python scripts/test_all_gnu_asm.py
