@@ -44,16 +44,17 @@ jobs:
 
       - name: Setup SDE (windows x86)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          curl -L https://downloadmirror.intel.com/873619/sde-external-10.5.0-2026-01-13-win.tar.xz -o sde_win.tar.xz
+          curl.exe -L https://downloadmirror.intel.com/873619/sde-external-10.5.0-2026-01-13-win.tar.xz -o sde_win.tar.xz
           tar -xf sde_win.tar.xz
           
-          $SdeDir = Get-ChildItem -Directory -Filter "sde-external-*" | Select-Object -First 1
-          $SdeFullPath = $SdeDir.FullName
+          $SdeDir = (Get-ChildItem -Directory -Filter "sde-external-*").FullName
+          Write-Host "SDE Root: $SdeDir"
           
-          Write-Host "SDE Full Path: $SdeFullPath"
+          if (-not (Test-Path "$SdeDir\sde.exe")) { throw "sde.exe not found!" }
           
-          echo "$SdeFullPath" >> $env:GITHUB_PATH
+          echo "$SdeDir" >> $env:GITHUB_PATH
 
 
       - name: Install Tools (linux)

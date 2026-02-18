@@ -27,13 +27,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
         static_assert(len == 1 || len == 2 || len == 4 || len == 8, "sizeof(S) can only equal to 1, 2, 4, 8");
 
-             if constexpr (len == 1) return svcntb();
-        else if constexpr (len == 2) return svcnth();
-        else if constexpr (len == 4) return svcntw();
-        else                         return svcntd();
+               if constexpr (len == 1)   return svcntb();
+        else   if constexpr (len == 2)   return svcnth();
+        else   if constexpr (len == 4)   return svcntw();
+        else /*if constexpr (len == 8)*/ return svcntd();
     }
 
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec128;
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec512;
 #pragma endregion
 
 #pragma region--- types ---
