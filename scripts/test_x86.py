@@ -95,7 +95,7 @@ def main():
                 "-DKSIMD_BUILD_TESTS=ON",
                 f"-DKSIMD_TEST_OPTION={test_opt}",
                 "-DCMAKE_EXE_LINKER_FLAGS=-static",
-                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-spr;-pin_home;{sde_root};--"
+                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-spr;-err_filename;sde-error-log.txt;-chip_check_stderr;1;-knob_check;1;--"
             ]
 
             run_command(config_args)
