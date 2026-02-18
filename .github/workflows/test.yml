@@ -51,15 +51,8 @@ jobs:
           
           $SdeDir = (Get-Item "./sde-external-10.5.0-2026-01-13-win").FullName
           
-          Move-Item -Path "$SdeDir" -Destination "C:\sde"
-          
           # 设置环境变量
-          echo "C:\sde" >> $env:GITHUB_PATH
-          echo "SDE_ROOT=C:\sde" >> $env:GITHUB_ENV
-          echo "C:\sde" >> $env:GITHUB_PATH
-          echo "C:\sde\intel64" >> $env:GITHUB_PATH
-          echo "C:\sde\intel64\runtime\pincrt" >> $env:GITHUB_PATH
-          echo "C:\sde\ia32" >> $env:GITHUB_PATH
+          echo "$SdeDir" >> $env:GITHUB_PATH
 
 
       - name: Install Tools (linux)

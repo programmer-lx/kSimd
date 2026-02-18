@@ -40,14 +40,6 @@ def main():
     sde_bin = shutil.which(str(SDE_NAME))
 
     if not sde_bin:
-        sde_root_env = os.environ.get("SDE_ROOT")
-        if sde_root_env:
-            # 拼接绝对路径并检查是否存在
-            potential_sde = Path(sde_root_env) / (SDE_NAME + (".exe" if CURRENT_OS == "windows" else ""))
-            if potential_sde.exists():
-                sde_bin = str(potential_sde.resolve())
-
-    if not sde_bin:
         print("Error: 'sde or sde64' not found in PATH. Please check SDE installation.")
         sys.exit(1)
     sde_bin = os.path.abspath(sde_bin)
@@ -94,9 +86,11 @@ def main():
                 f"-DCMAKE_CXX_COMPILER={cxx_comp}",
                 "-DKSIMD_BUILD_TESTS=ON",
                 f"-DKSIMD_TEST_OPTION={test_opt}",
-                "-DCMAKE_EXE_LINKER_FLAGS=-static",
                 f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-spr;-err_filename;sde-error-log.txt;-chip_check_stderr;1;-knob_check;1;--"
             ]
+
+            if CURRENT_OS == "linux":
+                config_args.append("-DCMAKE_EXE_LINKER_FLAGS=-static");
 
             run_command(config_args)
 
