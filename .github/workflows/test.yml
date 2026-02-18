@@ -70,6 +70,8 @@ jobs:
       - name: Setup MSVC cmd (windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
 
       - name: Run x86 Tests (windows/linux)
