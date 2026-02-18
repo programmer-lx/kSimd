@@ -49,12 +49,13 @@ jobs:
           curl.exe -L https://downloadmirror.intel.com/873619/sde-external-10.5.0-2026-01-13-win.tar.xz -o sde_win.tar.xz
           tar -xf sde_win.tar.xz
           
-          $SdeDir = (Get-ChildItem -Directory -Filter "sde-external-*").FullName
-          Write-Host "SDE Root: $SdeDir"
+          $SdeDir = (Get-Item "./sde-external-10.5.0-2026-01-13-win").FullName
           
-          if (-not (Test-Path "$SdeDir\sde.exe")) { throw "sde.exe not found!" }
+          Move-Item -Path "$SdeSource" -Destination "C:\sde"
           
-          echo "$SdeDir" >> $env:GITHUB_PATH
+          # 设置环境变量
+          echo "C:\sde" >> $env:GITHUB_PATH
+          echo "SDE_ROOT=C:\sde" >> $env:GITHUB_ENV
 
 
       - name: Install Tools (linux)

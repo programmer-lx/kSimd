@@ -38,6 +38,15 @@ def main():
 
     # 查找 SDE 可执行文件
     sde_bin = shutil.which(str(SDE_NAME))
+
+    if not sde_bin:
+        sde_root_env = os.environ.get("SDE_ROOT")
+        if sde_root_env:
+            # 拼接绝对路径并检查是否存在
+            potential_sde = Path(sde_root_env) / (SDE_NAME + (".exe" if CURRENT_OS == "windows" else ""))
+            if potential_sde.exists():
+                sde_bin = str(potential_sde.resolve())
+
     if not sde_bin:
         print("Error: 'sde or sde64' not found in PATH. Please check SDE installation.")
         sys.exit(1)
