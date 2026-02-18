@@ -47,7 +47,7 @@ def main():
             "-DCMAKE_C_FLAGS=--target=aarch64-linux-gnu -march=armv9-a+sve",
             "-DCMAKE_CXX_FLAGS=--target=aarch64-linux-gnu -march=armv9-a+sve",
             "-DKSIMD_BUILD_TESTS=ON",
-            "-DKSIMD_CTEST_NEON=ON",    # 开启 NEON 变量
+            "-DKSIMD_TEST_NEON=ON",    # 开启 NEON 变量
             f"-DKSIMD_TEST_OPTION={test_opt}",
             # 静态链接使得 QEMU 运行不需要额外的库搜索路径
             "-DCMAKE_EXE_LINKER_FLAGS=-static"

@@ -6,7 +6,7 @@
 
 int main()
 {
-    #if KSIMD_CTEST_X86
+    #if KSIMD_TEST_X86
     try
     {
         kernel_disable_avx2_max();

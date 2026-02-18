@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#ifdef KSIMD_CTEST_X86
+#ifdef KSIMD_TEST_X86
 
 #include "kSimd/kernels/crc32c/crc32c.h"
 

@@ -40,11 +40,11 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_IS_TESTING)
 
     # 根据目标平台，设置不同的宏
-    if(KSIMD_CTEST_X86)
-        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_CTEST_X86)
+    if(KSIMD_TEST_X86)
+        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_X86)
     endif()
-    if(KSIMD_CTEST_NEON)
-        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_CTEST_NEON)
+    if(KSIMD_TEST_NEON)
+        target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_NEON)
     endif()
 
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
@@ -104,7 +104,7 @@ target_compile_features(macro_test PRIVATE cxx_std_23)
 add_test(NAME macro_test COMMAND macro_test)
 
 # crc32c kernel
-if(KSIMD_CTEST_X86)
+if(KSIMD_TEST_X86)
     add_executable(crc32c_kernel kernels/crc32c.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/crc32c/crc32c.cpp)
     target_link_libraries(crc32c_kernel PRIVATE kSimd gtest)
     target_compile_definitions(crc32c_kernel PRIVATE KSIMD_IS_TESTING)
@@ -113,7 +113,7 @@ if(KSIMD_CTEST_X86)
 endif()
 
 # popcnt kernel
-if(KSIMD_CTEST_X86)
+if(KSIMD_TEST_X86)
     add_executable(popcnt_kernel kernels/popcnt.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/popcnt/popcnt.cpp)
     target_link_libraries(popcnt_kernel PRIVATE kSimd gtest)
     target_compile_definitions(popcnt_kernel PRIVATE KSIMD_IS_TESTING)

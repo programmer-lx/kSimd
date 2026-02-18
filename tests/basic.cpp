@@ -2,7 +2,7 @@
 
 #include <string>
 
-#if defined(KSIMD_CTEST_NEON)
+#if defined(KSIMD_TEST_NEON)
     #include <arm_sve.h>
 #endif
 
@@ -22,7 +22,7 @@ namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(int index) noexcept
     {
-        #ifdef KSIMD_CTEST_X86
+        #ifdef KSIMD_TEST_X86
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
@@ -32,7 +32,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         EXPECT_TRUE(result);
 
-        #elif defined(KSIMD_CTEST_NEON)
+        #elif KSIMD_TEST_NEON
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         
@@ -56,13 +56,13 @@ KSIMD_DYN_DISPATCH_FUNC(kernel_dyn_impl);
 
 TEST(dyn_dispatch, pfn_table)
 {
-#ifdef KSIMD_CTEST_X86
+#ifdef KSIMD_TEST_X86
 
     // 0: avx2_max
     // 1: scalar
     EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 2);
 
-#elif defined(KSIMD_CTEST_NEON)
+#elif defined(KSIMD_TEST_NEON)
 
     // 0: neon
     // 1: scalar
@@ -79,7 +79,7 @@ TEST(dyn_dispatch, pfn_table)
 
 TEST(dyn_dispatch, sve_vector_size)
 {
-#if defined(KSIMD_CTEST_NEON)
+#if defined(KSIMD_TEST_NEON)
     EXPECT_EQ(svcntb(), 16); // SVE-128
 #endif
 }
