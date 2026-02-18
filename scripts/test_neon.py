@@ -39,7 +39,7 @@ def main():
         print(f"\n{'='*60}\nTarget: NEON (QEMU) | Config: {build_cfg} | Option: {test_opt}\n{'='*60}")
 
         # 1. 配置
-        run_command([
+        config_args = [
             "cmake", "-S", str(project_root), "-B", str(current_build_dir),
             "-G", "Ninja Multi-Config",
             f"-DCMAKE_C_COMPILER={c_compiler}",
@@ -50,10 +50,12 @@ def main():
             "-DKSIMD_CTEST_NEON=ON",    # 开启 NEON 变量
             f"-DKSIMD_TEST_OPTION={test_opt}",
             # 静态链接使得 QEMU 运行不需要额外的库搜索路径
-            "-DCMAKE_EXE_LINKER_FLAGS=-static",
-            # 让 CTest 知道如何运行生成的 ARM 程序
-            f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}"
-        ])
+            "-DCMAKE_EXE_LINKER_FLAGS=-static"
+        ]
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            config_args += f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}"
+
+        run_command(config_args)
 
         # 2. 编译
         run_command(["cmake", "--build", str(current_build_dir), "--config", build_cfg])

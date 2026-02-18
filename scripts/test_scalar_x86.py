@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import os
 import argparse
 from pathlib import Path
 import shutil
@@ -41,7 +42,7 @@ def main():
             print(f"\n{'='*60}\nTarget: {name} | Config: {build_cfg} | Option: {test_opt}\n{'='*60}")
 
             # 1. 配置
-            run_command([
+            config_args = [
                 "cmake", "-S", str(project_root), "-B", str(current_build_dir),
                 "-G", "Ninja Multi-Config",
                 f"-DCMAKE_C_COMPILER={c_comp}",
@@ -49,9 +50,12 @@ def main():
                 "-DKSIMD_BUILD_TESTS=ON",
                 "-DKSIMD_CTEST_X86=ON",    # 开启 X86 变量
                 f"-DKSIMD_TEST_OPTION={test_opt}",
-                "-DCMAKE_EXE_LINKER_FLAGS=-static",
-                f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}"
-            ])
+                "-DCMAKE_EXE_LINKER_FLAGS=-static"
+            ]
+            if os.environ.get("GITHUB_ACTIONS") == "true":
+                config_args += f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}"
+
+            run_command(config_args)
 
             # 2. 编译
             run_command(["cmake", "--build", str(current_build_dir), "--config", build_cfg])
