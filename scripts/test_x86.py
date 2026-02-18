@@ -41,6 +41,7 @@ def main():
     if not sde_bin:
         print("Error: 'sde or sde64' not found in PATH. Please check SDE installation.")
         sys.exit(1)
+    sde_bin = os.path.abspath(sde_bin)
     print(f"Using SDE found at: {sde_bin}")
 
     # 编译器矩阵
