@@ -32,7 +32,7 @@ def main():
 
     build_options = [("Debug", "od")]
     if args.test_mode == "max":
-        build_options += [("Release", "o2")]
+        build_options += [("Release", "o2"), ("Release", "gl")]
 
     for build_cfg, test_opt in build_options:
         current_build_dir = build_base / f"neon_{build_cfg}_{test_opt}"

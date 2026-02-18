@@ -6,21 +6,31 @@ from pathlib import Path
 import shutil
 
 def run_command(command, env=None):
+    command = [str(c) for c in command]
     print(f"\n[RUNNING] {' '.join(command)}")
-    subprocess.run(command, check=True, env=env)
+    
+    current_env = os.environ.copy()
+    if env:
+        current_env.update(env)
+        
+    subprocess.run(command, check=True, env=current_env)
 
 def main():
-    parser = argparse.ArgumentParser(description="X86 & Scalar Testing (Ubuntu) with QEMU")
+    parser = argparse.ArgumentParser(description="X86 Testing with Intel SDE (Sapphire Rapids)")
     parser.add_argument("--test_mode", choices=["min", "max"], default="min", help="min: Debug/Clang, max: All configs/compilers")
     args = parser.parse_args()
 
     # 路径定义
     script_dir = Path(__file__).parent.resolve()
     project_root = script_dir.parent
-    build_base = project_root / "build" / "x86_scalar"
+    build_base = project_root / "build" / "x86"
 
-    qemu_bin = shutil.which("qemu-x86_64-static") or shutil.which("qemu-x86_64")
-    print(f"qemu bin path: {qemu_bin}")
+    # 查找 SDE 可执行文件
+    sde_bin = shutil.which("sde64")
+    if not sde_bin:
+        print("Error: 'sde64' not found in PATH. Please check SDE installation.")
+        sys.exit(1)
+    print(f"Using SDE found at: {sde_bin}")
 
     # 编译器矩阵
     configs = [
@@ -41,31 +51,34 @@ def main():
             
             print(f"\n{'='*60}\nTarget: {name} | Config: {build_cfg} | Option: {test_opt}\n{'='*60}")
 
-            # 1. 配置
+            # 1. configure
             config_args = [
-                "cmake", "-S", str(project_root), "-B", str(current_build_dir),
+                "cmake", "-S", project_root, "-B", current_build_dir,
                 "-G", "Ninja Multi-Config",
                 f"-DCMAKE_C_COMPILER={c_comp}",
                 f"-DCMAKE_CXX_COMPILER={cxx_comp}",
                 "-DKSIMD_BUILD_TESTS=ON",
                 f"-DKSIMD_TEST_OPTION={test_opt}",
-                "-DCMAKE_EXE_LINKER_FLAGS=-static"
+                "-DCMAKE_EXE_LINKER_FLAGS=-static",
+                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-spr;--"
             ]
-            if os.environ.get("GITHUB_ACTIONS") != "true":
-                config_args.append(f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}")
 
             run_command(config_args)
 
             # 2. 编译
-            run_command(["cmake", "--build", str(current_build_dir), "--config", build_cfg])
+            run_command(["cmake", "--build", current_build_dir, "--config", build_cfg])
 
             # 3. 测试
-            x86_env = {"QEMU_CPU": "max"}
-            run_command([
-                "ctest", "--output-on-failure", "--test-dir", str(current_build_dir), "-C", build_cfg
-            ], env=x86_env)
+            ctest_bin = shutil.which("ctest")
+            if not ctest_bin:
+                print("Error: 'ctest' not found in PATH.")
+                sys.exit(1)
 
-    print("\n[SUCCESS] All X86 & Scalar tests passed.")
+            run_command([
+                ctest_bin, "--output-on-failure", "--test-dir", current_build_dir, "-C", build_cfg
+            ])
+
+    print("\n[SUCCESS] All X86 SDE (AVX-512) tests passed.")
 
 if __name__ == "__main__":
     main()

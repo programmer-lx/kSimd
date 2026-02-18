@@ -57,7 +57,7 @@
 #define KSIMD_DYN_FUNC_ATTR_SVE KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sve")
 
 // arm crc32
-#define KSIMD_DYN_FUNC_ATTR_ARM_CRC32
+#define KSIMD_DYN_FUNC_ATTR_ARM_CRC32 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("crc")
 
 
 // --------------------------------- KSIMD_DYN_INSTRUCTION ---------------------------------

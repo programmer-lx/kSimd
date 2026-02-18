@@ -17,13 +17,21 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+        # with:
+        #   submodules: recursive
 
-      - name: Setup QEMU
+      - name: Setup QEMU (arm)
+        if: matrix.arch == 'arm'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.arch == 'arm' && 'arm64' || 'x86_64' }}
+
+      - name: Setup SDE (x86)
+        if: matrix.arch == 'x86'
+        run: |
+          wget https://downloadmirror.intel.com/873619/sde-external-10.5.0-2026-01-13-lin.tar.xz
+          tar -xf sde-external-10.5.0-2026-01-13-lin.tar.xz
+          echo "$(pwd)/sde-external-10.5.0-2026-01-13-lin" >> $GITHUB_PATH
 
       - name: Install Tools
         run: |
@@ -36,13 +44,13 @@ jobs:
       - name: Run Tests
         run: |
           if [ "${{ matrix.arch }}" = "x86" ]; then
-            python scripts/test_x86.py --test_mode=max
+            python3 scripts/test_x86.py --test_mode=max
           else
-            python scripts/test_arm.py --test_mode=max --sve_bits=128
-            python scripts/test_arm.py --test_mode=max --sve_bits=256
+            python3 scripts/test_arm.py --test_mode=max --sve_bits=128
+            python3 scripts/test_arm.py --test_mode=max --sve_bits=256
           fi
 
       - name: Generate & Test GNU Asm Files
         run: |
-          python scripts/generate_all_gnu_asm.py
-          python scripts/test_all_gnu_asm.py
+          python3 scripts/generate_all_gnu_asm.py
+          python3 scripts/test_all_gnu_asm.py

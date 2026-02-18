@@ -6,7 +6,6 @@
     #error we should defined KSIMD_DISPATCH_THIS_FILE before include <kSimd/core/dispatch_this_file.hpp>
 #endif
 
-#undef KSIMD_DETAIL_CHECK_DISPATCH_FILE_INCLUDED
 #define KSIMD_DETAIL_CHECK_DISPATCH_FILE_INCLUDED
 
 #undef KSIMD_ONCE
