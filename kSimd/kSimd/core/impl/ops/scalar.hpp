@@ -8,7 +8,7 @@
 
 #include "op.hpp"
 
-#include "kSimd/core/impl/dispatch.hpp" // IWYU pragma: keep
+#include "kSimd/core/impl/dispatch.hpp"
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
 

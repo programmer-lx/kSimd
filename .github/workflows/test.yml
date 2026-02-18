@@ -44,19 +44,16 @@ jobs:
 
       - name: Setup SDE (windows x86)
         if: runner.os == 'Windows'
-        shell: bash
         run: |
           curl -L https://downloadmirror.intel.com/873619/sde-external-10.5.0-2026-01-13-win.tar.xz -o sde_win.tar.xz
           tar -xf sde_win.tar.xz
           
-          SDE_DIR_UNIX=$(ls -d sde-external-*)
-          SDE_PATH_UNIX="$(pwd)/$SDE_DIR_UNIX"
+          $SdeDir = Get-ChildItem -Directory -Filter "sde-external-*" | Select-Object -First 1
+          $SdeFullPath = $SdeDir.FullName
           
-          SDE_PATH_WIN=$(cygpath -w "$SDE_PATH_UNIX")
+          Write-Host "SDE Full Path: $SdeFullPath"
           
-          echo "$SDE_PATH_WIN" >> $GITHUB_PATH
-          
-          echo "SDE added to PATH: $SDE_PATH_WIN"
+          echo "$SdeFullPath" >> $env:GITHUB_PATH
 
 
       - name: Install Tools (linux)

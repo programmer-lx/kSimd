@@ -1,0 +1,52 @@
+{
+    "configurations": [
+      {
+        "name": "Clang-ARM",
+        "compilerPath": "/usr/bin/clang++-17",
+        "intelliSenseMode": "linux-clang-x64",
+        "cppStandard": "c++20",
+        "cStandard": "c17",
+  
+        "includePath": [
+          "${workspaceFolder}/kSimd",
+          "${workspaceFolder}/3rdparty/FP16/include",
+          "${workspaceFolder}/build/<cmake build dir>/_deps/googletest-src/googletest/include"
+        ],
+  
+        "defines": [
+          "KSIMD_IDE_ANALYSIS"
+        ],
+  
+        "compilerArgs": [
+          "--target=aarch64-linux-gnu",
+          "-march=armv8-a"
+        //   "-march=armv8-a+simd+sve" // also you can use this argument
+        ]
+      },
+      {
+        "name": "Clang-X86",
+        "compilerPath": "/usr/bin/clang++-17",
+        "intelliSenseMode": "linux-clang-x64",
+        "cppStandard": "c++20",
+        "cStandard": "c17",
+  
+        "includePath": [
+          "${workspaceFolder}/kSimd",
+          "${workspaceFolder}/3rdparty/FP16/include",
+          "${workspaceFolder}/build/<cmake build dir>/_deps/googletest-src/googletest/include"
+        ],
+  
+        "defines": [
+          "KSIMD_IDE_ANALYSIS"
+        ],
+  
+        "compilerArgs": [
+          // "-mavx2",
+          // "-mfma",
+          // "-mf16c"
+        ]
+      }
+    ],
+    "version": 4
+  }
+  
