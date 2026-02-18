@@ -40,7 +40,7 @@ TEST(cpuid, support)
 
 #elif KSIMD_ARCH_ARM_ANY
 
-    EXPECT_TRUE(reuslt.ARM_CRC32 == true);
+    EXPECT_TRUE(result.ARM_CRC32 == true);
     EXPECT_TRUE(result.NEON == true);
     EXPECT_TRUE(result.SVE == true);
 
