@@ -51,7 +51,7 @@ jobs:
           
           $SdeDir = (Get-Item "./sde-external-10.5.0-2026-01-13-win").FullName
           
-          Move-Item -Path "$SdeSource" -Destination "C:\sde"
+          Move-Item -Path "$SdeDir" -Destination "C:\sde"
           
           # 设置环境变量
           echo "C:\sde" >> $env:GITHUB_PATH
