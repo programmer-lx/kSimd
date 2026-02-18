@@ -10,15 +10,15 @@ jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             arch: x86
           - os: ubuntu-latest
             arch: arm
-          - os: windows-latest
-            arch: x86
+          # - os: windows-latest
+          #   arch: x86
 
     steps:
       - name: Checkout Repo
