@@ -25,10 +25,10 @@ jobs:
         with:
           platforms: ${{ matrix.arch == 'arm' && 'arm64' || 'x86_64' }}
 
-      - name: Install Compilers
+      - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-17 lld-17 ninja-build
+          sudo apt-get install -y cmake clang-17 lld-17 ninja-build
           if [ "${{ matrix.arch }}" = "arm" ]; then
             sudo apt-get install -y g++-aarch64-linux-gnu
           fi

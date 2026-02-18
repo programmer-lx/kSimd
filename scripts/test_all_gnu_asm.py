@@ -16,6 +16,7 @@ ALLOWED_CALLS = [
     "ksimd_test_no_inline", # 自定义的非内联函数
     "stack_chk_fail",       # linux g++-13
     "dyn_func_index",       # 动态 dispatch index
+    "get_cpu_support_info", # 检测CPU feature的函数
     "__cxa_guard_acquire",  # 静态变量初始化锁
     "__cxa_guard_release",  # 静态变量初始化锁
     "sinf",                 # std::sin
