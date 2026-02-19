@@ -29,9 +29,9 @@ namespace KSIMD_DYN_INSTRUCTION {
 
     KSIMD_DYN_FUNC_ATTR
     void lerp() noexcept {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
-        using batch_t = ns::Batch<FLOAT_T>;
+        using batch_t = ns::Batch<decltype(t)>;
 
         const size_t Lanes = ns::lanes(t);
         // 显式对齐的本地缓冲区
@@ -109,10 +109,10 @@ namespace KSIMD_DYN_INSTRUCTION {
 
     KSIMD_DYN_FUNC_ATTR
     void clamp_test() noexcept {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
-        using batch_t = ns::Batch<FLOAT_T>;
-        using Opt = ksimd::FloatMinMaxOption;
+        using batch_t = ns::Batch<decltype(t)>;
+        using Opt = ns::FloatMinMaxOption;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ns::Alignment) FLOAT_T act_buf[Lanes];

@@ -2,11 +2,11 @@
 
 #include <arm_sve.h>
 
-#include "op.hpp"
 #include "kSimd/core/impl/dispatch.hpp"
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
 
+#include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV

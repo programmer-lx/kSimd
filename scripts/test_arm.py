@@ -40,7 +40,7 @@ def main():
     for build_cfg, test_opt in build_options:
         current_build_dir = build_base / f"neon_{build_cfg}_{test_opt}"
         
-        print(f"\n{'='*60}\nTarget: NEON (QEMU) | Config: {build_cfg} | Option: {test_opt}\n{'='*60}")
+        print(f"\n{'='*60}\nTarget: ARM (QEMU) | Config: {build_cfg} | Option: {test_opt}\n{'='*60}")
 
         # 1. 配置
         config_args = [

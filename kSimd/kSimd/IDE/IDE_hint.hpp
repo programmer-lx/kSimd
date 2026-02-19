@@ -7,10 +7,18 @@
     #define KSIMD_IDE 1
 #endif
 
-#if KSIMD_IDE
-    #undef KSIMD_DYN_INSTRUCTION
-    #define KSIMD_DYN_INSTRUCTION KSIMD_IDE_NS
+#if defined(__JETBRAINS_IDE__) || defined(__CLION_IDE__)
+    #define KSIMD_IDE_JETBRAINS 1
+#endif
 
-    #undef KSIMD_DYN_FUNC_ATTR
-    #define KSIMD_DYN_FUNC_ATTR
+#if KSIMD_IDE
+
+    #if !KSIMD_IDE_JETBRAINS
+        #undef KSIMD_DYN_INSTRUCTION
+        #define KSIMD_DYN_INSTRUCTION KSIMD_IDE_NS
+
+        #undef KSIMD_DYN_FUNC_ATTR
+        #define KSIMD_DYN_FUNC_ATTR
+    #endif
+
 #endif

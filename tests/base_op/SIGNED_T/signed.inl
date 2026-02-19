@@ -11,7 +11,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void abs() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ns::Alignment) TYPE_T test[Lanes];
@@ -52,9 +52,9 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void neg() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::Traits<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
-        using batch_t = ns::Batch<TYPE_T>;
+        using batch_t = ns::Batch<decltype(t)>;
 
         const size_t Lanes = ns::lanes(t);
         alignas(ns::Alignment) TYPE_T src[Lanes];

@@ -4,29 +4,22 @@
 
 #include <cstring>
 
-#include "op.hpp"
 #include "kSimd/core/impl/dispatch.hpp"
 #include "kSimd/core/impl/types.hpp"
 #include "kSimd/core/impl/number.hpp"
 
+#include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
 
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
-#pragma region--- traits ---
-    template<is_scalar_type S>
-    struct Traits
+#pragma region--- constants ---
+    template<is_tag Tag>
+    constexpr size_t lanes(Tag) noexcept
     {
-        using _scalar_type = S;
-        static constexpr size_t _lanes = vec_size::Vec128 / sizeof(S);
-    };
-
-    template<is_scalar_type S>
-    constexpr size_t lanes(Traits<S>) noexcept
-    {
-        return Traits<S>::_lanes;
+        return vec_size::Vec128 / sizeof(tag_scalar_t<Tag>);
     }
 
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec128;
@@ -67,8 +60,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #endif
     } // namespace detail
 
-    template<is_scalar_type S>
-    using Batch = typename detail::batch_type<S>::type;
+    template<typename Tag>
+        requires(is_tag_full_and_fixed128<Tag>)
+    using Batch = typename detail::batch_type<tag_scalar_t<Tag>>::type;
 
 
     namespace detail
@@ -105,91 +99,106 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #endif
     } // namespace detail
 
-    template<is_scalar_type S>
-    using Mask = typename detail::mask_type<S>::type;
+    template<typename Tag>
+        requires(is_tag_full_and_fixed128<Tag>)
+    using Mask = typename detail::mask_type<tag_scalar_t<Tag>>::type;
 #pragma endregion
 
 #pragma region--- any types ---
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) load(Traits<S>, const S* mem) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return vld1q_f32(reinterpret_cast<const float*>(mem));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(void) store(Traits<S>, S* mem, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         vst1q_f32(reinterpret_cast<float*>(mem), v);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) loadu(Traits<S>, const S* mem) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return vld1q_f32(reinterpret_cast<const float*>(mem));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(void) storeu(Traits<S>, S* mem, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         vst1q_f32(reinterpret_cast<float*>(mem), v);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) loadu_partial(Traits<S> t, const S* mem, size_t count) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) loadu_partial(Tag t, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
         constexpr size_t L = lanes(t);
         count = count > L ? L : count;
         float32x4_t res = vdupq_n_f32(0.0f);
-        if (count == 0) [[unlikely]] return res;
-        
-        std::memcpy(&res, mem, sizeof(S) * count);
+        if (count == 0) [[unlikely]]
+            return res;
+
+        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
         return res;
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(void) storeu_partial(Traits<S> t, S* mem, Batch<S> v, size_t count) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(void) storeu_partial(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
         constexpr size_t L = lanes(t);
         count = count > L ? L : count;
-        if (count == 0) [[unlikely]] return;
+        if (count == 0) [[unlikely]]
+            return;
 
-        std::memcpy(mem, &v, sizeof(S) * count);
+        std::memcpy(mem, &v, sizeof(tag_scalar_t<Tag>) * count);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) undefined(Traits<S>) noexcept
-    {
-        return vdupq_n_f32(0.0f); 
-    }
-
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) zero(Traits<S>) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
     {
         return vdupq_n_f32(0.0f);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) set(Traits<S>, S x) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) zero(Tag) noexcept
+    {
+        return vdupq_n_f32(0.0f);
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
     {
         return vdupq_n_f32(static_cast<float>(x));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) sequence(Traits<S>) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
     {
         static const float data[4] = { 0.f, 1.f, 2.f, 3.f };
         return vld1q_f32(data);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) sequence(Traits<S> t, S base) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag t, tag_scalar_t<Tag> base) noexcept
     {
         float32x4_t base_v = vdupq_n_f32(static_cast<float>(base));
         return vaddq_f32(sequence(t), base_v);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) sequence(Traits<S> t, S base, S stride) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag t, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
     {
         float32x4_t stride_v = vdupq_n_f32(static_cast<float>(stride));
         float32x4_t base_v = vdupq_n_f32(static_cast<float>(base));
@@ -197,39 +206,43 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return vfmaq_f32(base_v, stride_v, sequence(t));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) add(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vaddq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) sub(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vsubq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) mul(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vmulq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) mul_add(Traits<S>, Batch<S> a, Batch<S> b, Batch<S> c) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
     {
         // NEON: v = c + (a * b)
         return vfmaq_f32(c, a, b);
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) min(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag_float_32bits Tag>
+    KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             uint32x4_t nan_mask = vornq_u32(vceqq_f32(lhs, lhs), vceqq_f32(rhs, rhs));
             float32x4_t min_v = vminq_f32(lhs, rhs);
-            float32x4_t nan_v = vdupq_n_f32(QNaN<S>);
+            float32x4_t nan_v = vdupq_n_f32(QNaN<tag_scalar_t<Tag>>);
             return vbslq_f32(nan_mask, nan_v, min_v);
         }
         else
@@ -238,14 +251,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) max(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag_float_32bits Tag>
+    KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             uint32x4_t nan_mask = vornq_u32(vceqq_f32(lhs, lhs), vceqq_f32(rhs, rhs));
             float32x4_t max_v = vmaxq_f32(lhs, rhs);
-            float32x4_t nan_v = vdupq_n_f32(QNaN<S>);
+            float32x4_t nan_v = vdupq_n_f32(QNaN<tag_scalar_t<Tag>>);
             return vbslq_f32(nan_mask, nan_v, max_v);
         }
         else
@@ -254,125 +267,145 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) bit_not(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
     {
         return vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(v)));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) bit_and(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(lhs), vreinterpretq_u32_f32(rhs)));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) bit_and_not(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(rhs), vreinterpretq_u32_f32(lhs)));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) bit_or(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(lhs), vreinterpretq_u32_f32(rhs)));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) bit_xor(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(lhs), vreinterpretq_u32_f32(rhs)));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) bit_if_then_else(Traits<S>, Batch<S> _if, Batch<S> _then, Batch<S> _else) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_if_then_else(Tag, Batch<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         // NEON vbsl: (if) ? then : else
         return vbslq_f32(vreinterpretq_u32_f32(_if), _then, _else);
     }
 
 #if defined(KSIMD_IS_TESTING)
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(void) test_store_mask(Traits<S>, S* mem, Mask<S> mask) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(void) test_store_mask(Tag, tag_scalar_t<Tag>* mem, Mask<Tag> mask) noexcept
     {
         vst1q_f32(reinterpret_cast<float*>(mem), vreinterpretq_f32_u32(mask));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) test_load_mask(Traits<S>, const S* mem) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) test_load_mask(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return vreinterpretq_u32_f32(vld1q_f32(reinterpret_cast<const float*>(mem)));
     }
 #endif
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) equal(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vceqq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) not_equal(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vmvnq_u32(vceqq_f32(lhs, rhs));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) greater(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vcgtq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) greater_equal(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vcgeq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) less(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vcltq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) less_equal(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vcleq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) mask_and(Traits<S>, Mask<S> lhs, Mask<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return vandq_u32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) mask_or(Traits<S>, Mask<S> lhs, Mask<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return vorrq_u32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) mask_xor(Traits<S>, Mask<S> lhs, Mask<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return veorq_u32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) mask_not(Traits<S>, Mask<S> mask) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
     {
         return vmvnq_u32(mask);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) if_then_else(Traits<S>, Mask<S> _if, Batch<S> _then, Batch<S> _else) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         return vbslq_f32(_if, _then, _else);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(S) reduce_add(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
         // [a, b, c, d] -> [a+c, b+d] -> [a+b+c+d]
         float32x2_t low = vget_low_f32(v);
@@ -381,8 +414,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return vget_lane_f32(vpadd_f32(sum2, sum2), 0);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(S) reduce_mul(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
         float32x2_t low = vget_low_f32(v);
         float32x2_t high = vget_high_f32(v);
@@ -390,61 +424,68 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return vget_lane_f32(res2, 0) * vget_lane_f32(res2, 1);
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_float_32bits S>
-    KSIMD_API(S) reduce_min(Traits<S> t, Batch<S> v) noexcept
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag_float_32bits Tag>
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
     {
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             // 检查整个向量是否有 NaN: v != v
-            uint32x4_t nan_check = vceqq_f32(v, v); 
+            uint32x4_t nan_check = vceqq_f32(v, v);
             // 如果存在 0 (即 NaN)，则返回 NaN
             uint32_t check = vminvq_u32(nan_check);
-            if (check == 0) return QNaN<S>;
+            if (check == 0)
+                return QNaN<tag_scalar_t<Tag>>;
         }
         return vminvq_f32(v);
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type_float_32bits S>
-    KSIMD_API(S) reduce_max(Traits<S> t, Batch<S> v) noexcept
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag_float_32bits Tag>
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
     {
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             uint32x4_t nan_check = vceqq_f32(v, v);
-            if (vminvq_u32(nan_check) == 0) return QNaN<S>;
+            if (vminvq_u32(nan_check) == 0)
+                return QNaN<tag_scalar_t<Tag>>;
         }
         return vmaxvq_f32(v);
     }
 #pragma endregion
 
 #pragma region--- signed ---
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) abs(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
         return vabsq_f32(v);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) neg(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
     {
         return vnegq_f32(v);
     }
 #pragma endregion
 
 #pragma region--- floating point ---
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) div(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vdivq_f32(lhs, rhs);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) sqrt(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
     {
         return vsqrtq_f32(v);
     }
 
-    template<RoundingMode mode, is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) round(Traits<S> t, Batch<S> v) noexcept
+    template<RoundingMode mode, typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) round(Tag t, Batch<Tag> v) noexcept
     {
         if constexpr (mode == RoundingMode::Up)
         {
@@ -460,85 +501,95 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
         else if constexpr (mode == RoundingMode::ToZero)
         {
-            return vrndq_f32(v);  // To Zero
+            return vrndq_f32(v); // To Zero
         }
         else /* Round (Away from zero) */
         {
-            return vrndaq_f32(v); 
+            return vrndaq_f32(v);
         }
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) not_greater(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vmvnq_u32(vcgtq_f32(lhs, rhs));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) not_greater_equal(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vmvnq_u32(vcgeq_f32(lhs, rhs));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) not_less(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vmvnq_u32(vcltq_f32(lhs, rhs));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) not_less_equal(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vmvnq_u32(vcleq_f32(lhs, rhs));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) any_NaN(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         uint32x4_t l_ok = vceqq_f32(lhs, lhs);
         uint32x4_t r_ok = vceqq_f32(rhs, rhs);
         return vmvnq_u32(vandq_u32(l_ok, r_ok));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) all_NaN(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         uint32x4_t l_nan = vmvnq_u32(vceqq_f32(lhs, lhs));
         uint32x4_t r_nan = vmvnq_u32(vceqq_f32(rhs, rhs));
         return vandq_u32(l_nan, r_nan);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) not_NaN(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return vandq_u32(vceqq_f32(lhs, lhs), vceqq_f32(rhs, rhs));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) any_finite(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        float32x4_t inf_v = vdupq_n_f32(Inf<S>);
+        float32x4_t inf_v = vdupq_n_f32(Inf<tag_scalar_t<Tag>>);
         float32x4_t l_abs = vabsq_f32(lhs);
         float32x4_t r_abs = vabsq_f32(rhs);
-        
+
         // |x| < Inf 表示有限值
         return vorrq_u32(vcltq_f32(l_abs, inf_v), vcltq_f32(r_abs, inf_v));
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Mask<S>) all_finite(Traits<S>, Batch<S> lhs, Batch<S> rhs) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        float32x4_t inf_v = vdupq_n_f32(Inf<S>);
+        float32x4_t inf_v = vdupq_n_f32(Inf<tag_scalar_t<Tag>>);
         float32x4_t l_abs = vabsq_f32(lhs);
         float32x4_t r_abs = vabsq_f32(rhs);
-        
+
         return vandq_u32(vcltq_f32(l_abs, inf_v), vcltq_f32(r_abs, inf_v));
     }
 #pragma endregion
 
 #pragma region--- float32 only ---
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) rcp(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) rcp(Tag, Batch<Tag> v) noexcept
     {
         // 获取初始近似值 (Estimate)
         float32x4_t estimate = vrecpeq_f32(v);
@@ -550,8 +601,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return vmulq_f32(estimate, iter);
     }
 
-    template<is_scalar_type_float_32bits S>
-    KSIMD_API(Batch<S>) rsqrt(Traits<S>, Batch<S> v) noexcept
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_full_and_fixed128<Tag>)
+    KSIMD_API(Batch<Tag>) rsqrt(Tag, Batch<Tag> v) noexcept
     {
         // 获取初始近似值 (Estimate)
         float32x4_t estimate = vrsqrteq_f32(v);
@@ -563,6 +615,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return vmulq_f32(estimate, iter);
     }
 #pragma endregion
-}
+} // namespace ksimd::KSIMD_DYN_INSTRUCTION
 
 #undef KSIMD_API
