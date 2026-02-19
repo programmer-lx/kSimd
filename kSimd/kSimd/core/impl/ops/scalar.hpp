@@ -19,14 +19,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
 
 #pragma region--- constants ---
-    template<typename Tag>
-        requires (is_tag_full_and_fixed128<Tag>)
+    template<is_tag_full_and_fixed128 Tag>
     constexpr size_t lanes(Tag) noexcept
     {
-        return vec_size::ScalarSim / sizeof(tag_scalar_t<Tag>);
+        return vec_size::Scalar128 / sizeof(tag_scalar_t<Tag>);
     }
 
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignof(std::max_align_t);
+    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Scalar128;
 #pragma endregion
 
 #pragma region--- types ---

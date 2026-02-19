@@ -54,13 +54,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_scalar_type S>
     struct HalfFullTag : Tag_base<S, TagType::HalfFullTag>
     {
-        static_assert(false, "TODO: HalfFullTag");
+        static_assert(Tag_base<S, TagType::HalfFullTag>::tag_type != TagType::HalfFullTag, "TODO: HalfFullTag");
     };
 
     template<is_scalar_type S>
     struct Fixed128Tag : Tag_base<S, TagType::Fixed128Tag>
     {
-        static_assert(false, "TODO: Fixed128Tag");
+        static_assert(Tag_base<S, TagType::Fixed128Tag>::tag_type != TagType::Fixed128Tag, "TODO: Fixed128Tag");
     };
 
     enum class RoundingMode

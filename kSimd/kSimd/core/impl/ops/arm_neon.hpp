@@ -16,7 +16,7 @@
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
 #pragma region--- constants ---
-    template<is_tag Tag>
+    template<is_tag_full_and_fixed128 Tag>
     constexpr size_t lanes(Tag) noexcept
     {
         return vec_size::Vec128 / sizeof(tag_scalar_t<Tag>);
