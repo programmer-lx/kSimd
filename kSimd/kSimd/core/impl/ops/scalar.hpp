@@ -29,15 +29,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- types ---
-    template<typename Tag>
-        requires (is_tag_full_and_fixed128<Tag>)
+    template<is_tag_full_and_fixed128 Tag>
     struct Batch
     {
         tag_scalar_t<Tag> v[lanes(Tag{})];
     };
 
-    template<typename Tag>
-        requires (is_tag_full_and_fixed128<Tag>)
+    template<is_tag_full_and_fixed128 Tag>
     struct Mask
     {
         same_bits_uint_t<tag_scalar_t<Tag>> m[lanes(Tag{})];

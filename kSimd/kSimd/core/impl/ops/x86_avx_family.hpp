@@ -76,7 +76,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #endif
     } // namespace detail
 
-    template<is_tag Tag>
+    template<is_tag_full_and_fixed128 Tag>
     using Batch = typename detail::batch_type<tag_scalar_t<Tag>>::type;
 
 
@@ -117,7 +117,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #endif
     } // namespace detail
 
-    template<is_tag Tag>
+    template<is_tag_full_and_fixed128 Tag>
     using Mask = typename detail::mask_type<tag_scalar_t<Tag>>::type;
 #pragma endregion
 
