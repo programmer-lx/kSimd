@@ -30,7 +30,7 @@ ks_pop_bitcount_t test_popcnt_ref(T x)
 TEST(popcnt, intrinsic_support)
 {
     const ksimd::CpuSupportInfo info = ksimd::get_cpu_support_info();
-    EXPECT_TRUE(info.POPCNT);
+    EXPECT_TRUE(info.popcnt);
 }
 
 TEST(popcnt, popcnt8_soft)

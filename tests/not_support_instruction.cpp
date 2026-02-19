@@ -45,7 +45,7 @@ TEST(not_support, avx512_failed)
 
     int idx = -1;
     // select in runtime
-    if (result.AVX512_F)
+    if (result.avx512_f)
     {
         idx = 1;
         std::cout << "support AVX512f" << std::endl;

@@ -137,14 +137,14 @@ namespace
             [[maybe_unused]] const auto& support = ksimd::get_cpu_support_info();
 
             #if KSIMD_ARCH_X86_ANY
-            if (support.SSE4_2)
+            if (support.sse4_2)
             {
                 return ks_update_crc32c_sse42;
             }
             #endif
 
             #if KSIMD_ARCH_ARM_ANY
-            if (support.ARM_CRC32)
+            if (support.arm_crc32)
             {
                 return ks_update_crc32c_arm;
             }

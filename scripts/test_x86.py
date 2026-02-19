@@ -82,7 +82,7 @@ def main():
                 f"-DCMAKE_CXX_COMPILER={cxx_comp}",
                 "-DKSIMD_BUILD_TESTS=ON",
                 f"-DKSIMD_TEST_OPTION={test_opt}",
-                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-spr;--"
+                f"-DCMAKE_CROSSCOMPILING_EMULATOR={sde_bin};-future;--"
             ]
 
             if CURRENT_OS == "linux":

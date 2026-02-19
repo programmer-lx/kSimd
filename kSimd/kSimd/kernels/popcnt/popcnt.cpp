@@ -149,7 +149,7 @@ namespace
         {
             const ksimd::CpuSupportInfo& support = ksimd::get_cpu_support_info();
 
-            if (support.POPCNT)
+            if (support.popcnt)
             {
                 return ks_popcnt_buffer_x86_popcnt;
             }

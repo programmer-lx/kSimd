@@ -145,37 +145,64 @@
 
 namespace ksimd
 {
+    enum class CpuVendor
+    {
+        Unknown = 0,
+        Intel,
+        AMD
+    };
+
     struct CpuSupportInfo
     {
-        // --- x86 ---
-        unsigned POPCNT     : 1 = 0;
-        unsigned FXSR       : 1 = 0;
+        // ------------------ common info ------------------
+        CpuVendor vendor                    = CpuVendor::Unknown;
+        char      vendor_name[13]           = {};
+        unsigned  logical_cores             = 0;
+        unsigned  physical_cores            = 0;
+
+        unsigned hyper_threads          : 1 = 0;
+
+        // ------------------ x86 features ------------------
+        unsigned fxsr                   : 1 = 0;
 
         // SSE family
-        unsigned SSE        : 1 = 0;
-        unsigned SSE2       : 1 = 0;
-        unsigned SSE3       : 1 = 0;
-        unsigned SSSE3      : 1 = 0;
-        unsigned SSE4_1     : 1 = 0;
-        unsigned SSE4_2     : 1 = 0;
+        unsigned sse                    : 1 = 0;
+        unsigned sse2                   : 1 = 0;
+        unsigned sse3                   : 1 = 0;
+        unsigned ssse3                  : 1 = 0;
+        unsigned sse4_1                 : 1 = 0;
+        unsigned sse4_2                 : 1 = 0;
 
         // XSAVE & OS_XSAVE
-        unsigned XSAVE      : 1 = 0;
-        unsigned OS_XSAVE   : 1 = 0;
+        unsigned xsave                  : 1 = 0;
+        unsigned os_xsave               : 1 = 0;
 
         // AVX family
-        unsigned AVX        : 1 = 0;
-        unsigned F16C       : 1 = 0;
-        unsigned FMA3       : 1 = 0;
-        unsigned AVX2       : 1 = 0;
+        unsigned avx                    : 1 = 0;
+        unsigned f16c                   : 1 = 0;
+        unsigned fma3                   : 1 = 0;
+        unsigned avx2                   : 1 = 0;
+        unsigned avx_vnni               : 1 = 0;
+        unsigned avx_vnni_int8          : 1 = 0;
+        unsigned avx_ne_convert         : 1 = 0;
+        unsigned avx_ifma               : 1 = 0;
+        unsigned avx_vnni_int16         : 1 = 0;
+        unsigned sha512                 : 1 = 0;
+        unsigned sm3                    : 1 = 0;
+        unsigned sm4                    : 1 = 0;
 
         // AVX-512 family
-        unsigned AVX512_F   : 1 = 0;
+        unsigned avx512_f               : 1 = 0;
 
-        // --- arm ---
-        unsigned NEON       : 1 = 0;
-        unsigned SVE        : 1 = 0;
-        unsigned ARM_CRC32  : 1 = 0;
+        // other
+        unsigned popcnt                 : 1 = 0;
+        unsigned aes_ni                 : 1 = 0;
+        unsigned sha                    : 1 = 0;
+
+        // ------------------ arm features ------------------
+        unsigned neon                   : 1 = 0;
+        unsigned sve                    : 1 = 0;
+        unsigned arm_crc32              : 1 = 0;
     };
 
     namespace detail

@@ -19,30 +19,46 @@ TEST(cpuid, support)
 
 #if KSIMD_ARCH_X86_ANY
 
-    EXPECT_TRUE(result.POPCNT == true);
-    EXPECT_TRUE(result.FXSR == true);
+    EXPECT_TRUE(result.popcnt == true);
+    EXPECT_TRUE(result.aes_ni == true);
+    EXPECT_TRUE(result.sha == true);
 
-    EXPECT_TRUE(result.SSE == true);
-    EXPECT_TRUE(result.SSE2 == true);
-    EXPECT_TRUE(result.SSE3 == true);
-    EXPECT_TRUE(result.SSSE3 == true);
-    EXPECT_TRUE(result.SSE4_1 == true);
-    EXPECT_TRUE(result.SSE4_2 == true);
+    EXPECT_TRUE(result.fxsr == true);
 
-    EXPECT_TRUE(result.OS_XSAVE == true);
-    EXPECT_TRUE(result.XSAVE == true);
-    EXPECT_TRUE(result.AVX == true);
-    EXPECT_TRUE(result.F16C == true);
-    EXPECT_TRUE(result.FMA3 == true);
-    EXPECT_TRUE(result.AVX2 == true);
+    // sse family
+    EXPECT_TRUE(result.sse == true);
+    EXPECT_TRUE(result.sse2 == true);
+    EXPECT_TRUE(result.sse3 == true);
+    EXPECT_TRUE(result.ssse3 == true);
+    EXPECT_TRUE(result.sse4_1 == true);
+    EXPECT_TRUE(result.sse4_2 == true);
 
-    EXPECT_TRUE(result.AVX512_F == true); // 可在SDE环境下模拟AVX512F指令
+    EXPECT_TRUE(result.os_xsave == true);
+    EXPECT_TRUE(result.xsave == true);
+
+    // avx family
+    EXPECT_TRUE(result.avx == true);
+    EXPECT_TRUE(result.f16c == true);
+    EXPECT_TRUE(result.fma3 == true);
+    EXPECT_TRUE(result.avx2 == true);
+
+    EXPECT_TRUE(result.avx_vnni == true);
+    EXPECT_TRUE(result.avx_vnni_int8 == true);
+    EXPECT_TRUE(result.avx_ne_convert == true);
+    EXPECT_TRUE(result.avx_ifma == true);
+    EXPECT_TRUE(result.avx_vnni_int16 == true);
+    EXPECT_TRUE(result.sha512 == true);
+    EXPECT_TRUE(result.sm3 == true);
+    EXPECT_TRUE(result.sm4 == true);
+
+    // avx512 family
+    EXPECT_TRUE(result.avx512_f == true); // 可在SDE环境下模拟AVX512F指令
 
 #elif KSIMD_ARCH_ARM_ANY
 
-    EXPECT_TRUE(result.ARM_CRC32 == true);
-    EXPECT_TRUE(result.NEON == true);
-    EXPECT_TRUE(result.SVE == true);
+    EXPECT_TRUE(result.arm_crc32 == true);
+    EXPECT_TRUE(result.neon == true);
+    EXPECT_TRUE(result.sve == true);
 
 #else
     #error unknown arch

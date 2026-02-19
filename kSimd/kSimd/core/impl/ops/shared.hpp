@@ -16,11 +16,12 @@ SIMD抽象封装，需要有以下功能：
         但是有些时候可能会有特殊情况，无法进行转置。所以需要设置一个专门的Fixed128Tag<ScalarType>来处理这种特殊情况。
 
 3.  图像处理中，临近元素的操作：
-    有一段buffer: [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
-                 [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
-                 [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
-                 [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
-                 [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
+    有一段buffer:
+    [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
+    [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
+    [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
+    [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
+    [ R|G|B|A, R|G|B|A, R|G|B|A|, R|G|B|A, R|G|B|A ]
     这个buffer存储结构是一个一维向量，但是逻辑结构是二维的。我们需要对他进行卷积运算，需要划分一个5x5的区域。
     这种操作，仍然使用Full来处理即可，使用loadu非对齐加载或者进行寄存器偏移来处理即可
 

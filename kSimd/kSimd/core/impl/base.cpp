@@ -26,6 +26,7 @@
 #endif
 
 #include <cstddef>
+#include <cstring> // std::memcpy
 
 namespace
 {
@@ -49,6 +50,7 @@ namespace
         SSE4_1      = 19, // EAX 1 ECX 0, ECX 19
         SSE4_2      = 20, // EAX 1 ECX 0, ECX 20
         POPCNT      = 23, // EAX 1 ECX 0, ECX 23
+        AES_NI      = 25, // EAX 1 ECX 0, ECX 25
         XSAVE       = 26, // EAX 1 ECX 0, ECX 26
         OS_XSAVE    = 27, // EAX 1 ECX 0, ECX 27
         AVX         = 28, // EAX 1 ECX 0, ECX 28
@@ -62,19 +64,36 @@ namespace
 
     enum class CpuFeatureIndex_EAX7_ECX0 : uint32_t
     {
+        // EBX
         AVX2        = 5 , // EAX 7 ECX 0, EBX  5
         AVX_512_F   = 16, // EAX 7 ECX 0, EBX 16
+        SHA         = 29, // EAX 7 ECX 0, EBX 29
+    };
+
+    enum class CpuFeatureIndex_EAX7_ECX1 : uint32_t
+    {
+        // EAX
+        SHA512          = 0 , // EAX 7 ECX 1, EAX  0
+        SM3             = 1 , // EAX 7 ECX 1, EAX  1
+        SM4             = 2 , // EAX 7 ECX 1, EAX  2
+        AVX_VNNI        = 4 , // EAX 7 ECX 1, EAX  4
+        AVX_IFMA        = 23, // EAX 7 ECX 1, EAX 23
+
+        // EDX
+        AVX_VNNI_INT8   = 4 , // EAX 7 ECX 1, EDX  4
+        AVX_NE_CONVERT  = 5 , // EAX 7 ECX 1, EDX  5
+        AVX_VNNI_INT16  = 10, // EAX 7 ECX 1, EDX 10
     };
 
     enum class CpuXSaveStateIndex : uint64_t
     {
         // see https://en.wikipedia.org/wiki/CPUID XSAVE State-components
 
-        SSE                 = 1 , // XMM0-XMM15 and MXCSR
-        AVX                 = 2 , // YMM0-YMM15
-        AVX_512_K0_K7       = 5 , // opmask registers k0-k7
-        AVX_512_LOW_256     = 6 , // ZMM0-ZMM15
-        AVX_512_HIGH_256    = 7 , // ZMM16-ZMM31
+        XMM             = 1 , // XMM0-XMM15 and MXCSR
+        YMM             = 2 , // YMM0-YMM15
+        ZMM_K0_K7       = 5 , // opmask registers k0-k7
+        ZMM_LOW_256     = 6 , // ZMM0-ZMM15
+        ZMM_HIGH_256    = 7 , // ZMM16-ZMM31
     };
 
     // leaf: EAX, sub_leaf: ECX
@@ -125,95 +144,188 @@ namespace ksimd
 {
     const CpuSupportInfo& get_cpu_support_info() noexcept
     {
+        #if KSIMD_ARCH_X86_ANY
         static CpuSupportInfo info = []()
         {
             CpuSupportInfo result{};
 
-            #if KSIMD_ARCH_X86_ANY
             uint32_t abcd[4]; // eax, ebx, ecx, edx
 
             cpuid(0, 0, abcd);
+            // 如果 max_leaf == 13，则可以调用 cpuid 查询的EAX的范围是 [0, 13]
             const uint32_t max_leaf = abcd[0];
+
             uint64_t xcr0 = 0;
+            uint32_t eax1_ecx0_edx = 0; // EAX 1, ECX 0 的 EDX 值
 
-
-            // ------------------ EAX 1 ECX 0 ------------------
-            if (max_leaf >= 1)
+            // ------------------ EAX 0 ------------------
+            // if (max_leaf >= 0)
             {
-                // 查询 EAX 1, ECX 0
-                cpuid(1, 0, abcd);
+                // vendor name
+                const uint32_t ebx = abcd[1];
                 const uint32_t ecx = abcd[2];
                 const uint32_t edx = abcd[3];
+                std::memcpy(result.vendor_name, &ebx, sizeof(uint32_t));
+                std::memcpy(result.vendor_name + sizeof(uint32_t), &edx, sizeof(uint32_t));
+                std::memcpy(result.vendor_name + 2 * sizeof(uint32_t), &ecx, sizeof(uint32_t));
+                result.vendor_name[12] = 0;
 
-                result.POPCNT = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::POPCNT);
-
-                // ------------------------- FXSR -------------------------
-                result.FXSR = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
-
-                // ------------------------- SSE family -------------------------
-                result.SSE = result.FXSR && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
-                result.SSE2 = result.SSE && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
-                result.SSE3 = result.SSE2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
-                result.SSSE3 = result.SSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
-                result.SSE4_1 = result.SSSE3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
-                result.SSE4_2 = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
-
-                // xsave os_xsave
-                result.XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
-                result.OS_XSAVE = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
-
-                // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
-                if (result.XSAVE && result.OS_XSAVE)
+                // vendor enum
+                // Intel "GenuineIntel"
+                if (ebx == 0x756e6547 && edx == 0x49656e69 && ecx == 0x6c65746e)
                 {
-                    xcr0 = xgetbv(0);
+                    result.vendor = CpuVendor::Intel;
+                }
 
-                    // ------------------------- AVX -------------------------
-                    const bool os_support_avx = bit_is_open(xcr0, CpuXSaveStateIndex::SSE) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX);
-
-                    result.AVX = result.SSE4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
-                    result.F16C = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
-                    result.FMA3 = result.AVX && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
+                // AMD "AuthenticAMD"
+                if (ebx == 0x68747541 && edx == 0x69746e65 && ecx == 0x444d4163)
+                {
+                    result.vendor = CpuVendor::AMD;
                 }
             }
 
-            // ------------------ EAX 7 ECX 0 ------------------
+            // ------------------ EAX 1 ------------------
+            if (max_leaf >= 1)
+            {
+                // EAX 1, ECX 0
+                cpuid(1, 0, abcd);
+                const uint32_t ebx = abcd[1];
+                const uint32_t ecx = abcd[2];
+                const uint32_t edx = abcd[3];
+                eax1_ecx0_edx = edx;
+
+                result.logical_cores = (ebx >> 16) & 0xff; // EBX[23:16]
+
+                // ------------------------- FXSR -------------------------
+                result.fxsr = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
+
+                // ------------------------- SSE family -------------------------
+                result.sse = result.fxsr && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
+                result.sse2 = result.sse && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
+                result.sse3 = result.sse2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
+                result.ssse3 = result.sse3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
+                result.sse4_1 = result.ssse3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
+                result.sse4_2 = result.sse4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
+
+                // ------------------------- XSAVE -------------------------
+                result.xsave = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
+                result.os_xsave = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
+                // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
+                if (result.xsave && result.os_xsave)
+                {
+                    xcr0 = xgetbv(0);
+                }
+
+                // ------------------------- AVX family -------------------------
+                const bool os_support_avx = bit_is_open(xcr0, CpuXSaveStateIndex::XMM) &&
+                                            bit_is_open(xcr0, CpuXSaveStateIndex::YMM);
+
+                result.avx = result.sse4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
+                result.f16c = result.avx && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
+                result.fma3 = result.avx && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
+
+                // other
+                result.aes_ni = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AES_NI);
+                result.popcnt = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::POPCNT);
+            }
+
+            // ------------------ EAX 4 ------------------
+            if (max_leaf >= 4)
+            {
+                cpuid(4, 0, abcd);
+                const uint32_t eax = abcd[0];
+
+                if (result.vendor == CpuVendor::Intel)
+                {
+                    result.physical_cores = ((eax >> 26) & 0x3f) + 1; // EAX[31:26] + 1
+                }
+            }
+
+            // ------------------ EAX 7 ------------------
             if (max_leaf >= 7)
             {
                 // EAX 7, ECX 0
                 cpuid(7, 0, abcd);
+                const uint32_t eax7_subleaf_count = abcd[0];
                 const uint32_t ebx = abcd[1];
 
-                result.AVX2 = result.AVX && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
+                result.avx2 = result.avx && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
 
 
                 // ------------------------- AVX-512 family -------------------------
-                const bool os_support_avx_512 = bit_is_open(xcr0, CpuXSaveStateIndex::SSE) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_K0_K7) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_LOW_256) &&
-                                                bit_is_open(xcr0, CpuXSaveStateIndex::AVX_512_HIGH_256);
+                const bool os_support_avx_512 = bit_is_open(xcr0, CpuXSaveStateIndex::XMM) &&
+                                                bit_is_open(xcr0, CpuXSaveStateIndex::YMM) &&
+                                                bit_is_open(xcr0, CpuXSaveStateIndex::ZMM_K0_K7) &&
+                                                bit_is_open(xcr0, CpuXSaveStateIndex::ZMM_LOW_256) &&
+                                                bit_is_open(xcr0, CpuXSaveStateIndex::ZMM_HIGH_256);
 
-                result.AVX512_F = result.AVX2 && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX_512_F) && os_support_avx_512;
+                result.avx512_f = result.avx2 && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX_512_F) && os_support_avx_512;
+
+                // other
+                result.sha = bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::SHA);
+
+                // EAX 7 ECX 1
+                if (eax7_subleaf_count >= 1)
+                {
+                    cpuid(7, 1, abcd);
+                    const uint32_t eax = abcd[0];
+                    const uint32_t edx = abcd[3];
+
+                    // eax
+                    result.avx_vnni = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::AVX_VNNI);
+                    result.avx_ifma = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::AVX_IFMA);
+                    result.sha512 = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::SHA512);
+                    result.sm3 = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::SM3);
+                    result.sm4 = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::SM4);
+
+                    // edx
+                    result.avx_vnni_int8 = result.avx2 && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX1::AVX_VNNI_INT8);
+                    result.avx_ne_convert = result.avx2 && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX1::AVX_NE_CONVERT);
+                    result.avx_vnni_int16 = result.avx2 && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX1::AVX_VNNI_INT16);
+                }
             }
 
-            #elif KSIMD_ARCH_ARM_ANY
+            // ------------------------------------ ext ------------------------------------
+            cpuid(0x80000000, 0, abcd);
+            const uint32_t max_ext_leaf = abcd[0];
+
+            // ------------------ EAX 0x8000'0008 ------------------
+            if (max_ext_leaf >= 0x80000008)
+            {
+                if (result.vendor == CpuVendor::AMD)
+                {
+                    cpuid(0x80000008, 0, abcd);
+                    const uint32_t ecx = abcd[2];
+                    result.physical_cores = (ecx & 0xff) + 1; // ECX[7:0] + 1
+                }
+            }
+
+            if (max_leaf >= 1)
+            {
+                result.hyper_threads = (eax1_ecx0_edx & (1 << 28)) && (result.physical_cores < result.logical_cores);
+            }
+
+            return result;
+        }();
+        #elif KSIMD_ARCH_ARM_ANY
+        static CpuSupportInfo info = []()
+        {
+            CpuSupportInfo result{};
 
             // linux
             #if KSIMD_OS_LINUX
-
                 #if KSIMD_ARCH_ARM_64
-                unsigned long hwcaps = getauxval(AT_HWCAP);
+                    unsigned long hwcaps = getauxval(AT_HWCAP);
 
-                result.NEON = ((hwcaps & HWCAP_ASIMD) != 0);
-                result.SVE  = ((hwcaps & HWCAP_SVE) != 0);
-                result.ARM_CRC32 = ((hwcaps & HWCAP_CRC32) != 0);
+                    result.neon = ((hwcaps & HWCAP_ASIMD) != 0);
+                    result.sve  = ((hwcaps & HWCAP_SVE) != 0);
+                    result.arm_crc32 = ((hwcaps & HWCAP_CRC32) != 0);
 
                 #elif KSIMD_ARCH_ARM_32
-                #error TODO arm32 cpu feature detect.
+                    #error TODO arm32 cpu feature detect.
 
                 #else
-                #error unknown arm arch.
+                    #error unknown arm arch.
                 #endif
             #endif // !linux
 
@@ -227,12 +339,11 @@ namespace ksimd
                 #error TODO: windows on arm intrinsic cpu feature detect.
             #endif // windows on arm
 
-            #else
-            #error unknown arch
-            #endif
-
             return result;
         }();
+        #else
+        #error unknown arch
+        #endif
 
         return info;
     }
