@@ -22,7 +22,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
 
 #pragma region--- constants ---
-    template<is_tag_full_and_fixed128 Tag>
+    template<is_tag_full_or_fixed128 Tag>
     constexpr size_t lanes(Tag) noexcept
     {
         if constexpr (is_tag_full<Tag>)
@@ -76,7 +76,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #endif
     } // namespace detail
 
-    template<is_tag_full_and_fixed128 Tag>
+    template<is_tag_full_or_fixed128 Tag>
     using Batch = typename detail::batch_type<tag_scalar_t<Tag>>::type;
 
 
@@ -117,7 +117,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #endif
     } // namespace detail
 
-    template<is_tag_full_and_fixed128 Tag>
+    template<is_tag_full_or_fixed128 Tag>
     using Mask = typename detail::mask_type<tag_scalar_t<Tag>>::type;
 #pragma endregion
 

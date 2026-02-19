@@ -52,7 +52,7 @@ namespace ksimd
 
     // full + fixed128
     template<typename Tag>
-    concept is_tag_full_and_fixed128 = is_tag<Tag> && tag_type_includes<Tag, TagType::FullTag, TagType::Fixed128Tag>;
+    concept is_tag_full_or_fixed128 = is_tag<Tag> && tag_type_includes<Tag, TagType::FullTag, TagType::Fixed128Tag>;
 
     // signed tag
     template<typename Tag>
