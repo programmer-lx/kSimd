@@ -53,6 +53,19 @@ TEST(cpuid, support)
 
     // avx512 family
     EXPECT_TRUE(result.avx512_f == true); // 可在SDE环境下模拟AVX512F指令
+    EXPECT_TRUE(result.avx512_bw == true);
+    EXPECT_TRUE(result.avx512_cd == true);
+    EXPECT_TRUE(result.avx512_dq == true);
+    EXPECT_TRUE(result.avx512_ifma == true);
+    EXPECT_TRUE(result.avx512_vl == true);
+    EXPECT_TRUE(result.avx512_vpopcntdq == true);
+    EXPECT_TRUE(result.avx512_bf16 == true);
+    EXPECT_TRUE(result.avx512_bitalg == true);
+    EXPECT_TRUE(result.avx512_vbmi == true);
+    EXPECT_TRUE(result.avx512_vbmi2 == true);
+    EXPECT_TRUE(result.avx512_vnni == true);
+    // EXPECT_TRUE(result.avx512_vp2intersect == true); // SDE future CPU 不支持
+    EXPECT_TRUE(result.avx512_fp16 == true);
 
 #elif KSIMD_ARCH_ARM_ANY
 

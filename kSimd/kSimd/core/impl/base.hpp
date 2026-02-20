@@ -193,6 +193,19 @@ namespace ksimd
 
         // AVX-512 family
         unsigned avx512_f               : 1 = 0;
+        unsigned avx512_bw              : 1 = 0;
+        unsigned avx512_cd              : 1 = 0;
+        unsigned avx512_dq              : 1 = 0;
+        unsigned avx512_ifma            : 1 = 0;
+        unsigned avx512_vl              : 1 = 0;
+        unsigned avx512_vpopcntdq       : 1 = 0;
+        unsigned avx512_bf16            : 1 = 0;
+        unsigned avx512_bitalg          : 1 = 0;
+        unsigned avx512_vbmi            : 1 = 0;
+        unsigned avx512_vbmi2           : 1 = 0;
+        unsigned avx512_vnni            : 1 = 0;
+        unsigned avx512_vp2intersect    : 1 = 0;
+        unsigned avx512_fp16            : 1 = 0;
 
         // other
         unsigned popcnt                 : 1 = 0;
