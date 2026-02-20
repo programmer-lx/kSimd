@@ -7,7 +7,7 @@ namespace ksimd
     enum class TagType
     {
         FullTag,
-        HalfFullTag,
+        HalfIoTag,
         Fixed128Tag
     };
 
