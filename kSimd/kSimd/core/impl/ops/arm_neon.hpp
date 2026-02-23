@@ -596,28 +596,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Batch_neon<Tag>) rcp(Tag, Batch_neon<Tag> v) noexcept
     {
-        // 获取初始近似值 (Estimate)
-        float32x4_t estimate = vrecpeq_f32(v);
-
-        // 牛顿迭代
-        // 迭代公式: x_{n+1} = x_n * (2 - v * x_n)
-        // vrecpsq_f32 执行 (2 - v * x_n)
-        float32x4_t iter = vrecpsq_f32(v, estimate);
-        return vmulq_f32(estimate, iter);
+        return vrecpeq_f32(v);
     }
 
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Batch_neon<Tag>) rsqrt(Tag, Batch_neon<Tag> v) noexcept
     {
-        // 获取初始近似值 (Estimate)
-        float32x4_t estimate = vrsqrteq_f32(v);
-
-        // 牛顿迭代
-        // 迭代公式: x_{n+1} = x_n * (3 - v * x_n^2) / 2
-        // vrsqrtsq_f32 执行 (3 - v * x_n^2) / 2
-        float32x4_t iter = vrsqrtsq_f32(vmulq_f32(estimate, estimate), v);
-        return vmulq_f32(estimate, iter);
+        return vrsqrteq_f32(v);
     }
 #pragma endregion
 } // namespace ksimd::KSIMD_DYN_INSTRUCTION
