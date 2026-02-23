@@ -83,34 +83,34 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     namespace detail
     {
         template<is_scalar_type>
-        struct mask_type
+        struct mask_type_256
         {
             using type = __m256i;
         };
 
         template<>
-        struct mask_type<float>
+        struct mask_type_256<float>
         {
             using type = __m256;
         };
 
 #if KSIMD_SUPPORT_STD_FLOAT32
         template<>
-        struct mask_type<std::float32_t>
+        struct mask_type_256<std::float32_t>
         {
             using type = __m256;
         };
 #endif
 
         template<>
-        struct mask_type<double>
+        struct mask_type_256<double>
         {
             using type = __m256d;
         };
 
 #if KSIMD_SUPPORT_STD_FLOAT64
         template<>
-        struct mask_type<std::float64_t>
+        struct mask_type_256<std::float64_t>
         {
             using type = __m256d;
         };
@@ -118,7 +118,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     } // namespace detail
 
     template<is_tag_full_or_fixed128 Tag>
-    using Mask_256 = typename detail::mask_type<tag_scalar_t<Tag>>::type;
+    using Mask_256 = typename detail::mask_type_256<tag_scalar_t<Tag>>::type;
 
     // user types
     template<is_tag_full_or_fixed128 Tag>

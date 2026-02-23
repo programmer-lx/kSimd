@@ -9,7 +9,7 @@ namespace
     // dynamic namespace : dispatch function
     namespace KSIMD_DYN_INSTRUCTION
     {
-        template<typename T, bool tag>
+        template<typename T, bool condition>
         KSIMD_DYN_FUNC_ATTR void kernel_template(
             const T* KSIMD_RESTRICT src,
                   T* KSIMD_RESTRICT dst,
@@ -18,22 +18,23 @@ namespace
         {
             // do something...
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-            ns::Traits<T> t;
+            ns::FullTag<T> t;
+            using batch_t = ns::Batch<decltype(t)>;
 
             const size_t lanes = ns::lanes(t);
 
             size_t i = 0;
             for (; i + lanes <= size; i += lanes)
             {
-                ns::Batch<T> data = ns::loadu(src + i);
-                ns::storeu(dst + i, data);
+                batch_t data = ns::loadu(t, src + i);
+                ns::storeu(t, dst + i, data);
             }
 
             // tail
             if (const size_t tail = size - i; tail > 0)
             {
-                ns::Batch<T> data = ns::loadu_partial(src + i, tail);
-                ns::storeu_partial(dst + i, data, tail);
+                batch_t data = ns::loadu_partial(t, src + i, tail);
+                ns::storeu_partial(t, dst + i, data, tail);
             }
         }
     } // namespace KSIMD_DYN_INSTRUCTION
