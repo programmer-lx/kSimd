@@ -2,10 +2,10 @@
 
 #include "kSimd/macros.h"
 
-#include <cstdint>
-
 #include <type_traits>
 #include <version>
+
+#include <cstdint>
 
 
 // C++ standard
