@@ -135,7 +135,7 @@ namespace ksimd
 
     // floating point tag
     template<typename Tag>
-    concept is_tag_float_point = is_tag<Tag> && is_scalar_floating_point<tag_scalar_t<Tag>>;
+    concept is_tag_floating_point = is_tag<Tag> && is_scalar_floating_point<tag_scalar_t<Tag>>;
 
     // f32 tag
     template<typename Tag>

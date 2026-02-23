@@ -29,7 +29,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION::vmath
 #pragma endregion
 
 #pragma region--- floating point ---
-    template<is_tag Tag>
+    template<is_tag_floating_point Tag>
     KSIMD_API(Batch<Tag>) lerp(Tag tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> t) noexcept
     {
         // a + (b - a) * t

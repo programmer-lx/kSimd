@@ -501,7 +501,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
 #pragma region--- floating point ---
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
@@ -511,7 +511,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
@@ -521,7 +521,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<RoundingMode mode, typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
@@ -544,35 +544,35 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) not_greater(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return mask_not(t, greater(t, lhs, rhs));
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) not_greater_equal(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return mask_not(t, greater_equal(t, lhs, rhs));
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) not_less(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return mask_not(t, less(t, lhs, rhs));
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) not_less_equal(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return mask_not(t, less_equal(t, lhs, rhs));
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
@@ -584,7 +584,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
@@ -596,7 +596,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
@@ -608,7 +608,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
@@ -620,7 +620,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires (is_tag_float_point<Tag> && is_tag_full_or_fixed128<Tag>)
+        requires (is_tag_floating_point<Tag> && is_tag_full_or_fixed128<Tag>)
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
