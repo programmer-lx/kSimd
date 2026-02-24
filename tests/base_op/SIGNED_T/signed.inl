@@ -14,7 +14,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 基础数值：正数与负数
         ns::store(t, test, ns::abs(t, ns::set(t, TYPE_T(-5))));
@@ -57,8 +57,8 @@ namespace KSIMD_DYN_INSTRUCTION
         using batch_t = ns::Batch<decltype(t)>;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T src[Lanes];
-        alignas(ns::Alignment) TYPE_T dst[Lanes];
+        alignas(ALIGNMENT) TYPE_T src[Lanes];
+        alignas(ALIGNMENT) TYPE_T dst[Lanes];
 
         // 1. 基础数值测试：正变负，负变正
         for (size_t i = 0; i < Lanes; ++i) {

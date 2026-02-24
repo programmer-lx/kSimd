@@ -35,8 +35,8 @@ namespace KSIMD_DYN_INSTRUCTION {
 
         const size_t Lanes = ns::lanes(t);
         // 显式对齐的本地缓冲区
-        alignas(ns::Alignment) FLOAT_T act_buf[Lanes];
-        alignas(ns::Alignment) FLOAT_T exp_buf[Lanes];
+        alignas(ALIGNMENT) FLOAT_T act_buf[Lanes];
+        alignas(ALIGNMENT) FLOAT_T exp_buf[Lanes];
 
         #define CHECK(actual, expected, msg) \
         do { \
@@ -115,8 +115,8 @@ namespace KSIMD_DYN_INSTRUCTION {
         using Opt = ns::FloatMinMaxOption;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T act_buf[Lanes];
-        alignas(ns::Alignment) FLOAT_T exp_buf[Lanes];
+        alignas(ALIGNMENT) FLOAT_T act_buf[Lanes];
+        alignas(ALIGNMENT) FLOAT_T exp_buf[Lanes];
 
         // 辅助宏，仅用于 store 和调用静态检查函数
         #define CLAMP_CHECK(actual, expected, msg) \

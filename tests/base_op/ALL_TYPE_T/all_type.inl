@@ -288,7 +288,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // 测试数据：验证位选择逻辑 (mask & a) | (~mask & b)
         TYPE_T val_a    = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b10101));
@@ -337,7 +337,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         ns::Batch<decltype(t)> v_a = ns::set(t, TYPE_T(10));
         ns::Batch<decltype(t)> v_b = ns::set(t, TYPE_T(20));
@@ -358,8 +358,8 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // 3. 混合掩码交叉选择
         {
-            alignas(ns::Alignment) TYPE_T data_lhs[Lanes];
-            alignas(ns::Alignment) TYPE_T data_rhs[Lanes];
+            alignas(ALIGNMENT) TYPE_T data_lhs[Lanes];
+            alignas(ALIGNMENT) TYPE_T data_rhs[Lanes];
             for (size_t i = 0; i < Lanes; ++i) {
                 data_lhs[i] = static_cast<TYPE_T>(i);
                 data_rhs[i] = TYPE_T(1);
@@ -390,7 +390,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // 输入数据: ...010101 (0x15) -> 取反期望: ...101010 (低5位)
         uint_t input_bits = 0b10101;
@@ -436,7 +436,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // a: 10101, b: 10011 -> res: 10001
         uint_t a = 0b10101, b = 0b10011, exp = 0b10001;
@@ -465,7 +465,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // 逻辑通常为: (~a) & b
         // a: 10101 (~a 低位: 01010)
@@ -497,7 +497,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // a: 10101, b: 10011 -> res: 10111
         uint_t a = 0b10101, b = 0b10011, exp = 0b10111;
@@ -526,7 +526,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ns::Alignment) TYPE_T res[Lanes];
+        alignas(ALIGNMENT) TYPE_T res[Lanes];
 
         // a: 10101, b: 10011 -> res: 00110
         uint_t a = 0b10101, b = 0b10011, exp = 0b00110;
@@ -555,7 +555,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 常规数值测试
         ns::store(t, test, ns::add(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
@@ -593,7 +593,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 常规数值测试
         ns::store(t, test, ns::sub(t, ns::set(t, TYPE_T(50)), ns::set(t, TYPE_T(20))));
@@ -626,7 +626,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 常规数值测试
         ns::store(t, test, ns::mul(t, ns::set(t, TYPE_T(6)), ns::set(t, TYPE_T(7))));
@@ -659,7 +659,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T data[Lanes];
+        alignas(ALIGNMENT) TYPE_T data[Lanes];
         TYPE_T expected = 0;
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(i + 1);
@@ -694,7 +694,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T data[Lanes];
+        alignas(ALIGNMENT) TYPE_T data[Lanes];
 
         // --- 1. 基础阶乘/累乘测试 ---
         TYPE_T expected = 1;
@@ -766,7 +766,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T data[Lanes];
+        alignas(ALIGNMENT) TYPE_T data[Lanes];
 
         // 1. 常规场景测试：[1, 2, 3, ..., Lanes]
         TYPE_T expected = TYPE_T(1);
@@ -845,7 +845,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T data[Lanes];
+        alignas(ALIGNMENT) TYPE_T data[Lanes];
 
         TYPE_T res = TYPE_T(0);
 
@@ -921,7 +921,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // (2 * 3) + 4 = 10
         ns::store(t, test, ns::mul_add(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3)), ns::set(t, TYPE_T(4))));
@@ -951,7 +951,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         ns::store(t, test, ns::min(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
         EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(10)));
@@ -996,7 +996,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         ns::store(t, test, ns::max(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
         EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(20)));
@@ -1044,7 +1044,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 1 == 1 (True)
         ns::test_store_mask(t, test, ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(1))));
@@ -1067,7 +1067,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 1 != 2 (True)
         ns::test_store_mask(t, test, ns::not_equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
@@ -1094,7 +1094,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 2 > 1 (True), 1 > 2 (False)
         ns::test_store_mask(t, test, ns::greater(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(1))));
@@ -1121,7 +1121,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 2 >= 2 (True)
         ns::test_store_mask(t, test, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(2))));
@@ -1142,7 +1142,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 1 < 2 (True)
         ns::test_store_mask(t, test, ns::less(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
@@ -1168,7 +1168,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) TYPE_T test[Lanes];
+        alignas(ALIGNMENT) TYPE_T test[Lanes];
 
         // 5 <= 5 (True)
         ns::test_store_mask(t, test, ns::less_equal(t, ns::set(t, TYPE_T(5)), ns::set(t, TYPE_T(5))));
@@ -1200,8 +1200,8 @@ namespace KSIMD_DYN_INSTRUCTION
 
         #define KSIMD_CHECK_MASK_EQ(lhs, rhs) \
         do { \
-            alignas(ns::Alignment) TYPE_T M__l[ns::lanes(t)]{}; \
-            alignas(ns::Alignment) TYPE_T M__r[ns::lanes(t)]{}; \
+            alignas(ALIGNMENT) TYPE_T M__l[ns::lanes(t)]{}; \
+            alignas(ALIGNMENT) TYPE_T M__r[ns::lanes(t)]{}; \
             ns::test_store_mask(t, M__l, lhs); \
             ns::test_store_mask(t, M__r, rhs); \
             for (size_t I__ = 0; I__ < ns::lanes(t); ++I__) \

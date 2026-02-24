@@ -34,33 +34,43 @@ namespace ksimd
     }
 
 
-    // 以最大对齐字节进行分配
-    template<typename T>
+    template<typename T, size_t Alignment = alignment::Required>
     struct AlignedAllocator
     {
         static_assert(!std::is_const_v<T>);
         static_assert(!std::is_function_v<T>);
         static_assert(!std::is_reference_v<T>);
+        static_assert((Alignment & (Alignment - 1)) == 0, "Alignment must be power of two");
+        static_assert(Alignment >= alignment::Vec128, "Alignment must be >= alignof(Vec128)");
 
-        using value_type      = T;
-        using size_type       = size_t;
-        using difference_type = ptrdiff_t;
+        using value_type        = T;
+        using size_type         = size_t;
+        using difference_type   = ptrdiff_t;
 
         AlignedAllocator() noexcept = default;
 
         AlignedAllocator(const AlignedAllocator&) noexcept = default;
 
         template <class Other>
-        AlignedAllocator(const AlignedAllocator<Other>&) noexcept {}
+        AlignedAllocator(const AlignedAllocator<Other, Alignment>&) noexcept {}
 
         ~AlignedAllocator() = default;
+
+        template<class U>
+        struct rebind
+        {
+            using other = AlignedAllocator<U, Alignment>;
+        };
 
         AlignedAllocator& operator=(const AlignedAllocator&) = default;
 
         [[nodiscard]] T* allocate(const size_t count)
         {
+            if (count > std::numeric_limits<size_type>::max() / sizeof(T))
+                throw std::bad_alloc();
+
             const size_t bytes = count * sizeof(T);
-            void* ptr = aligned_allocate(bytes, alignment::Max);
+            void* ptr = aligned_allocate(bytes, Alignment);
 
             if (!ptr)
             {
@@ -70,7 +80,7 @@ namespace ksimd
             return static_cast<T*>(ptr);
         }
 
-        void deallocate(T* const mem, const size_t)
+        void deallocate(T* const mem, const size_t) noexcept
         {
             aligned_free(mem);
         }

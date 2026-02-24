@@ -6,7 +6,7 @@
 #include <stdfloat>
 
 using TYPE_T = std::float32_t;
-// constexpr size_t ALIGNMENT = 32;
+constexpr size_t ALIGNMENT = 64;
 
 #include "signed.inl"
 

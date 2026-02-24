@@ -25,8 +25,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return vec_size::Vec256 / sizeof(tag_scalar_t<Tag>);
     }
-
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec256;
 #pragma endregion
 
 #pragma region--- types ---

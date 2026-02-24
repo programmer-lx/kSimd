@@ -78,26 +78,43 @@ namespace ksimd
 
     namespace alignment
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalar128  = 16;
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128     = 16;
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256     = 32;
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512     = 64;
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Max        = Vec512;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalar128 = 16;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128 = 16;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256 = 32;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512 = 64;
+
+        // x86平台使用AVX512对齐
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Max_X86 = Vec512;
+
+        // ARM平台: SVE要求16B对齐即可，但是缓存行可能是64B，所以提供了最低对齐和性能对齐两个选项
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Required_ARM = 16;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Performance_ARM = 64;
+
+        // 跨平台
+    #if KSIMD_ARCH_X86_ANY
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Required = Max_X86;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Performance = Max_X86;
+    #elif KSIMD_ARCH_ARM_ANY
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Required = Required_ARM;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Performance = Performance_ARM;
+    #else
+        #error unknown arch
+    #endif
     }
 
     namespace vec_size
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Invalid    = 0;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Invalid = 0;
 
         // 模拟Vec128
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalar128  = 16;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalar128 = 16;
 
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128     = 16;
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256     = 32;
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512     = 64;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128 = 16;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256 = 32;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512 = 64;
 
         // 变长向量类型，使用size_t最大值表示
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalable   = SIZE_MAX;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalable = SIZE_MAX;
     }
 }
 

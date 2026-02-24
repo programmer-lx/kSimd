@@ -28,6 +28,9 @@
 // arm NEON
 #define KSIMD_DYN_DISPATCH_LEVEL_NEON           51
 
+// arm SVE
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE            61
+
 
 // --------------------------------- FUNC_ATTR ---------------------------------
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
@@ -85,7 +88,7 @@
     #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_AVX2_MAX
 #endif
 
-// neon may fallback
+// neon fallback
 #if KSIMD_DYN_INSTRUCTION_NEON == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #undef KSIMD_DYN_INSTRUCTION_FALLBACK
     #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_NEON

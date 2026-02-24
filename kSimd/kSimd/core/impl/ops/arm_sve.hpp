@@ -26,8 +26,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         else    if constexpr (len == 4)    return static_cast<size_t>(svcntw());
         else /* if constexpr (len == 8) */ return static_cast<size_t>(svcntd());
     }
-
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec512;
 #pragma endregion
 
 #pragma region--- types ---

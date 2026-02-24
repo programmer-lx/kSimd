@@ -24,7 +24,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T test[Lanes];
+        alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
         // 常规数值测试
         ns::store(t, test, ns::div(t, ns::set(t, FLOAT_T(100)), ns::set(t, FLOAT_T(4))));
@@ -64,7 +64,7 @@ namespace KSIMD_DYN_INSTRUCTION
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
             
             const size_t Lanes = ns::lanes(t);
-            alignas(ns::Alignment) FLOAT_T test[Lanes];
+            alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
             EXPECT_TRUE(std::isinf(inf<FLOAT_T>));
             EXPECT_TRUE(std::isinf(-inf<FLOAT_T>));
@@ -118,7 +118,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T test[Lanes];
+        alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
         ns::store(t, test, ns::sqrt(t, ns::set(t, FLOAT_T(16))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(static_cast<double>(test[i]), 4.0, 1e-7);
@@ -137,7 +137,7 @@ namespace KSIMD_DYN_INSTRUCTION
             namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
             
             const size_t Lanes = ns::lanes(t);
-            alignas(ns::Alignment) FLOAT_T test[Lanes];
+            alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
             ns::store(t, test, ns::rsqrt(t, ns::set(t, FLOAT_T(4))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_NEAR(test[i], 0.5, FLOAT_T_EPSILON_RSQRT);
@@ -168,8 +168,8 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T res_normal[Lanes];
-        alignas(ns::Alignment) FLOAT_T res_not[Lanes];
+        alignas(ALIGNMENT) FLOAT_T res_normal[Lanes];
+        alignas(ALIGNMENT) FLOAT_T res_not[Lanes];
 
         // 只有浮点数需要验证 NaN 的特殊取反逻辑
         if constexpr (std::is_floating_point_v<FLOAT_T>) 
@@ -242,7 +242,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T test[Lanes];
+        alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
         // any_NaN: 只要有一个是 NaN 就返回 True
         ns::test_store_mask(t, test, ns::any_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
@@ -270,7 +270,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T res[Lanes];
+        alignas(ALIGNMENT) FLOAT_T res[Lanes];
 
         // 1. Round Down (Floor)
         ns::store(t, res, ns::round<ns::RoundingMode::Down>(t,ns::set(t, FLOAT_T(-2.1))));
@@ -308,7 +308,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ns::Alignment) FLOAT_T res[Lanes];
+        alignas(ALIGNMENT) FLOAT_T res[Lanes];
 
         // 验证 -0.0 的符号位在 Round 后保留
         ns::store(t, res, ns::round<ns::RoundingMode::Round>(t,ns::set(t, FLOAT_T(-0.0))));

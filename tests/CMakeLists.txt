@@ -98,6 +98,13 @@ target_link_libraries(macro_test PRIVATE kSimd)
 target_compile_features(macro_test PRIVATE cxx_std_23)
 add_test(NAME macro_test COMMAND macro_test)
 
+# no testing macro (no KSIMD_IS_TESTING)
+add_executable(no_testing_macro no_testing_macro.cc)
+target_include_directories(no_testing_macro PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(no_testing_macro PRIVATE kSimd gtest)
+target_compile_features(no_testing_macro PRIVATE cxx_std_23)
+add_test(NAME no_testing_macro COMMAND no_testing_macro)
+
 # crc32c kernel
 if(KSIMD_ARCH_X86_ANY)
     add_executable(crc32c_kernel kernels/crc32c.cc ${KSIMD_SOURCE_ROOT_DIR}/kSimd/kSimd/kernels/crc32c/crc32c.cpp)

@@ -29,12 +29,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return vec_size::Vec128 / sizeof(tag_scalar_t<Tag>);
     }
-
-#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START && \
-    KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SSE_END
-
-    KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec128;
-#endif
 #pragma endregion
 
 #pragma region--- types ---

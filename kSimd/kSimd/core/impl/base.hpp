@@ -86,7 +86,8 @@
 // #include <kSimd/core/dispatch_core.hpp>
 
 // 目前支持的宏:
-// - KSIMD_DISABLE_AVX2_MAX: 取消 AVX2_FMA3_F16C 的分发
+// - KSIMD_DISABLE_AVX2_MAX : 取消 AVX2_FMA3_F16C 的分发
+// - KSIMD_DISABLE_NEON     : 取消 NEON 的分发
 
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
 // 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
@@ -127,8 +128,15 @@
 // --------- arm指令集 ---------
 #if KSIMD_ARCH_ARM_ANY
     // NEON
-    #if defined(KSIMD_IS_TESTING) || (!KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+    #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_NEON) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #define KSIMD_INSTRUCTION_FEATURE_NEON 1
+
+        // 64位操作系统必定支持NEON
+        #if KSIMD_ARCH_ARM_64
+            #undef KSIMD_INSTRUCTION_FEATURE_NEON
+            #define KSIMD_INSTRUCTION_FEATURE_NEON KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+        #endif
     #endif
 #endif // arm instructions
 

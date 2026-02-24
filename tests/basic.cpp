@@ -78,7 +78,6 @@ void test_scalar_op_constants()
 {
     namespace ns = ksimd::KSIMD_DYN_INSTRUCTION_SCALAR;
     EXPECT_TRUE(ns::lanes(ns::FullTag<T>{}) == (16 / sizeof(T)));
-    EXPECT_TRUE(ns::Alignment == 16);
 }
 
 TEST(dyn_dispatch, constants)
