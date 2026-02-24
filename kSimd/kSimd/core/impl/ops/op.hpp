@@ -44,6 +44,45 @@ FullTag<ScalarType> 表示吞吐量最大化，用满SIMD寄存器宽度
 HalfIoTag<ScalarType> 只用于 load/store 的特殊tag，可以递归构造，每次长度减半
 Fixed128Tag<ScalarType> 无论机器支持的寄存器位宽有多大，在定长向量的CPU中，始终使用128bit，对于变长向量(比如SVE)，始终使用前128位
 
+类型设计：
+Batch<Tag> 表示SIMD数据类型，并且Batch类型是SIMD类型的直接别名，比如AVX2: using Batch<FullTag<double>> = __m256d
+Mask<Tag>  表示SIMD掩码类型                                   AVX2: using Mask<FullTag<float>> = __m256;
+                                                            AVX-512: using Mask<FullTag<float>> = __mmask16;
+
+由于需要在 simd 256 的头文件中引入 fixed128 向量，所以对每个op的类型定义作出以下的统一规定：
+定义Batch类型:
+namespace detail
+{
+    template<typename Tag, typename Enable>
+    struct batch_type;
+
+    template<typename Tag>
+    struct batch_type<Tag, std::enable_if_t<is_tag_256<Tag> && is_tag_float_32bits<Tag>>> // f32 256bits
+    {
+        using type = __m256;
+    };
+}
+
+定义Mask类型:
+namespace detail
+{
+    template<typename Tag, typename Enable> // Enable 不能有默认参数，因为有了默认参数，就不能重复定义了，到时候包含SSE的头文件的时候，就会标记重复定义
+    struct mask_type;
+
+    template<typename Tag>
+    struct mask_type<Tag, std::enable_if_t<is_tag_256<Tag> && is_tag_float_32bits<Tag>>> // f32 256bits mask
+    {
+        using type = __m256;
+    };
+}
+
+// declare user types
+template<is_tag Tag> // 一定要用 is_tag，因为vec256会包含vec128的头文件，vec128的头文件的batch_type是128tag的特化，所以这里不能限死256
+using Batch = typename detail::batch_type<Tag, void>::type;
+
+template<is_tag Tag>
+using Mask = typename detail::mask_type<Tag, void>::type;
+
 */
 
 namespace ksimd
@@ -63,81 +102,54 @@ namespace ksimd
         CheckNaN    // 检查NaN的传播 (如果传入的值有一个NaN，则会返回NaN)
     };
 
-    enum class TagType
-    {
-        FullTag,
-        HalfIoTag,
-        Fixed128Tag
-    };
-
-    template<is_scalar_type S, TagType Type>
+    template<is_scalar_type S, size_t _bytes>
     struct Tag_base
     {
         using scalar_type = S;
-        static constexpr TagType tag_type = Type;
-    };
-
-    // tags
-    template<is_scalar_type S>
-    struct FullTag : Tag_base<S, TagType::FullTag> {};
-
-    template<is_scalar_type S>
-    struct HalfIoTag : Tag_base<S, TagType::HalfIoTag>
-    {
-        static_assert(Tag_base<S, TagType::HalfIoTag>::tag_type != TagType::HalfIoTag, "TODO: HalfIoTag");
-    };
-
-    template<is_scalar_type S>
-    struct Fixed128Tag : Tag_base<S, TagType::Fixed128Tag>
-    {
-        static_assert(Tag_base<S, TagType::Fixed128Tag>::tag_type != TagType::Fixed128Tag, "TODO: Fixed128Tag");
+        static constexpr size_t bytes = _bytes;
     };
 
     template<typename T>
-    concept is_tag = requires
-    {
-        typename T::scalar_type;
-        T::tag_type;
-        requires std::is_base_of_v<Tag_base<typename T::scalar_type, T::tag_type>, T>;
-    };
+    concept is_tag = std::is_base_of_v<Tag_base<typename T::scalar_type, T::bytes>, T>;
 
+
+    // --- tag simd byte size ---
+    template<typename Tag, size_t bytes>
+    concept is_tag_bytes = is_tag<Tag> && (Tag::bytes == bytes);
+
+    template<typename Tag>
+    concept is_tag_scalar128 = is_tag_bytes<Tag, vec_size::Scalar128>;
+
+    template<typename Tag>
+    concept is_tag_128 = is_tag_bytes<Tag, vec_size::Vec128>;
+
+    template<typename Tag>
+    concept is_tag_256 = is_tag_bytes<Tag, vec_size::Vec256>;
+
+    template<typename Tag>
+    concept is_tag_512 = is_tag_bytes<Tag, vec_size::Vec512>;
+
+    template<typename Tag>
+    concept is_tag_scalable_full = is_tag_bytes<Tag, vec_size::Scalable>;
+
+
+    // --- tag scalar type ---
     template<is_tag Tag>
     using tag_scalar_t = typename Tag::scalar_type;
 
-    template<typename Tag, TagType... Types>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR bool tag_type_includes = []()
-    {
-        if constexpr (is_tag<Tag>)
-        {
-            return ((Tag::tag_type == Types) || ...);
-        }
-        else
-        {
-            return false;
-        }
-    }();
-
-    // full
-    template<typename Tag>
-    concept is_tag_full = is_tag<Tag> && tag_type_includes<Tag, TagType::FullTag>;
-
-    // fixed128
-    template<typename Tag>
-    concept is_tag_fixed128 = is_tag<Tag> && tag_type_includes<Tag, TagType::Fixed128Tag>;
-
-    // full + fixed128
-    template<typename Tag>
-    concept is_tag_full_or_fixed128 = is_tag<Tag> && tag_type_includes<Tag, TagType::FullTag, TagType::Fixed128Tag>;
-
-    // signed tag
+    // signed
     template<typename Tag>
     concept is_tag_signed = is_tag<Tag> && is_scalar_signed<tag_scalar_t<Tag>>;
 
-    // floating point tag
+    // floating point
     template<typename Tag>
     concept is_tag_floating_point = is_tag<Tag> && is_scalar_floating_point<tag_scalar_t<Tag>>;
 
-    // f32 tag
+    // f32
     template<typename Tag>
     concept is_tag_float_32bits = is_tag<Tag> && is_scalar_type_float_32bits<tag_scalar_t<Tag>>;
+
+    // f64
+    template<typename Tag>
+    concept is_tag_float_64bits = is_tag<Tag> && is_scalar_type_float_64bits<tag_scalar_t<Tag>>;
 }

@@ -13,24 +13,18 @@
 
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
-#pragma region--- traits ---
-    template<is_scalar_type S>
-    struct Traits
+#pragma region--- constants ---
+    template<is_tag_scalable_full Tag>
+    const size_t lanes(Tag) noexcept
     {
-        using _scalar_type = S;
-    };
+        constexpr size_t len = sizeof(tag_scalar_t<Tag>);
 
-    template<is_scalar_type S>
-    const size_t lanes(Traits<S>) noexcept
-    {
-        constexpr size_t len = sizeof(S);
+        static_assert(len == 1 || len == 2 || len == 4 || len == 8, "sizeof(scalar type) can only equal to 1, 2, 4, 8");
 
-        static_assert(len == 1 || len == 2 || len == 4 || len == 8, "sizeof(S) can only equal to 1, 2, 4, 8");
-
-               if constexpr (len == 1)   return svcntb();
-        else   if constexpr (len == 2)   return svcnth();
-        else   if constexpr (len == 4)   return svcntw();
-        else /*if constexpr (len == 8)*/ return svcntd();
+                if constexpr (len == 1)    return static_cast<size_t>(svcntb());
+        else    if constexpr (len == 2)    return static_cast<size_t>(svcnth());
+        else    if constexpr (len == 4)    return static_cast<size_t>(svcntw());
+        else /* if constexpr (len == 8) */ return static_cast<size_t>(svcntd());
     }
 
     KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Alignment = alignment::Vec512;
@@ -39,42 +33,28 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma region--- types ---
     namespace detail
     {
-        template<is_scalar_type>
+        template<typename Tag, typename Enable>
         struct batch_type;
 
-        template<>
-        struct batch_type<float>
+        // f32
+        template<typename Tag>
+        struct batch_type<Tag, std::enable_if_t<is_tag_scalable_full<Tag> && is_tag_float_32bits<Tag>>>
         {
             using type = svfloat32_t;
         };
 
-#if KSIMD_SUPPORT_STD_FLOAT32
-        template<>
-        struct batch_type<std::float32_t>
-        {
-            using type = svfloat32_t;
-        };
-#endif
-
-        template<>
-        struct batch_type<double>
+        // f64
+        template<typename Tag>
+        struct batch_type<Tag, std::enable_if_t<is_tag_scalable_full<Tag> && is_tag_float_64bits<Tag>>>
         {
             using type = svfloat64_t;
         };
-
-#if KSIMD_SUPPORT_STD_FLOAT64
-        template<>
-        struct batch_type<std::float64_t>
-        {
-            using type = svfloat64_t;
-        };
-#endif
     } // namespace detail
 
-    template<is_scalar_type S>
-    using Batch = typename detail::batch_type<S>::type;
+    template<is_tag Tag>
+    using Batch = typename detail::batch_type<Tag, void>::type;
 
-    template<is_scalar_type S>
+    template<is_tag Tag>
     using Mask = svbool_t;
 #pragma endregion
 }

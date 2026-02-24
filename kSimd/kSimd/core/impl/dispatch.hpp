@@ -3,6 +3,7 @@
 // 该头文件编写函数分发表相关逻辑
 
 #include "base.hpp"
+#include "types.hpp"
 
 // --------------------------------- DISPATCH_LEVEL ---------------------------------
 // 将会在 dispatch_this_file.hpp 文件被多次重定义
@@ -14,13 +15,18 @@
 // scalar
 #define KSIMD_DYN_DISPATCH_LEVEL_SCALAR         1
 
+// SSE family
+#define KSIMD_DYN_DISPATCH_LEVEL_SSE_START      11
+#define KSIMD_DYN_DISPATCH_LEVEL_SSE4_1         12
+#define KSIMD_DYN_DISPATCH_LEVEL_SSE_END        13
+
 // AVX family
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX_START      2
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX       3
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        4
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX_START      21
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX       22
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        23
 
 // arm NEON
-#define KSIMD_DYN_DISPATCH_LEVEL_NEON           5
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON           51
 
 
 // --------------------------------- FUNC_ATTR ---------------------------------
@@ -144,9 +150,20 @@
 
 namespace ksimd
 {
-    // -------------------------- dispatch function ---------------------------
     namespace detail
     {
+        // full lanes simd 类型的字节长度
+        namespace dyn_vec_size
+        {
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_AVX2_MAX = vec_size::Vec256;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_NEON = vec_size::Vec128;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SCALAR = vec_size::Scalar128;
+
+            // 不定长向量类型
+            // TODO
+            // KSIMD_HEADER_GLOBAL_CONSTEXPR KSIMD_DYN_INSTRUCTION_SVE = vec_size::Scalable;
+        }
+
         // 这个枚举的值就是函数指针表的索引
         // 越现代的指令集，排得越靠前，索引越小
         enum class SimdInstructionIndex : int

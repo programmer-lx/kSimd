@@ -9,7 +9,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     using ksimd::FloatMinMaxOption;
 
     // tags
-    using ksimd::FullTag;
-    using ksimd::HalfIoTag;
-    using ksimd::Fixed128Tag;
+    template<is_scalar_type S>
+    struct FullTag : Tag_base<S, ksimd::detail::dyn_vec_size::KSIMD_DYN_INSTRUCTION> {};
+
+    template<is_scalar_type S>
+    struct HalfIoTag : Tag_base<S, vec_size::Invalid> {};
+
+    template<is_scalar_type S>
+    struct Fixed128Tag : Tag_base<S , vec_size::Vec128> {};
 }

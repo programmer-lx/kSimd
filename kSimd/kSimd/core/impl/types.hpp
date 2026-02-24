@@ -87,12 +87,17 @@ namespace ksimd
 
     namespace vec_size
     {
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Invalid    = 0;
+
         // 模拟Vec128
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalar128  = 16;
 
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128     = 16;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256     = 32;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512     = 64;
+
+        // 变长向量类型，使用size_t最大值表示
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalable   = SIZE_MAX;
     }
 }
 
