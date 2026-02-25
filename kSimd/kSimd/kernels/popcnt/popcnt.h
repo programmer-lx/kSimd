@@ -79,7 +79,10 @@ KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffe
 #ifdef KSIMD_IS_TESTING
 
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, ks_bytesize_t byte_size);
+
+#if KSIMD_ARCH_X86_ANY
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size);
+#endif
 
 #endif
 

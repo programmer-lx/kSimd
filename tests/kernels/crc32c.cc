@@ -1,8 +1,6 @@
-#include <gtest/gtest.h>
+#include "../test.hpp"
 
 #include "kSimd/kernels/crc32c/crc32c.h"
-
-#include "kSimd/core/impl/base.hpp"
 
 TEST(crc32c, checksum_test_empty)
 {
@@ -17,6 +15,13 @@ TEST(crc32c, checksum_test_empty)
     x86 = ks_test_update_crc32c_sse42(x86, data, size);;
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, size);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
 #endif
 }
 
@@ -33,6 +38,13 @@ TEST(crc32c, checksum_test_one_byte_zero)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 1);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_one_byte_ff)
@@ -48,6 +60,13 @@ TEST(crc32c, checksum_test_one_byte_ff)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 1);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_pow2_4bytes)
@@ -62,6 +81,13 @@ TEST(crc32c, checksum_test_pow2_4bytes)
     x86 = ks_test_update_crc32c_sse42(x86, data, 4);
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 4);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
 #endif
 }
 
@@ -80,6 +106,13 @@ TEST(crc32c, checksum_test_pow2_16bytes)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 16);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_pow2_32bytes)
@@ -97,6 +130,13 @@ TEST(crc32c, checksum_test_pow2_32bytes)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 32);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_non_pow2_3bytes)
@@ -111,6 +151,13 @@ TEST(crc32c, checksum_test_non_pow2_3bytes)
     x86 = ks_test_update_crc32c_sse42(x86, data, 3);
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 3);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
 #endif
 }
 
@@ -127,6 +174,13 @@ TEST(crc32c, checksum_test_non_pow2_7bytes)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 7);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_all_zero_64)
@@ -141,6 +195,13 @@ TEST(crc32c, checksum_test_all_zero_64)
     x86 = ks_test_update_crc32c_sse42(x86, data, 64);
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 64);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
 #endif
 }
 
@@ -159,6 +220,13 @@ TEST(crc32c, checksum_test_all_ff_64)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_begin_crc32c();
+    arm = ks_test_update_crc32c_arm(arm, data, 64);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_non_zero_origin)
@@ -172,6 +240,12 @@ TEST(crc32c, checksum_test_non_zero_origin)
     auto x86 = ks_test_update_crc32c_sse42(0xFFFFFFFF, data, 5);
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_test_update_crc32c_arm(0xFFFFFFFF, data, 5);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
 #endif
 }
 
@@ -195,6 +269,12 @@ TEST(crc32c, checksum_test_chunk_equivalence)
     full_x86 = ks_end_crc32c(full_x86);
     EXPECT_TRUE(full_soft == full_x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto full_arm = ks_test_update_crc32c_arm(ks_begin_crc32c(), data, 32);
+    full_arm = ks_end_crc32c(full_arm);
+    EXPECT_TRUE(full_soft == full_arm);
+#endif
 }
 
 TEST(crc32c, checksum_test_unaligned_pointer)
@@ -209,6 +289,12 @@ TEST(crc32c, checksum_test_unaligned_pointer)
     auto x86 = ks_test_update_crc32c_sse42(ks_begin_crc32c(), buffer + 1, 64);
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_test_update_crc32c_arm(ks_begin_crc32c(), buffer + 1, 64);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
 #endif
 }
 
@@ -225,18 +311,18 @@ TEST(crc32c, checksum_test_large_1024)
     x86 = ks_end_crc32c(x86);
     EXPECT_TRUE(soft == x86);
 #endif
+
+#if KSIMD_ARCH_ARM_ANY
+    auto arm = ks_test_update_crc32c_arm(ks_begin_crc32c(), data, 1024);
+    arm = ks_end_crc32c(arm);
+    EXPECT_TRUE(soft == arm);
+#endif
 }
 
 
 inline uint32_t ks_crc32c_oneshot_soft(const void* data, size_t size) {
     uint32_t crc = ks_begin_crc32c();
     crc = ks_test_update_crc32c_soft(crc, data, size);
-    return ks_end_crc32c(crc);
-}
-
-inline uint32_t ks_crc32c_oneshot_sse42(const void* data, size_t size) {
-    uint32_t crc = ks_begin_crc32c();
-    crc = ks_test_update_crc32c_sse42(crc, data, size);
     return ks_end_crc32c(crc);
 }
 

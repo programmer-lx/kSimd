@@ -180,6 +180,7 @@ KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_so
     return ks_update_crc32c_soft(origin, data, static_cast<size_t>(size));
 }
 
+#if KSIMD_ARCH_X86_ANY
 KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_sse42(
     uint32_t origin,
     const void* data,
@@ -188,4 +189,17 @@ KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_ss
 {
     return ks_update_crc32c_sse42(origin, data, static_cast<size_t>(size));
 }
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_arm(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+)
+{
+    return ks_update_crc32c_arm(origin, data, static_cast<size_t>(size));
+}
+#endif
+
 #endif

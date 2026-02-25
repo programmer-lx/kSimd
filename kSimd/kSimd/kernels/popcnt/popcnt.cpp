@@ -1,7 +1,10 @@
 #define KSIMD_KERNEL_POPCNT_EXPORT
 #include "kSimd/kernels/popcnt/popcnt.h"
 
-#include <immintrin.h>
+#if KSIMD_ARCH_X86_ANY
+    #include <immintrin.h>
+#endif
+
 #include <cstring> // memcpy
 
 #include "kSimd/core/impl/dispatch.hpp"
@@ -63,6 +66,7 @@ namespace
         return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
 
+    #if KSIMD_ARCH_X86_ANY
     KSIMD_DYN_FUNC_ATTR_POPCNT ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV
     ks_popcnt_buffer_x86_popcnt(const void* buffer, size_t size) noexcept
     {
@@ -142,6 +146,7 @@ namespace
 
         return cnt + cnt1 + cnt2 + cnt3 + cnt4;
     }
+    #endif
 
     auto ks_popcnt_fn()
     {
@@ -149,10 +154,12 @@ namespace
         {
             const ksimd::CpuSupportInfo& support = ksimd::get_cpu_support_info();
 
+            #if KSIMD_ARCH_X86_ANY
             if (support.popcnt)
             {
                 return ks_popcnt_buffer_x86_popcnt;
             }
+            #endif
 
             // fallback to soft
             return ks_popcnt_buffer_soft;
@@ -176,9 +183,11 @@ KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_
     return ks_popcnt_buffer_soft(buffer, static_cast<size_t>(byte_size));
 }
 
+#if KSIMD_ARCH_X86_ANY
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size)
 {
     return ks_popcnt_buffer_x86_popcnt(buffer, static_cast<size_t>(byte_size));
 }
+#endif
 
 #endif
