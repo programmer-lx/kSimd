@@ -22,7 +22,7 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
 // AVX family
 #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START && \
     KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX_END
-    #include "impl/ops/x86_avx_family.hpp"
+    #include "impl/ops/x86_vec256.hpp"
 #endif
 
 // arm NEON

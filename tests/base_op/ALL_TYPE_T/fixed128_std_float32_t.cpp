@@ -1,0 +1,22 @@
+#if __STDCPP_FLOAT32_T__
+#include <cfloat>
+#include <cstddef>
+#include <limits>
+
+#include <stdfloat>
+
+#pragma message("test std::float32_t.")
+
+#define TAG_T ns::Fixed128Tag<TYPE_T>
+
+using TYPE_T = std::float32_t;
+constexpr size_t ALIGNMENT = 64;
+
+#include "all_type.inl"
+
+#else
+int main()
+{
+    return 0;
+}
+#endif

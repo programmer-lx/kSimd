@@ -1,7 +1,11 @@
+#if __STDCPP_FLOAT32_T__
 #include <cfloat>
 #include <cstddef>
+#include <stdfloat>
 
-using FLOAT_T = float;
+#define TAG_T ns::Fixed128Tag<FLOAT_T>
+
+using FLOAT_T = std::float32_t;
 constexpr size_t ALIGNMENT = 64;
 
 #define FLOAT_T_EPSILON (FLT_EPSILON)
@@ -13,3 +17,10 @@ constexpr size_t ALIGNMENT = 64;
 // constexpr size_t ALIGNMENT = 32;
 
 #include "floating_point.inl"
+
+#else
+int main()
+{
+    return 0;
+}
+#endif

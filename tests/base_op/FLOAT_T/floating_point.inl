@@ -19,7 +19,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void div() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         // 
 
@@ -61,7 +61,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         if constexpr (ksimd::is_scalar_type_float_32bits<FLOAT_T>)
         {
-            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
             
             const size_t Lanes = ns::lanes(t);
             alignas(ALIGNMENT) FLOAT_T test[Lanes];
@@ -115,7 +115,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sqrt() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) FLOAT_T test[Lanes];
@@ -134,7 +134,7 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         if constexpr (ksimd::is_scalar_type_float_32bits<FLOAT_T>)
         {
-            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+            namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
             
             const size_t Lanes = ns::lanes(t);
             alignas(ALIGNMENT) FLOAT_T test[Lanes];
@@ -165,7 +165,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void float_not_comparison(size_t idx) noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) FLOAT_T res_normal[Lanes];
@@ -239,7 +239,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void nan_finite_checks() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) FLOAT_T test[Lanes];
@@ -267,7 +267,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void round_ops() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) FLOAT_T res[Lanes];
@@ -305,7 +305,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void round_edge_cases() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) FLOAT_T res[Lanes];

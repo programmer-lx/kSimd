@@ -27,7 +27,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void undefined() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        ns::FullTag<TYPE_T> t;
+        TAG_T t;
 
         [[maybe_unused]] ns::Batch<decltype(t)> z = ns::undefined(t);
     }
@@ -42,7 +42,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void zero() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
         const size_t Lanes = ns::lanes(t);
         std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> arr(Lanes, TYPE_T(0xff));
@@ -66,7 +66,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void set() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
         const size_t Lanes = ns::lanes(t);
         std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> arr(Lanes);
@@ -99,7 +99,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sequence() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
 
         const size_t Lanes = ns::lanes(t);
@@ -144,7 +144,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void load_store() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
 
         const size_t Lanes = ns::lanes(t);
@@ -170,7 +170,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void loadu_storeu() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
 
         const size_t Lanes = ns::lanes(t);
@@ -200,7 +200,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void partial_load_store() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> in(Lanes * 2);
@@ -283,7 +283,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void bit_if_then_else() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
 
@@ -332,7 +332,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void if_then_else() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         
 
@@ -385,7 +385,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void bit_not() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
@@ -431,7 +431,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void bit_and() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
@@ -460,7 +460,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void bit_and_not() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
@@ -492,7 +492,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void bit_or() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
@@ -521,7 +521,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void bit_xor() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
@@ -550,7 +550,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void add() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         // 
 
@@ -588,7 +588,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void sub() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         // 
 
@@ -621,7 +621,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void mul() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         // 
 
@@ -654,7 +654,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void reduce_add() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         // 
 
@@ -690,7 +690,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void reduce_mul() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
 
         const size_t Lanes = ns::lanes(t);
@@ -762,7 +762,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void reduce_min() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
 
         const size_t Lanes = ns::lanes(t);
@@ -842,7 +842,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void reduce_max() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T data[Lanes];
@@ -916,7 +916,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void mul_add() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         // 
 
@@ -948,7 +948,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void min() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -993,7 +993,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void max() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1041,7 +1041,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void equal() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1064,7 +1064,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void not_equal() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1091,7 +1091,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void greater() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1118,7 +1118,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void greater_equal() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1139,7 +1139,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void less() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1165,7 +1165,7 @@ namespace KSIMD_DYN_INSTRUCTION
     KSIMD_DYN_FUNC_ATTR
     void less_equal() noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<TYPE_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
         alignas(ALIGNMENT) TYPE_T test[Lanes];
@@ -1187,7 +1187,7 @@ namespace KSIMD_DYN_INSTRUCTION
     void mask_logic() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        ns::FullTag<TYPE_T> t;
+        TAG_T t;
         
         using mask_t = ns::Mask<decltype(t)>;
 

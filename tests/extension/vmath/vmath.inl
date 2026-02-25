@@ -29,7 +29,7 @@ namespace KSIMD_DYN_INSTRUCTION {
 
     KSIMD_DYN_FUNC_ATTR
     void lerp() noexcept {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using batch_t = ns::Batch<decltype(t)>;
 
@@ -109,7 +109,7 @@ namespace KSIMD_DYN_INSTRUCTION {
 
     KSIMD_DYN_FUNC_ATTR
     void clamp_test() noexcept {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; ns::FullTag<FLOAT_T> t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         using batch_t = ns::Batch<decltype(t)>;
         using Opt = ns::FloatMinMaxOption;

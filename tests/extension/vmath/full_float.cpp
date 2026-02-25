@@ -2,7 +2,9 @@
 #include <cstddef>
 #include <limits>
 
-using TYPE_T = float;
+#define TAG_T ns::FullTag<FLOAT_T>
+
+using FLOAT_T = float;
 constexpr size_t ALIGNMENT = 64;
 
-#include "signed.inl"
+#include "vmath.inl"
