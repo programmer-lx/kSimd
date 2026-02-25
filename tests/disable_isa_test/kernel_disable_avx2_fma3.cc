@@ -6,8 +6,8 @@
 // #define KSIMD_IS_TESTING
 
 // disable avx2_fma3 before include <kSimd/core/impl/base.hpp>
-#undef KSIMD_DISABLE_AVX2_FMA3
-#define KSIMD_DISABLE_AVX2_FMA3
+#undef KSIMD_DISABLE_AVX_V3
+#define KSIMD_DISABLE_AVX_V3
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "kernel_disable_avx2_fma3.cc"

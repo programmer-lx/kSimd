@@ -28,7 +28,7 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         bool result =
             (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX2_FMA3) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX_V3) && index == 0);
         if (!result)
         {
             throw std::runtime_error("we should disable sse4.1");

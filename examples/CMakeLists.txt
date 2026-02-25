@@ -25,8 +25,8 @@ if(MSVC)
     # 用于测试编译期分发表裁剪，在MSVC下不打开AVX2开关，会分发AVX2_FMA3以下的指令集
 #    target_compile_options(example_dyn_dispatch PRIVATE /arch:AVX2)
 else()
-    # GCC clang 打开 AVX2_FMA3 开关，不分发比AVX2_FMA3更低级的指令集了
-    target_compile_options(example_dyn_dispatch PRIVATE -mavx2 -mfma)
+    # GCC clang 打开 AVX2_FMA3_F16C 开关，不分发比AVX2_FMA3_F16C更低级的指令集了
+    target_compile_options(example_dyn_dispatch PRIVATE -mavx2 -mfma -mf16c)
 endif()
 target_include_directories(example_dyn_dispatch PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 example_target_actions(example_dyn_dispatch)

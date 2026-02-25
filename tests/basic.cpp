@@ -25,7 +25,7 @@ namespace KSIMD_DYN_INSTRUCTION
         bool result =
             (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 2) ||
             (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SSE4_1) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX2_FMA3) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX_V3) && index == 0);
 
         EXPECT_TRUE(result);
 
