@@ -55,8 +55,8 @@ TEST(dyn_dispatch, pfn_table)
 {
 #ifdef KSIMD_ARCH_X86_ANY
 
-    // 0: avx2_fma3
-    // 1: sse4.1
+    // 0: avx v3
+    // 1: sse v2
     // 2: scalar
     EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 3);
 

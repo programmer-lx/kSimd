@@ -16,8 +16,8 @@ int main()
     {
         #if KSIMD_ARCH_X86_ANY
 
-        kernel_disable_avx2_fma3();
-        kernel_disable_sse4_1();
+        kernel_disable_x86_v3();
+        kernel_disable_x86_v2();
 
         #elif KSIMD_ARCH_ARM_64
 

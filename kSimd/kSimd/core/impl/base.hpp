@@ -289,8 +289,19 @@ namespace ksimd
         unsigned sha                    : 1 = 0;
 
         // ------------------ arm features ------------------
+        // scalar
+        unsigned arm_scalar_fp          : 1 = 0;
+        unsigned arm_scalar_fp16        : 1 = 0;
+
+        // NEON (asimd)
         unsigned neon                   : 1 = 0;
+        unsigned neon_fp16              : 1 = 0;
+
+        // SVE
         unsigned sve                    : 1 = 0;
+        unsigned sve_fp16               : 1 = 0;
+
+        // other
         unsigned arm_crc32              : 1 = 0;
     };
 

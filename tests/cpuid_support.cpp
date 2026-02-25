@@ -9,6 +9,7 @@
 
 #if defined(KSIMD_ARCH_ARM_ANY)
     #include <arm_sve.h>
+    #include <arm_neon.h>
 #endif
 
 #include "kSimd/IDE/IDE_hint.hpp"
@@ -69,9 +70,16 @@ TEST(cpuid, support)
 
 #elif KSIMD_ARCH_ARM_ANY
 
+    EXPECT_TRUE(result.arm_scalar_fp == true);
+    EXPECT_TRUE(result.arm_scalar_fp16 == true);
+
     EXPECT_TRUE(result.arm_crc32 == true);
+
     EXPECT_TRUE(result.neon == true);
+    EXPECT_TRUE(result.neon_fp16 == true);
+
     EXPECT_TRUE(result.sve == true);
+    EXPECT_TRUE(result.sve_fp16 == true);
 
 #else
     #error unknown arch
@@ -81,7 +89,7 @@ TEST(cpuid, support)
 #if KSIMD_ARCH_X86_ANY
 TEST(avx512_test, test)
 {
-    [[maybe_unused]] bool result = []() KSIMD_DYN_FUNC_ATTR_AVX512F
+    [[maybe_unused]] bool result = []() KSIMD_DYN_FUNC_ATTR_AVX512_F
     {
         [[maybe_unused]] auto avx512f_var = _mm512_set1_ps(1.0f);
         return true;
@@ -130,6 +138,19 @@ TEST(sve_test, sve_vector_size)
         return true;
     }();
     #endif
+}
+
+TEST(neon_ext, fp16)
+{
+    [[maybe_unused]] auto a = []() KSIMD_DYN_FUNC_ATTR_NEON_FP16
+    {
+        float16x8_t a = vdupq_n_f16(1.0f);
+        float16x8_t b = vdupq_n_f16(2.0f);
+
+        float16x8_t c = vaddq_f16(a, b);
+
+        return vgetq_lane_f16(c, 0);
+    }();
 }
 #endif
 
