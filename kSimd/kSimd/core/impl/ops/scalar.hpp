@@ -58,6 +58,15 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = scalar_simd_mask<Tag>;
         };
+
+        template<typename Tag, typename Enable>
+        struct mask_bitset_type;
+
+        template<typename Tag>
+        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_scalar128<Tag>>>
+        {
+            using type = int;
+        };
     }
 
     // public user types
@@ -66,6 +75,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<is_tag Tag>
     using Mask = typename detail::mask_type<Tag, void>::type;
+
+    template<is_tag Tag>
+    using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 #pragma endregion
 
 #pragma region--- any type ---
@@ -312,24 +324,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
-#if defined(KSIMD_IS_TESTING)
-    template<typename Tag>
-        requires (is_tag_scalar128<Tag>)
-    KSIMD_API(void) test_store_mask(Tag, tag_scalar_t<Tag>* mem, Mask<Tag> mask) noexcept
-    {
-        std::memcpy(mem, mask.m, sizeof(tag_scalar_t<Tag>) * lanes(Tag{}));
-    }
-
-    template<typename Tag>
-        requires (is_tag_scalar128<Tag>)
-    KSIMD_API(Mask<Tag>) test_load_mask(Tag, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        Mask<Tag> res;
-        std::memcpy(res.m, mem, sizeof(tag_scalar_t<Tag>) * lanes(Tag{}));
-        return res;
-    }
-#endif
-
     template<typename Tag>
         requires (is_tag_scalar128<Tag>)
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -474,7 +468,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag Tag>
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires (is_tag_scalar128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
         tag_scalar_t<Tag> res = v.v[0];
@@ -488,7 +483,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return res;
     }
 
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag Tag>
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires (is_tag_scalar128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
         tag_scalar_t<Tag> res = v.v[0];
@@ -500,6 +496,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 res = ksimd::max(res, v.v[i]);
         }
         return res;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(MaskBitset<Tag>) reduce_mask(Tag, Mask<Tag> mask) noexcept
+    {
+        // 遍历lanes，提取符号位
+        constexpr size_t len = lanes(Tag{});
+
+        MaskBitset<Tag> result = static_cast<MaskBitset<Tag>>(0);
+        for (size_t i = 0; i < len; ++i)
+        {
+            constexpr MaskBitset<Tag> sign_bit_index = InverseBitIndex<MaskBitset<Tag>, 0>;
+
+            const MaskBitset<Tag> value = static_cast<MaskBitset<Tag>>(mask.m[i] >> sign_bit_index);
+            result |= (value << i);
+        }
+        return result;
     }
 #pragma endregion
 

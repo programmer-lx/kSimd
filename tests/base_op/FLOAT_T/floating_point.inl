@@ -163,74 +163,54 @@ TEST_ONCE_DYN(rsqrt)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void float_not_comparison(size_t idx) noexcept
+    void float_not_comparison() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) FLOAT_T res_normal[Lanes];
-        alignas(ALIGNMENT) FLOAT_T res_not[Lanes];
 
-        // 只有浮点数需要验证 NaN 的特殊取反逻辑
-        if constexpr (std::is_floating_point_v<FLOAT_T>) 
-        {
-            auto v_nan = ns::set(t, qNaN<FLOAT_T>);
-            auto v_val = ns::set(t, FLOAT_T(2.0));
+        auto v_nan = ns::set(t, qNaN<FLOAT_T>);
+        auto v_val = ns::set(t, FLOAT_T(2.0));
 
-            // =========================================================================
-            // 1. Greater vs Not Greater
-            // =========================================================================
-            ns::test_store_mask(t, res_normal, ns::greater(t, v_nan, v_val));
-            ns::test_store_mask(t, res_not,    ns::not_greater(t, v_nan, v_val));
+        // =========================================================================
+        // Greater vs Not Greater
+        // =========================================================================
+        auto mask = ns::reduce_mask(t, ns::greater(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
 
-            for (size_t i = 0; i < Lanes; ++i) {
-                // NaN > 2.0 -> False
-                EXPECT_TRUE(bit_equal(res_normal[i], ksimd::ZeroBlock<FLOAT_T>));
-                // NOT (NaN > 2.0) -> True (即使是无序比较，逻辑上也必须相反)
-                EXPECT_TRUE(bit_equal(res_not[i], ksimd::OneBlock<FLOAT_T>));
-            }
+        mask = ns::reduce_mask(t, ns::not_greater(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
 
-            // =========================================================================
-            // 2. Less Equal vs Not Less Equal
-            // =========================================================================
-            ns::test_store_mask(t, res_normal, ns::less_equal(t, v_nan, v_val));
-            ns::test_store_mask(t, res_not,    ns::not_less_equal(t, v_nan, v_val));
+        // =========================================================================
+        // Greater Equal vs Not Greater Equal
+        // =========================================================================
+        mask = ns::reduce_mask(t, ns::greater_equal(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
 
-            for (size_t i = 0; i < Lanes; ++i) {
-                // NaN <= 2.0 -> False
-                EXPECT_TRUE(bit_equal(res_normal[i], ksimd::ZeroBlock<FLOAT_T>))
-                << "idx = " << idx
-                << ", value = " << std::bit_cast<ksimd::same_bits_uint_t<FLOAT_T>>(res_not[i]);
+        mask = ns::reduce_mask(t, ns::not_greater_equal(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
 
-                // NOT (NaN <= 2.0) -> True
-                EXPECT_TRUE(bit_equal(res_not[i], ksimd::OneBlock<FLOAT_T>))
-                << "idx = " << idx
-                << ", value = " << std::bit_cast<ksimd::same_bits_uint_t<FLOAT_T>>(res_not[i]);
-            }
+        // =========================================================================
+        // Less Equal vs Not Less Equal
+        // =========================================================================
+        mask = ns::reduce_mask(t, ns::less(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
 
-            // =========================================================================
-            // 3. 验证与“相反操作”的差异
-            // 关键：not_greater(NaN, val) != less_equal(NaN, val)
-            // =========================================================================
-            ns::test_store_mask(t, res_normal, ns::less_equal(t, v_nan, v_val));
-            // 此时 res_not 存的是 not_greater 的结果 (True)
-            // 而 res_normal 存的是 less_equal 的结果 (False)
-            for (size_t i = 0; i < Lanes; ++i) {
-                EXPECT_FALSE(bit_equal(res_normal[i], res_not[i])) 
-                    << "NaN ordering logic failure: not_greater should not be same as less_equal";
-            }
-        }
+        mask = ns::reduce_mask(t, ns::not_less(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+
+        // =========================================================================
+        // Less Equal vs Not Less Equal
+        // =========================================================================
+        mask = ns::reduce_mask(t, ns::less_equal(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+
+        mask = ns::reduce_mask(t, ns::not_less_equal(t, v_nan, v_val));
+        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
     }
 }
 #if KSIMD_ONCE
-KSIMD_DYN_DISPATCH_FUNC(float_not_comparison);
-TEST(dyn_dispatch, float_not_comparison)
-{
-    for (size_t idx___ = 0; idx___ < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(float_not_comparison)); ++idx___)
-    {
-        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(float_not_comparison)[idx___](idx___);
-    }
-}
+TEST_ONCE_DYN(float_not_comparison)
 #endif
 
 // ------------------------------------------ nan_finite_checks ------------------------------------------
@@ -242,19 +222,18 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
         // any_NaN: 只要有一个是 NaN 就返回 True
-        ns::test_store_mask(t, test, ns::any_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::OneBlock<FLOAT_T>));
+        auto mask = ns::reduce_mask(t, ns::any_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
 
         // all_NaN: 两个都是 NaN 才返回 True
-        ns::test_store_mask(t, test, ns::all_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        mask = ns::reduce_mask(t, ns::all_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
 
         // all_finite: 两个都必须是有限数
-        ns::test_store_mask(t, test, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, inf<FLOAT_T>)));
-        EXPECT_TRUE(array_bit_equal(test, Lanes, ksimd::ZeroBlock<FLOAT_T>));
+        mask = ns::reduce_mask(t, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, inf<FLOAT_T>)));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
     }
 }
 #if KSIMD_ONCE

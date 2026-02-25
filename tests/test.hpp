@@ -105,6 +105,64 @@ bool array_equal(T* arr, size_t len, const T2& val)
     return true;
 }
 
+template<typename T>
+bool all_bit_true(const T& value)
+{
+    constexpr size_t bytes = sizeof(T);
+
+    uint8_t bits[bytes];
+    std::memset(bits, 0xff, sizeof(bits));
+
+    return (std::memcmp(&value, bits, bytes) == 0);
+}
+
+template<typename T>
+bool all_bit_false(const T& value)
+{
+    constexpr size_t bytes = sizeof(T);
+
+    uint8_t bits[bytes];
+    std::memset(bits, 0x00, sizeof(bits));
+
+    return (std::memcmp(&value, bits, bytes) == 0);
+}
+
+template<typename T>
+bool first_n_bit_false(const T& value, size_t bit_count)
+{
+    using uint = ksimd::same_bits_uint_t<T>;
+
+    uint bits = std::bit_cast<uint>(value);
+
+    for (size_t i = 0; i < bit_count; ++i)
+    {
+        if ((bits & (static_cast<uint>(1) << i)) != 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<typename T>
+bool first_n_bit_true(const T& value, size_t bit_count)
+{
+    using uint = ksimd::same_bits_uint_t<T>;
+
+    uint bits = std::bit_cast<uint>(value);
+
+    for (size_t i = 0; i < bit_count; ++i)
+    {
+        if ((bits & (static_cast<uint>(1) << i)) == 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool approximately(auto a, auto b, auto tolerance)
 {
     return std::abs(a - b) <= tolerance;

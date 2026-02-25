@@ -26,6 +26,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma region--- types ---
     namespace detail
     {
+        // batch
         template<typename Tag, typename Enable>
         struct batch_type;
 
@@ -42,10 +43,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = float32x4_t;
         };
-    } // namespace detail
 
-    namespace detail
-    {
+        // mask
         template<typename Tag, typename Enable>
         struct mask_type;
 
@@ -62,6 +61,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = uint64x2_t;
         };
+
+        // mask bitset
+        template<typename Tag, typename Enable>
+        struct mask_bitset_type;
+
+        // 32bits mask
+        template<typename Tag>
+        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_scalar_32<Tag>>>
+        {
+            using type = uint32_t;
+        };
+
+        // 64bits mask
+        template<typename Tag>
+        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_scalar_64<Tag>>>
+        {
+            using type = uint64_t;
+        };
     } // namespace detail
 
     // user type
@@ -70,6 +87,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<is_tag Tag>
     using Mask = typename detail::mask_type<Tag, void>::type;
+
+    template<is_tag Tag>
+    using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 #pragma endregion
 
 #pragma region--- any types ---
@@ -170,7 +190,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         float32x4_t stride_v = vdupq_n_f32(static_cast<float>(stride));
         float32x4_t base_v = vdupq_n_f32(static_cast<float>(base));
-        // NEON FMA: res = base + (stride * iota)
         return vfmaq_f32(base_v, stride_v, sequence(t));
     }
 
@@ -276,25 +295,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_if_then_else(Tag, Batch<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
-        // NEON vbsl: (if) ? then : else
         return vbslq_f32(vreinterpretq_u32_f32(_if), _then, _else);
     }
-
-#if defined(KSIMD_IS_TESTING)
-    template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) test_store_mask(Tag, tag_scalar_t<Tag>* mem, Mask<Tag> mask) noexcept
-    {
-        vst1q_f32(reinterpret_cast<float*>(mem), vreinterpretq_f32_u32(mask));
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) test_load_mask(Tag, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        return vreinterpretq_u32_f32(vld1q_f32(reinterpret_cast<const float*>(mem)));
-    }
-#endif
 
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
@@ -421,6 +423,22 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 return QNaN<tag_scalar_t<Tag>>;
         }
         return vmaxvq_f32(v);
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(MaskBitset<Tag>) reduce_mask(Tag, Mask<Tag> mask) noexcept
+    {
+        // [ 11111, 00000, 11111, 11111 ] // values
+        // [ 00001, 00010, 00100, 01000 ] // weights
+        // and op
+        // [ 00001, 00000, 00100, 01000 ] // 执行 and 操作，原本是0的，还是0，原本不为0的，变成了与weight相同的数
+        // reduce add
+        // [ 01101 ] // 每一个位执行0 + 1，不会影响其他位，相当于执行 bit or
+
+        uint32x4_t v_weights = {0b1, 0b10, 0b100, 0b1000};
+        uint32x4_t masked_weights = vandq_u32(mask, v_weights);
+        return vaddvq_u32(masked_weights);
     }
 #pragma endregion
 

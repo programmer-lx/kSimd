@@ -28,6 +28,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma region--- types ---
     namespace detail
     {
+        // batch
         template<typename Tag, typename Enable>
         struct batch_type;
 
@@ -44,10 +45,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = __m256d;
         };
-    } // namespace detail
 
-    namespace detail
-    {
+        // mask
         template<typename Tag, typename Enable>
         struct mask_type;
 
@@ -64,6 +63,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = __m256d;
         };
+
+        // mask bitset
+        template<typename Tag, typename Enable>
+        struct mask_bitset_type;
+
+        template<typename Tag>
+        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_256<Tag>>>
+        {
+            using type = int; // 指令集返回的是int
+        };
     } // namespace detail
 
     // public user types
@@ -72,6 +81,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<is_tag Tag>
     using Mask = typename detail::mask_type<Tag, void>::type;
+
+    template<is_tag Tag>
+    using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 #pragma endregion
 
 #pragma region--- any types ---
@@ -288,21 +300,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm256_or_ps(_mm256_and_ps(_if, _then), _mm256_andnot_ps(_if, _else));
     }
 
-#if defined(KSIMD_IS_TESTING)
-    template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
-    KSIMD_API(void) test_store_mask(Tag, tag_scalar_t<Tag>* mem, Mask<Tag> mask) noexcept
-    {
-        _mm256_store_ps(reinterpret_cast<float*>(mem), mask);
-    }
-    template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
-    KSIMD_API(Mask<Tag>) test_load_mask(Tag, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        return _mm256_load_ps(reinterpret_cast<const float*>(mem));
-    }
-#endif
-
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -504,6 +501,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
 
         return _mm_cvtss_f32(res);
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(MaskBitset<Tag>) reduce_mask(Tag, Mask<Tag> mask) noexcept
+    {
+        return _mm256_movemask_ps(mask);
     }
 #pragma endregion
 

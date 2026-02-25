@@ -76,12 +76,28 @@ namespace detail
     };
 }
 
+定义标量 Mask 类型(movemask所返回的mask类型):
+namespace detail
+{
+    template<typename Tag, typename Enable>
+    struct mask_bitset_type;
+
+    template<typename Tag>
+    struct mask_bitset_type<Tag, std::enable_if_t<is_tag_256<Tag>>>
+    {
+        using type = int; // 根据指令集的返回值来决定，比如X86返回的是int
+    };
+}
+
 // declare user types
 template<is_tag Tag> // 一定要用 is_tag，因为vec256会包含vec128的头文件，vec128的头文件的batch_type是128tag的特化，所以这里不能限死256
 using Batch = typename detail::batch_type<Tag, void>::type;
 
 template<is_tag Tag>
 using Mask = typename detail::mask_type<Tag, void>::type;
+
+template<is_tag Tag>
+using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 
 */
 
@@ -152,4 +168,21 @@ namespace ksimd
     // f64
     template<typename Tag>
     concept is_tag_float_64bits = is_tag<Tag> && is_scalar_type_float_64bits<tag_scalar_t<Tag>>;
+
+
+    // --- tag scalar bit size ---
+    template<typename Tag, size_t bytes>
+    concept is_tag_scalar_bytes = is_tag<Tag> && (sizeof(tag_scalar_t<Tag>) == bytes);
+
+    template<typename Tag>
+    concept is_tag_scalar_8 = is_tag_scalar_bytes<Tag, 1>;
+
+    template<typename Tag>
+    concept is_tag_scalar_16 = is_tag_scalar_bytes<Tag, 2>;
+
+    template<typename Tag>
+    concept is_tag_scalar_32 = is_tag_scalar_bytes<Tag, 4>;
+
+    template<typename Tag>
+    concept is_tag_scalar_64 = is_tag_scalar_bytes<Tag, 8>;
 }
