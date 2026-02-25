@@ -197,7 +197,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v);
         #endif
 
-        // avx + fma3
+        // avx v3
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START && \
             KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX_END
         return _mm_fmadd_ps(stride_v, iota, base_v);
@@ -235,7 +235,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_add_ps(_mm_mul_ps(a, b), c);
         #endif
 
-        // avx + fma3
+        // avx v3
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START && \
             KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX_END
         return _mm_fmadd_ps(a, b, c);
