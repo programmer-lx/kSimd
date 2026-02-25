@@ -57,7 +57,7 @@ namespace
     }
 
 #if KSIMD_ARCH_X86_ANY
-    KSIMD_DYN_FUNC_ATTR_SSE42 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_sse42(
+    KSIMD_DYN_FUNC_ATTR_SSE4_2 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_sse42(
         uint32_t origin,
         const void* data,
         size_t size

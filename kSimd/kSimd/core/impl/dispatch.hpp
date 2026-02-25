@@ -22,7 +22,7 @@
 
 // AVX family
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX_START      21
-#define KSIMD_DYN_DISPATCH_LEVEL_AVX2_MAX       22
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX2_FMA3      22
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        23
 
 // arm NEON
@@ -47,14 +47,17 @@
 // popcnt
 #define KSIMD_DYN_FUNC_ATTR_POPCNT KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("popcnt")
 
+// sse4.1
+#define KSIMD_DYN_FUNC_ATTR_SSE4_1 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.1")
+
 // sse4.2
-#define KSIMD_DYN_FUNC_ATTR_SSE42 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.2")
+#define KSIMD_DYN_FUNC_ATTR_SSE4_2 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.2")
 
 // avx2
 #define KSIMD_DYN_FUNC_ATTR_AVX2 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2")
 
-// avx2+fma3+f16c
-#define KSIMD_DYN_FUNC_ATTR_AVX2_MAX KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma,f16c")
+// avx2+fma3
+#define KSIMD_DYN_FUNC_ATTR_AVX2_FMA3 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma")
 
 // avx512f
 #define KSIMD_DYN_FUNC_ATTR_AVX512F KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx512f")
@@ -74,18 +77,27 @@
 #define KSIMD_DYN_INSTRUCTION "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
 
 // scalar
-#define KSIMD_DYN_INSTRUCTION_SCALAR   KSIMD_SCALAR
+#define KSIMD_DYN_INSTRUCTION_SCALAR    KSIMD_SCALAR
 
 // avx family
-#define KSIMD_DYN_INSTRUCTION_AVX2_MAX KSIMD_AVX2_MAX
+#define KSIMD_DYN_INSTRUCTION_AVX2_FMA3 KSIMD_AVX2_FMA3
+
+// sse family
+#define KSIMD_DYN_INSTRUCTION_SSE4_1    KSIMD_SSE4_1
 
 // neon
-#define KSIMD_DYN_INSTRUCTION_NEON     KSIMD_NEON
+#define KSIMD_DYN_INSTRUCTION_NEON      KSIMD_NEON
 
-// avx2 max fallback
-#if KSIMD_INSTRUCTION_FEATURE_AVX2_MAX == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+// avx2 fma3 fallback
+#if KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #undef KSIMD_DYN_INSTRUCTION_FALLBACK
-    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_AVX2_MAX
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_AVX2_FMA3
+#endif
+
+// sse4.1 fallback
+#if KSIMD_INSTRUCTION_FEATURE_SSE4_1 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_SSE4_1
 #endif
 
 // neon fallback
@@ -120,12 +132,20 @@
     #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
-// AVX_FMA3_F16C
-#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
-    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name, ...) \
-        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_MAX, __VA_ARGS__)
+// SSE4.1
+#if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
+    #define KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SSE4_1, __VA_ARGS__)
 #else
-    #define KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+    #define KSIMD_DETAIL_SSE4_1_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// AVX_FMA3
+#if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3)
+    #define KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_AVX2_FMA3, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // NEON
@@ -139,7 +159,10 @@
 // function table
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, ...) \
     /* ------------------------------------- avx family ------------------------------------- */ \
-    KSIMD_DETAIL_AVX2_MAX_FUNC_IMPL(func_name, __VA_ARGS__) \
+    KSIMD_DETAIL_AVX2_FMA3_FUNC_IMPL(func_name, __VA_ARGS__) \
+    \
+    /* ------------------------------------- sse family ------------------------------------- */ \
+    KSIMD_DETAIL_SSE4_1_FUNC_IMPL(func_name, __VA_ARGS__) \
     \
     /* ------------------------------------- arm neon ------------------------------------- */ \
     KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, __VA_ARGS__) \
@@ -158,7 +181,8 @@ namespace ksimd
         // full lanes simd 类型的字节长度
         namespace dyn_vec_size
         {
-            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_AVX2_MAX = vec_size::Vec256;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_AVX2_FMA3 = vec_size::Vec256;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SSE4_1 = vec_size::Vec128;
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_NEON = vec_size::Vec128;
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SCALAR = vec_size::Scalar128;
 
@@ -173,8 +197,12 @@ namespace ksimd
         {
             Invalid = -1,
 
-        #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
-            KSIMD_DYN_INSTRUCTION_AVX2_MAX,
+        #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3)
+            KSIMD_DYN_INSTRUCTION_AVX2_FMA3,
+        #endif
+
+        #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
+            KSIMD_DYN_INSTRUCTION_SSE4_1,
         #endif
 
         #if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
@@ -197,10 +225,17 @@ namespace ksimd
                 [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
 
                 // 从最高级的指令往下判断
-                #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_MAX)
-                if (supports.avx2 && supports.fma3 && supports.f16c)
+                #if defined(KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3)
+                if (supports.avx2 && supports.fma3)
                 {
-                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_MAX);
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_AVX2_FMA3);
+                }
+                #endif
+
+                #if defined(KSIMD_INSTRUCTION_FEATURE_SSE4_1)
+                if (supports.sse4_1)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SSE4_1);
                 }
                 #endif
 

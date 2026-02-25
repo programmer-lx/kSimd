@@ -13,8 +13,42 @@
 
 namespace KSIMD_DYN_INSTRUCTION
 {
-    void test_table_size()
-    {}
+    void test_table_size(size_t index)
+    {
+        #ifdef KSIMD_ARCH_X86_ANY
+
+        std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+
+        bool result =
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 2) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SSE4_1) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX2_FMA3) && index == 0);
+
+        EXPECT_TRUE(result);
+
+        #elif KSIMD_ARCH_ARM_64
+
+        std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+
+        bool result =
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 0);
+
+        EXPECT_TRUE(result);
+
+        #elif KSIMD_ARCH_ARM_32
+
+        std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
+
+        bool result =
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 0);
+
+        EXPECT_TRUE(result);
+
+        #else
+        #error unknown test arch
+        #endif
+    }
 }
 
 #if KSIMD_ONCE
@@ -23,8 +57,8 @@ TEST(table_size, basic)
 {
 #if KSIMD_ARCH_X86_ANY
 
-    // x86: AVX2_MAX + SCALAR == 2
-    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 2);
+    // x86: AVX2_FMA3 + SSE4_1 + SCALAR == 3
+    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 3);
 
 #elif KSIMD_ARCH_ARM_64
 
@@ -39,6 +73,12 @@ TEST(table_size, basic)
 #else
     #error unknown arch
 #endif
+
+    // try call
+    for (size_t i = 0; i < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)); ++i)
+    {
+        KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)[i](i);
+    }
 
     SUCCEED();
 }

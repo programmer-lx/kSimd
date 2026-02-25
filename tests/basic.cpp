@@ -23,12 +23,13 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
         bool result =
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX2_MAX) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 2) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SSE4_1) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_AVX2_FMA3) && index == 0);
 
         EXPECT_TRUE(result);
 
-        #elif KSIMD_ARCH_ARM_ANY
+        #elif KSIMD_ARCH_ARM_64
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         
@@ -54,9 +55,10 @@ TEST(dyn_dispatch, pfn_table)
 {
 #ifdef KSIMD_ARCH_X86_ANY
 
-    // 0: avx2_max
-    // 1: scalar
-    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 2);
+    // 0: avx2_fma3
+    // 1: sse4.1
+    // 2: scalar
+    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 3);
 
 #elif KSIMD_ARCH_ARM_ANY
 

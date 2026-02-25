@@ -2,12 +2,12 @@
 
 #include "test.hpp"
 
-#ifdef KSIMD_ARCH_X86_ANY
-
 #include <vector>
 
-#include <xmmintrin.h>
-#include <immintrin.h>
+#ifdef KSIMD_ARCH_X86_ANY
+    #include <xmmintrin.h>
+    #include <immintrin.h>
+#endif
 
 #include <kSimd/core/aligned_allocate.hpp>
 #include <kSimd/core/impl/dispatch.hpp>
@@ -27,9 +27,10 @@ TEST(aligned_allocate, alignment_test)
     }
 }
 
+#ifdef KSIMD_ARCH_X86_ANY
 TEST(aligned_allocate, std_vector)
 {
-    []() KSIMD_DYN_FUNC_ATTR_AVX2_MAX
+    []() KSIMD_DYN_FUNC_ATTR_AVX2_FMA3
     {
         using Arr = std::vector<float, ksimd::AlignedAllocator<float>>;
         constexpr size_t size = 88;

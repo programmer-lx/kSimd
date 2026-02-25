@@ -77,8 +77,8 @@
 // ------------------------------------------- instruction features -------------------------------------------
 // 可通过定义 KSIMD_DISABLE_XXX 来取消某些路径的分发
 // 要在包含 kSimd 的文件之前，使用这种方式定义宏:
-// #undef KSIMD_DISABLE_AVX2_MAX
-// #define KSIMD_DISABLE_AVX2_MAX // 因为文件会被多次包含，所以需要不断的取消定义再重新定义
+// #undef KSIMD_DISABLE_AVX2_FMA3
+// #define KSIMD_DISABLE_AVX2_FMA3 // 因为文件会被多次包含，所以需要不断的取消定义再重新定义
 //
 // #undef KSIMD_DISPATCH_THIS_FILE
 // #define KSIMD_DISPATCH_THIS_FILE "XXX"
@@ -86,20 +86,27 @@
 // #include <kSimd/core/dispatch_core.hpp>
 
 // 目前支持的宏:
-// - KSIMD_DISABLE_AVX2_MAX : 取消 AVX2_FMA3_F16C 的分发
-// - KSIMD_DISABLE_NEON     : 取消 NEON 的分发
+// - KSIMD_DISABLE_AVX2_FMA3    : 取消 AVX2_FMA3 的分发
+// - KSIMD_DISABLE_SSE4_1       : 取消 SSE4.1 的分发
+// - KSIMD_DISABLE_NEON         : 取消 NEON 的分发
 
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
 // 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
 
-// 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3+F16C开关，那么其实就没必要分发标量了
+// 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3开关，那么其实就没必要分发标量了
 #if KSIMD_COMPILER_MSVC
     #ifdef __AVX2__
-        #define KSIMD_BASELINE_AVX2_MAX 1
+        #define KSIMD_BASELINE_AVX2_FMA3 1
+    #endif
+    #ifdef __AVX__
+        #define KSIMD_BASELINE_SSE4_1 1
     #endif
 #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
-    #if defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
-        #define KSIMD_BASELINE_AVX2_MAX 1
+    #if defined(__AVX2__) && defined(__FMA__)
+        #define KSIMD_BASELINE_AVX2_FMA3 1
+    #endif
+    #if defined(__SSE4_1__)
+        #define KSIMD_BASELINE_SSE4_1 1
     #endif
 #endif
 
@@ -112,14 +119,27 @@
 
 // --------- x86指令集 ---------
 #if KSIMD_ARCH_X86_ANY
-    // AVX2+FMA3+F16C (AVX2_MAX)
-    #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_AVX2_MAX) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
-        #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1
 
-        // avx2 max fallback
-        #if KSIMD_BASELINE_AVX2_MAX && !defined(KSIMD_IS_TESTING)
-            #undef KSIMD_INSTRUCTION_FEATURE_AVX2_MAX
-            #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    // AVX2+FMA3
+    #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_AVX2_FMA3) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3 1
+
+        // avx2 fma3 fallback
+        #if KSIMD_BASELINE_AVX2_FMA3 && !defined(KSIMD_IS_TESTING)
+            #undef KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3
+            #define KSIMD_INSTRUCTION_FEATURE_AVX2_FMA3 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+        #endif
+    #endif
+
+    // SSE4.1
+    #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_SSE4_1) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 1
+
+        // sse4.1 fallback
+        #if KSIMD_BASELINE_SSE4_1 && !defined(KSIMD_IS_TESTING)
+            #undef KSIMD_INSTRUCTION_FEATURE_SSE4_1
+            #define KSIMD_INSTRUCTION_FEATURE_SSE4_1 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
         #endif
     #endif

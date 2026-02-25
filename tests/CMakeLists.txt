@@ -91,12 +91,18 @@ target_include_directories(static_test PRIVATE static_test)
 target_compile_features(static_test PRIVATE cxx_std_23)
 add_test(NAME static_test COMMAND static_test)
 
-# macro test
-add_executable(macro_test macro_test/kernel_disable_avx2_max.cc macro_test/kernel_enable_all.cc macro_test/main.cc)
-target_include_directories(macro_test PRIVATE macro_test)
-target_link_libraries(macro_test PRIVATE kSimd)
-target_compile_features(macro_test PRIVATE cxx_std_23)
-add_test(NAME macro_test COMMAND macro_test)
+# disable isa test
+add_executable(
+        disable_isa_test
+        disable_isa_test/kernel_disable_avx2_fma3.cc
+        disable_isa_test/kernel_disable_sse4_1.cc
+        disable_isa_test/kernel_disable_neon.cc
+        disable_isa_test/main.cc
+)
+target_include_directories(disable_isa_test PRIVATE disable_isa_test)
+target_link_libraries(disable_isa_test PRIVATE kSimd)
+target_compile_features(disable_isa_test PRIVATE cxx_std_23)
+add_test(NAME disable_isa_test COMMAND disable_isa_test)
 
 # no testing macro (no KSIMD_IS_TESTING)
 add_executable(no_testing_macro no_testing_macro.cc)

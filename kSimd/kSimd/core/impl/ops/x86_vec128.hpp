@@ -190,7 +190,18 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128 stride_v = _mm_set1_ps(stride);
         __m128 base_v = _mm_set1_ps(base);
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
+
+        // sse family
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START && \
+            KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SSE_END
+        return _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v);
+        #endif
+
+        // avx + fma3
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START && \
+            KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX_END
         return _mm_fmadd_ps(stride_v, iota, base_v);
+        #endif
     }
 
     template<typename Tag>
@@ -218,7 +229,17 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
     {
+        // sse family
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START && \
+            KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SSE_END
+        return _mm_add_ps(_mm_mul_ps(a, b), c);
+        #endif
+
+        // avx + fma3
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START && \
+            KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX_END
         return _mm_fmadd_ps(a, b, c);
+        #endif
     }
 
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>

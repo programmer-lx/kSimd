@@ -7,6 +7,7 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
 #endif
 
 // 用于检查是否已经包含了这个文件
+#undef KSIMD_DISPATCH_CORE_INCLUDED
 #define KSIMD_DISPATCH_CORE_INCLUDED
 
 // clang-format off
@@ -24,6 +25,13 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
     KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX_END
     #include "impl/ops/x86_vec256.hpp"
 #endif
+
+// SSE family
+#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START && \
+    KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SSE_END
+    #include "impl/ops/x86_vec128.hpp"
+#endif
+
 
 // arm NEON
 #if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON
