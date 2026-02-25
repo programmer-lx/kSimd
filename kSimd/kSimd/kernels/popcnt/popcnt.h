@@ -81,7 +81,11 @@ KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_popcnt_buffe
 KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_soft(const void* buffer, ks_bytesize_t byte_size);
 
 #if KSIMD_ARCH_X86_ANY
-KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86_popcnt(const void* buffer, ks_bytesize_t byte_size);
+KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_x86(const void* buffer, ks_bytesize_t byte_size);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+KSIMD_KERNEL_POPCNT_API ks_pop_bitcount_t KSIMD_KERNEL_CALL_CONV ks_test_popcnt_buffer_arm_neon(const void* buffer, ks_bytesize_t byte_size);
 #endif
 
 #endif

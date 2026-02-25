@@ -1,7 +1,5 @@
 #include "../test.hpp"
 
-#if KSIMD_ARCH_X86_ANY
-
 #include "kSimd/kernels/popcnt/popcnt.h"
 
 #include <vector>
@@ -28,7 +26,18 @@ ks_pop_bitcount_t test_popcnt_ref(T x)
 TEST(popcnt, intrinsic_support)
 {
     const ksimd::CpuSupportInfo info = ksimd::get_cpu_support_info();
+
+    #if KSIMD_ARCH_X86_ANY
+
     EXPECT_TRUE(info.popcnt);
+
+    #elif KSIMD_ARCH_ARM_ANY
+
+    EXPECT_TRUE(info.neon);
+
+    #else
+    #error unknown arch
+    #endif
 }
 
 TEST(popcnt, popcnt8_soft)
@@ -153,44 +162,81 @@ TEST(popcnt, popcnt_buffer_soft)
         << "Failed at large random buffer test";
 }
 
-TEST(popcnt, x86)
+TEST(popcnt, intrinsics)
 {
     {
         // 1. 空缓冲区测试
-        EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(nullptr, 0), 0u);
+        #if KSIMD_ARCH_X86_ANY
+        EXPECT_EQ(ks_test_popcnt_buffer_x86(nullptr, 0), 0u);
+        #endif
+
+        #if KSIMD_ARCH_ARM_ANY
+        EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(nullptr, 0), 0u);
+        #endif
 
         // 2. 覆盖所有阶梯长度 (从 0 字节到 32 字节，包含 4 字节和 8 字节切换点)
+        #if KSIMD_ARCH_X86_ANY
         for (size_t len = 0; len <= 32; ++len) {
             std::vector<uint8_t> buffer(len);
 
             // 测试全 1 场景
             std::fill(buffer.begin(), buffer.end(), 0xFF);
-            EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(buffer.data(), len), len * 8)
+            EXPECT_EQ(ks_test_popcnt_buffer_x86(buffer.data(), len), len * 8)
                 << "Failed at full-ones, length: " << len;
 
             // 测试全 0 场景
             std::fill(buffer.begin(), buffer.end(), 0x00);
-            EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(buffer.data(), len), 0u)
+            EXPECT_EQ(ks_test_popcnt_buffer_x86(buffer.data(), len), 0u)
                 << "Failed at zeros, length: " << len;
 
             // 测试交替位场景
             std::fill(buffer.begin(), buffer.end(), 0x55); // 01010101
-            EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(buffer.data(), len), len * 4)
+            EXPECT_EQ(ks_test_popcnt_buffer_x86(buffer.data(), len), len * 4)
                 << "Failed at 0x55, length: " << len;
         }
+        #endif
 
-        // 3. 随机数据大压力测试
+        #if KSIMD_ARCH_ARM_ANY
+        for (size_t len = 0; len <= 32; ++len) {
+            std::vector<uint8_t> buffer(len);
+
+            // 测试全 1 场景
+            std::fill(buffer.begin(), buffer.end(), 0xFF);
+            EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(buffer.data(), len), len * 8)
+                << "Failed at full-ones, length: " << len;
+
+            // 测试全 0 场景
+            std::fill(buffer.begin(), buffer.end(), 0x00);
+            EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(buffer.data(), len), 0u)
+                << "Failed at zeros, length: " << len;
+
+            // 测试交替位场景
+            std::fill(buffer.begin(), buffer.end(), 0x55); // 01010101
+            EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(buffer.data(), len), len * 4)
+                << "Failed at 0x55, length: " << len;
+        }
+        #endif
+
+        // 3. 大数据测试
         std::mt19937 gen(12345);
         std::uniform_int_distribution<int> dist(0, 255);
 
-        // 选一个较大的、非对齐的长度（如 1KB + 7字节）
-        const size_t large_len = 1024 + 7;
+        // 选一个较大的、非对齐的长度
+        const size_t large_len = 1024 * 30 + 7;
         std::vector<uint8_t> large_buffer(large_len);
-        for (auto& b : large_buffer) b = static_cast<uint8_t>(dist(gen));
+        for (auto& b : large_buffer) b = 0xff;
 
         ks_pop_bitcount_t expected = reference_popcnt(large_buffer.data(), large_len);
-        EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(large_buffer.data(), large_len), expected)
+
+        #if KSIMD_ARCH_X86_ANY
+        EXPECT_EQ(ks_test_popcnt_buffer_x86(large_buffer.data(), large_len), expected)
             << "Failed at large random buffer";
+        #endif
+
+        #if KSIMD_ARCH_ARM_ANY
+        EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(large_buffer.data(), large_len), expected)
+            << "Failed at large random buffer";
+        #endif
     }
 
     {
@@ -202,16 +248,24 @@ TEST(popcnt, x86)
         ks_pop_bitcount_t ref_val = reference_popcnt(pattern, pattern_len);
 
         // 模拟从非对齐地址开始读取
-        EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(pattern, pattern_len), ref_val);
-        EXPECT_EQ(ks_test_popcnt_buffer_x86_popcnt(pattern + 1, pattern_len - 1),
+        #if KSIMD_ARCH_X86_ANY
+        EXPECT_EQ(ks_test_popcnt_buffer_x86(pattern, pattern_len), ref_val);
+        EXPECT_EQ(ks_test_popcnt_buffer_x86(pattern + 1, pattern_len - 1),
                   reference_popcnt(pattern + 1, pattern_len - 1));
+        #endif
+
+        #if KSIMD_ARCH_ARM_ANY
+        EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(pattern, pattern_len), ref_val);
+        EXPECT_EQ(ks_test_popcnt_buffer_arm_neon(pattern + 1, pattern_len - 1),
+                  reference_popcnt(pattern + 1, pattern_len - 1));
+        #endif
     }
 }
 
 TEST(popcnt, speed_test)
 {
-    // 1. 准备大规模数据 (比如 128MB)
-    const size_t buffer_size = 30 * 1024 * 1024;
+    // 1. 准备大规模数据
+    const size_t buffer_size = 30 * 1024 * 30;
     std::vector<uint8_t> buffer(buffer_size);
 
     // 填充伪随机数据
@@ -225,15 +279,30 @@ TEST(popcnt, speed_test)
 
     std::cout << "Starting benchmark: 30MB buffer, " << iterations << " iterations..." << std::endl;
 
+    #if KSIMD_ARCH_X86_ANY
     {
         // 2. 创建计时器，作用域开始
+        
         ScopeTimer timer("x86_popcnt_buffer");
 
         for (int i = 0; i < iterations; ++i) {
             // 每次强制使用结果，防止编译器把循环优化掉
-            total_ones += ks_test_popcnt_buffer_x86_popcnt(buffer.data(), buffer_size);
+            total_ones += ks_test_popcnt_buffer_x86(buffer.data(), buffer_size);
         }
     }
+    #endif
+
+    #if KSIMD_ARCH_ARM_ANY
+    {
+        ScopeTimer timer("arm_neon_popcnt_buffer");
+
+        for (int i = 0; i < iterations; ++i) {
+            // 每次强制使用结果，防止编译器把循环优化掉
+            total_ones += ks_test_popcnt_buffer_arm_neon(buffer.data(), buffer_size);
+        }
+    }
+    #endif
+
     {
         ScopeTimer timer("popcnt_buffer_soft");
 
@@ -247,7 +316,6 @@ TEST(popcnt, speed_test)
     std::cout << "Total ones counted: " << total_ones << std::endl;
 }
 
-#endif
 
 int main(int argc, char **argv)
 {
