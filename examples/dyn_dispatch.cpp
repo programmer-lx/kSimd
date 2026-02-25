@@ -3,8 +3,8 @@
 #include <iostream>
 
 // 用户定义的宏，可以用于取消某条路径的分发，需要采用这种方式定义
-// #undef KSIMD_DISABLE_AVX_V3
-// #define KSIMD_DISABLE_AVX_V3
+// #undef KSIMD_DISABLE_X86_V3
+// #define KSIMD_DISABLE_X86_V3
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "dyn_dispatch.cpp"

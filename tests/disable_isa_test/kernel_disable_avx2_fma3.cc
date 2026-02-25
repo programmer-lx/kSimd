@@ -6,8 +6,8 @@
 // #define KSIMD_IS_TESTING
 
 // disable avx2_fma3 before include <kSimd/core/impl/base.hpp>
-#undef KSIMD_DISABLE_AVX_V3
-#define KSIMD_DISABLE_AVX_V3
+#undef KSIMD_DISABLE_X86_V3
+#define KSIMD_DISABLE_X86_V3
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "kernel_disable_avx2_fma3.cc"
@@ -28,7 +28,7 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         bool result =
             (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SSE4_1) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V2) && index == 0);
         if (!result)
         {
             throw std::runtime_error("we should disable avx2_fma3");
