@@ -116,7 +116,8 @@
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_AVX2_MAX) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX 1
 
-        #if KSIMD_BASELINE_AVX2_MAX
+        // avx2 max fallback
+        #if KSIMD_BASELINE_AVX2_MAX && !defined(KSIMD_IS_TESTING)
             #undef KSIMD_INSTRUCTION_FEATURE_AVX2_MAX
             #define KSIMD_INSTRUCTION_FEATURE_AVX2_MAX KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
@@ -132,7 +133,7 @@
         #define KSIMD_INSTRUCTION_FEATURE_NEON 1
 
         // 64位操作系统必定支持NEON
-        #if KSIMD_ARCH_ARM_64
+        #if KSIMD_ARCH_ARM_64 && !defined(KSIMD_IS_TESTING)
             #undef KSIMD_INSTRUCTION_FEATURE_NEON
             #define KSIMD_INSTRUCTION_FEATURE_NEON KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction

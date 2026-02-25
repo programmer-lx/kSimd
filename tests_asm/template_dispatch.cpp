@@ -5,7 +5,7 @@
 
 namespace KSIMD_DYN_INSTRUCTION
 {
-    template<typename T, bool tag>
+    template<typename T, bool>
     KSIMD_DLL_LOCAL KSIMD_DYN_FUNC_ATTR void test_generic(
         const T* KSIMD_RESTRICT src,
               T* KSIMD_RESTRICT dst,
@@ -13,9 +13,9 @@ namespace KSIMD_DYN_INSTRUCTION
     ) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
-        ns::Traits<T> t;
+        ns::FullTag<T> t;
         
-        using batch_t = ns::Batch<T>;
+        using batch_t = ns::Batch<decltype(t)>;
         const batch_t c  = ns::set(t, T{-0.777});
 
         const batch_t lower = ns::set(t, T{5.0});

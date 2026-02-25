@@ -24,7 +24,7 @@ def main():
 
     script_dir = Path(__file__).parent.resolve()
     project_root = script_dir.parent
-    build_base = project_root / "build" / f"{CURRENT_OS}_arm_neon"
+    build_base = project_root / "build" / f"{CURRENT_OS}_arm"
 
     qemu_bin = shutil.which("qemu-aarch64-static") or shutil.which("qemu-aarch64")
     print(f"qemu bin path: {qemu_bin}")
@@ -37,8 +37,12 @@ def main():
     if args.test_mode == "max":
         build_options += [("Release", "o2"), ("Release", "gl")]
 
+    
+    sve_bit_width = args.sve_bits; # SVE bit-width
+    print(f"SVE bit width = {sve_bit_width}")
+
     for build_cfg, test_opt in build_options:
-        current_build_dir = build_base / f"neon_{build_cfg}_{test_opt}"
+        current_build_dir = build_base / f"arm_{build_cfg}_{test_opt}_sve_{sve_bit_width}"
         
         print(f"\n{'='*60}\nTarget: ARM (QEMU) | Config: {build_cfg} | Option: {test_opt}\n{'='*60}")
 
@@ -58,11 +62,8 @@ def main():
         if os.environ.get("GITHUB_ACTIONS") != "true":
             config_args.append(f"-DCMAKE_CROSSCOMPILING_EMULATOR={qemu_bin}")
 
-        width = args.sve_bits; # SVE bit-width
-        print(f"SVE bit width = {width}")
-
         # 向cmake传递SVE宽度信息
-        config_args.append(f"-DKSIMD_TEST_SVE_BITS={width}")
+        config_args.append(f"-DKSIMD_TEST_SVE_BITS={sve_bit_width}")
 
         run_command(config_args)
 
@@ -70,7 +71,7 @@ def main():
         run_command(["cmake", "--build", str(current_build_dir), "--config", build_cfg])
 
         # 3. 测试
-        width_str = str(width // 128)
+        width_str = str(sve_bit_width // 128)
         sve_test_env = {"QEMU_CPU": f"max,sve-max-vq={width_str}"}
         run_command([
             "ctest", "--output-on-failure", "--test-dir", str(current_build_dir), "-C", build_cfg

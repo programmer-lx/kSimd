@@ -4,6 +4,12 @@
 #include <exception>
 #include <iostream>
 
+#include <kSimd/macros.h>
+
+#if defined(KSIMD_IS_TESTING)
+    #error no KSIMD_IS_TESTING
+#endif
+
 int main()
 {
     #if KSIMD_ARCH_X86_ANY
