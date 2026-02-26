@@ -439,7 +439,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
-        return _mm512_and_ps(v, _mm512_set1_ps(SignBitClearMask<tag_scalar_t<Tag>>));
+        return _mm512_abs_ps(v);
     }
 
     template<typename Tag>
