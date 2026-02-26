@@ -217,9 +217,10 @@ TEST_ONCE_DYN(float_not_comparison)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void nan_finite_checks() noexcept
+    void nan_finite_checks(size_t index) noexcept
     {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
+        TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
 
@@ -229,7 +230,7 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // all_NaN: 两个都是 NaN 才返回 True
         mask = ns::reduce_mask(t, ns::all_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        EXPECT_TRUE(first_n_bit_false(mask, Lanes)) << "idx: " << index;
 
         // all_finite: 两个都必须是有限数
         mask = ns::reduce_mask(t, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, inf<FLOAT_T>)));
@@ -237,7 +238,7 @@ namespace KSIMD_DYN_INSTRUCTION
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(nan_finite_checks)
+TEST_ONCE_DYN_WITH_IDX(nan_finite_checks)
 #endif
 
 // ------------------------------------------ round_ops ------------------------------------------

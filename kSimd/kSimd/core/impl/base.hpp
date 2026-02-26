@@ -133,8 +133,9 @@
 // #include <kSimd/core/dispatch_core.hpp>
 
 // 目前支持的宏:
-// - KSIMD_DISABLE_X86_V3       : 取消 AVX2_FMA3_F16C 的分发
-// - KSIMD_DISABLE_X86_V2       : 取消 SSE4.1 的分发
+// - KSIMD_DISABLE_X86_V4       : 取消 AVX512 F, DQ, VL 的分发
+// - KSIMD_DISABLE_X86_V3       : 取消 AVX, AVX2, FMA3, F16C 的分发
+// - KSIMD_DISABLE_X86_V2       : 取消 SSE, SSE2, SSE3, SSSE3, SSE4.1 的分发
 // - KSIMD_DISABLE_NEON         : 取消 NEON 的分发
 
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
@@ -166,6 +167,18 @@
 
 // --------- x86指令集 ---------
 #if KSIMD_ARCH_X86_ANY
+
+    // AVX512: F DQ VL (V4)
+    #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V4) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #define KSIMD_INSTRUCTION_FEATURE_X86_V4 1
+
+        // if fallback
+        #if KSIMD_BASELINE_X86_V4 && !defined(KSIMD_IS_TESTING)
+            #undef KSIMD_INSTRUCTION_FEATURE_X86_V4
+            #define KSIMD_INSTRUCTION_FEATURE_X86_V4 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+        #endif
+    #endif
 
     // AVX2+FMA3+F16C (V3)
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V3) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)

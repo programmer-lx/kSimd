@@ -94,6 +94,7 @@ add_test(NAME static_test COMMAND static_test)
 # disable isa test
 add_executable(
         disable_isa_test
+        disable_isa_test/kernel_disable_x86_v4.cc
         disable_isa_test/kernel_disable_x86_v3.cc
         disable_isa_test/kernel_disable_x86_v2.cc
         disable_isa_test/kernel_disable_neon.cc

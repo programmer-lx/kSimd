@@ -1238,10 +1238,12 @@ TEST_ONCE_DYN(less_equal)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void mask_logic() noexcept
+    void mask_logic(size_t index) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         TAG_T t;
+
+        const auto Lanes = ns::lanes(t);
 
         using mask_t = ns::Mask<decltype(t)>;
         using bitset_t = ns::MaskBitset<decltype(t)>;
@@ -1253,26 +1255,25 @@ namespace KSIMD_DYN_INSTRUCTION
         mask_t m_true  = ns::equal(t, v1, v1);  // All Ones
         mask_t m_false = ns::equal(t, v1, v2);  // All Zeros
 
-        // 定义全 1 的预期位图 (对于 128bit 32bit lanes，预期是 0xF)
-        const bitset_t all_ones_bitset = (bitset_t(1) << ns::lanes(t)) - 1;
-        const bitset_t all_zeros_bitset = 0;
-
-        // 1. 基础位运算函数测试 (and, or, xor, not)
+        // 1. 基础位运算函数测试 (and, or, xor, not, and_not)
         {
             // AND: true & false == false
-            EXPECT_EQ(ns::reduce_mask(t, ns::mask_and(t, m_true, m_false)), all_zeros_bitset);
+            EXPECT_TRUE(first_n_bit_false(ns::reduce_mask(t, ns::mask_and(t, m_true, m_false)), Lanes));
 
             // OR: true | false == true
-            EXPECT_EQ(ns::reduce_mask(t, ns::mask_or(t, m_true, m_false)), all_ones_bitset);
+            EXPECT_TRUE(first_n_bit_true(ns::reduce_mask(t, ns::mask_or(t, m_true, m_false)), Lanes));
 
             // XOR: true ^ true == false
-            EXPECT_EQ(ns::reduce_mask(t, ns::mask_xor(t, m_true, m_true)), all_zeros_bitset);
+            EXPECT_TRUE(first_n_bit_false(ns::reduce_mask(t, ns::mask_xor(t, m_true, m_true)), Lanes));
 
             // NOT: !true == false
-            EXPECT_EQ(ns::reduce_mask(t, ns::mask_not(t, m_true)), all_zeros_bitset);
+            EXPECT_TRUE(first_n_bit_false(ns::reduce_mask(t, ns::mask_not(t, m_true)), Lanes));
 
             // NOT: !false == true
-            EXPECT_EQ(ns::reduce_mask(t, ns::mask_not(t, m_false)), all_ones_bitset);
+            EXPECT_TRUE(first_n_bit_true(ns::reduce_mask(t, ns::mask_not(t, m_false)), Lanes));
+
+            // AND NOT: !false & true == true
+            EXPECT_TRUE(first_n_bit_true(ns::reduce_mask(t, ns::mask_and_not(t, m_false, m_true)), Lanes));
         }
 
         // 2. 混合模式测试 (逐位验证)
@@ -1291,12 +1292,12 @@ namespace KSIMD_DYN_INSTRUCTION
                 expected_mixed |= (bitset_t(1) << i);
             }
 
-            EXPECT_EQ(res_mixed, expected_mixed);
+            EXPECT_EQ(res_mixed, expected_mixed) << "idx: " << index;
         }
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(mask_logic)
+TEST_ONCE_DYN_WITH_IDX(mask_logic)
 #endif
 
 #if KSIMD_ONCE

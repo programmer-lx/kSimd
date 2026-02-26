@@ -23,9 +23,10 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
         bool result =
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 2) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V2) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V3) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 3) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V2) && index == 2) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V3) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V4) && index == 0);
 
         EXPECT_TRUE(result);
 
@@ -55,10 +56,11 @@ TEST(dyn_dispatch, pfn_table)
 {
 #ifdef KSIMD_ARCH_X86_ANY
 
-    // 0: avx v3
-    // 1: sse v2
-    // 2: scalar
-    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 3);
+    // 0: avx512 v4
+    // 1: avx v3
+    // 2: sse v2
+    // 3: scalar
+    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 4);
 
 #elif KSIMD_ARCH_ARM_ANY
 

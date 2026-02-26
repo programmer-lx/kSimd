@@ -20,9 +20,10 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
         bool result =
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 2) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V2) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V3) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 3) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V2) && index == 2) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V3) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_X86_V4) && index == 0);
 
         EXPECT_TRUE(result);
 
@@ -47,8 +48,8 @@ TEST(table_size, basic)
 {
 #if KSIMD_ARCH_X86_ANY
 
-    // x86: AVX2_V3 + SSE4_1_V2 + SCALAR == 3
-    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 3);
+    // x86: AVX512_V4 + AVX2_V3 + SSE4_1_V2 + SCALAR == 4
+    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 4);
 
 #elif KSIMD_ARCH_ARM_64
 

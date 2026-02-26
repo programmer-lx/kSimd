@@ -210,3 +210,13 @@ F inf = std::numeric_limits<F>::infinity();
             KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[idx___](); \
         } \
     }
+
+#define TEST_ONCE_DYN_WITH_IDX(func_name) \
+    KSIMD_DYN_DISPATCH_FUNC(func_name); \
+    TEST(dyn_dispatch, func_name) \
+    { \
+        for (size_t idx___ = 0; idx___ < std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)); ++idx___) \
+        { \
+            KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[idx___](idx___); \
+        } \
+    }

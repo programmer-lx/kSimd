@@ -373,6 +373,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        return _mm256_andnot_ps(lhs, rhs);
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         return _mm256_blendv_ps(_else, _then, _if);

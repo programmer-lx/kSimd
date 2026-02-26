@@ -14,11 +14,12 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
 
 #include "impl/base.hpp"
 
-// Scalar
-#if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SCALAR
-    #include "impl/ops/scalar.hpp"
-#endif
 
+// AVX512 family
+#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START && \
+    KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_AVX512_END
+    #include "impl/ops/x86_vec512.hpp"
+#endif
 
 // AVX family
 #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START && \
@@ -36,6 +37,12 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
 // arm NEON
 #if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON
     #include "impl/ops/arm_neon.hpp"
+#endif
+
+
+// Scalar
+#if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SCALAR
+    #include "impl/ops/scalar.hpp"
 #endif
 
 // clang-format on

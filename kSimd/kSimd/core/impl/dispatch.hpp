@@ -26,6 +26,11 @@
 #define KSIMD_DYN_DISPATCH_LEVEL_X86_V3         22
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX_END        23
 
+// AVX512 family
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX512_START   31
+#define KSIMD_DYN_DISPATCH_LEVEL_X86_V4         32
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX512_END     33
+
 // arm NEON
 #define KSIMD_DYN_DISPATCH_LEVEL_NEON           51
 
@@ -63,6 +68,9 @@
 // avx512-f
 #define KSIMD_DYN_FUNC_ATTR_AVX512_F KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx512f")
 
+// x64 v4 (AVX512 F, DQ, VL)
+#define KSIMD_DYN_FUNC_ATTR_X86_V4 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx512f,avx512dq,avx512vl")
+
 // neon
 #define KSIMD_DYN_FUNC_ATTR_NEON KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("neon")
 
@@ -82,6 +90,9 @@
 
 // scalar
 #define KSIMD_DYN_INSTRUCTION_SCALAR    KSIMD_SCALAR
+
+// avx512 family
+#define KSIMD_DYN_INSTRUCTION_X86_V4    KSIMD_X86_V4
 
 // avx family
 #define KSIMD_DYN_INSTRUCTION_X86_V3    KSIMD_X86_V3
@@ -144,12 +155,20 @@
     #define KSIMD_DETAIL_X86_V2_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
-// AVX2_FMA3_F16C
+// AVX2_FMA3_F16C V3
 #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V3)
     #define KSIMD_DETAIL_X86_V3_FUNC_IMPL(func_name, ...) \
         KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V3, __VA_ARGS__)
 #else
     #define KSIMD_DETAIL_X86_V3_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// AVX512 F DQ VL  V4
+#if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
+    #define KSIMD_DETAIL_X86_V4_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V4, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_X86_V4_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
 // NEON
@@ -162,17 +181,20 @@
 
 // function table
 #define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, ...) \
-    /* ------------------------------------- avx family ------------------------------------- */ \
-    KSIMD_DETAIL_X86_V3_FUNC_IMPL(func_name, __VA_ARGS__) \
+    /* ------------------------------------- avx512 family ------------------------------------- */ \
+    KSIMD_DETAIL_X86_V4_FUNC_IMPL(func_name, __VA_ARGS__) /* V4 */ \
     \
-    /* ------------------------------------- sse family ssse3 up ------------------------------------- */ \
-    KSIMD_DETAIL_X86_V2_FUNC_IMPL(func_name, __VA_ARGS__) \
+    /* ------------------------------------- avx family ------------------------------------- */ \
+    KSIMD_DETAIL_X86_V3_FUNC_IMPL(func_name, __VA_ARGS__) /* V3 */ \
+    \
+    /* ------------------------------------- sse family ------------------------------------- */ \
+    KSIMD_DETAIL_X86_V2_FUNC_IMPL(func_name, __VA_ARGS__) /* V2 */ \
     \
     /* ------------------------------------- arm neon ------------------------------------- */ \
-    KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, __VA_ARGS__) \
+    KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, __VA_ARGS__) /* NEON */ \
     \
     /* ------------------------------------- scalar ------------------------------------- */ \
-    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, __VA_ARGS__)
+    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, __VA_ARGS__) /* scalar */
 
 #if !defined(KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY)
     #error "have not defined DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY to cache the simd function pointers"
@@ -185,9 +207,12 @@ namespace ksimd
         // full lanes simd 类型的字节长度
         namespace dyn_vec_size
         {
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V4 = vec_size::Vec512;
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V3 = vec_size::Vec256;
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V2 = vec_size::Vec128;
+
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_NEON = vec_size::Vec128;
+
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SCALAR = vec_size::Scalar128;
 
             // 不定长向量类型
@@ -200,6 +225,10 @@ namespace ksimd
         enum class SimdInstructionIndex : int
         {
             Invalid = -1,
+
+        #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
+            KSIMD_DYN_INSTRUCTION_X86_V4,
+        #endif
 
         #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V3)
             KSIMD_DYN_INSTRUCTION_X86_V3,
@@ -229,6 +258,13 @@ namespace ksimd
                 [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
 
                 // 从最高级的指令往下判断
+                #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
+                if (supports.avx512_f && supports.avx512_dq && supports.avx512_vl)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V4);
+                }
+                #endif
+
                 #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V3)
                 if (supports.avx2 && supports.fma3 && supports.f16c)
                 {

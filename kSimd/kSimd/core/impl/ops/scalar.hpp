@@ -432,6 +432,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { (~lhs.m[I] & rhs.m[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
