@@ -79,18 +79,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         };
 // sse
 #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        // f32
+        // mask 跟 batch 一样
         template<typename Tag>
-        struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_32bits<Tag>>>
+        struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag>>>
         {
-            using type = __m128;
-        };
-
-        // f64
-        template<typename Tag>
-        struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_64bits<Tag>>>
-        {
-            using type = __m128d;
+            using type = typename detail::batch_type<Tag, void>::type;
         };
 #endif
 
@@ -102,7 +95,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
         // avx512
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-            using type = detail::mask_type<Tag, void>::type;
+            using type = typename detail::mask_type<Tag, void>::type;
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
             using type = int; // 指令集返回的是int

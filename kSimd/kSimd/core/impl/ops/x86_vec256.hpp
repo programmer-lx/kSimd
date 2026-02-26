@@ -50,18 +50,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         template<typename Tag, typename Enable>
         struct mask_type;
 
-        // f32
+        // mask 跟 batch 一样
         template<typename Tag>
-        struct mask_type<Tag, std::enable_if_t<is_tag_256<Tag> && is_tag_float_32bits<Tag>>>
+        struct mask_type<Tag, std::enable_if_t<is_tag_256<Tag>>>
         {
-            using type = __m256;
-        };
-
-        // f64
-        template<typename Tag>
-        struct mask_type<Tag, std::enable_if_t<is_tag_256<Tag> && is_tag_float_64bits<Tag>>>
-        {
-            using type = __m256d;
+            using type = typename detail::batch_type<Tag, void>::type;
         };
 
         // mask bitset
