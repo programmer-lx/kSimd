@@ -33,7 +33,7 @@
 
 // arch
 // ----------------------------- x86 64-bit -----------------------------
-#if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
+#if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__) || defined(__amd64__)
     #define KSIMD_ARCH_X86_64 1
     #define KSIMD_ARCH_X86_ANY 1
 
@@ -41,6 +41,7 @@
 #elif defined(_M_IX86) || defined(__i386__)
     #define KSIMD_ARCH_X86_32 1
     #define KSIMD_ARCH_X86_ANY 1
+    #error x86 32bit is unsupported, please use x86 64bit
 
 // ----------------------------- ARM 64-bit -----------------------------
 #elif defined(__aarch64__) || defined(_M_ARM64)
@@ -51,6 +52,7 @@
 #elif defined(__arm__) || defined(_M_ARM) || defined(__arm64_32__)
     #define KSIMD_ARCH_ARM_32 1
     #define KSIMD_ARCH_ARM_ANY 1
+    #error arm 32bit is unsupported, please use arm 64bit
 
 #else
     #error "Unknown arch, kSimd can only support x86 and arm."

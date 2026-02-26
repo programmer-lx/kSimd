@@ -375,9 +375,6 @@ namespace ksimd
                     // other
                     result.arm_crc32 = ((hwcaps & HWCAP_CRC32) != 0);
 
-                #elif KSIMD_ARCH_ARM_32
-                    #error TODO arm32 cpu feature detect.
-
                 #else
                     #error unknown arm arch.
                 #endif

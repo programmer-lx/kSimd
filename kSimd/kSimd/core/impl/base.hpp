@@ -152,7 +152,7 @@
     #if defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
         #define KSIMD_BASELINE_X86_V3 1
     #endif
-    #if defined(__SSE_4_1__)
+    #if defined(__SSE4_1__)
         #define KSIMD_BASELINE_X86_V2 1
     #endif
 #endif
