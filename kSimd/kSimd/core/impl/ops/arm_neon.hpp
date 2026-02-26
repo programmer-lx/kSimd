@@ -11,7 +11,7 @@
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 
-#define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN static __VA_ARGS__ KSIMD_CALL_CONV
+#define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
 
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
@@ -500,7 +500,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             return vrndq_f32(v); // To Zero
         }
-        else /* Round (Away from zero) */
+        else /* Round (四舍五入) */
         {
             return vrndaq_f32(v);
         }
