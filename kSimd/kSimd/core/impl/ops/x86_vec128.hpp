@@ -62,6 +62,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         template<typename Tag, typename Enable>
         struct mask_type;
 
+// avx512
 #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
         // 32bits
         template<typename Tag>
@@ -76,7 +77,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = __mmask8;
         };
-#else
+// sse
+#elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
         // f32
         template<typename Tag>
         struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_32bits<Tag>>>
@@ -98,11 +100,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         template<typename Tag>
         struct mask_bitset_type<Tag, std::enable_if_t<is_tag_128<Tag>>>
         {
-#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
             using type = detail::mask_type<Tag, void>::type;
-#else
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
             using type = int; // 指令集返回的是int
-#endif
+        #endif
         };
     } // namespace detail
 
@@ -896,7 +900,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 #pragma endregion
-    
+
 #pragma region--- float32 only ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
