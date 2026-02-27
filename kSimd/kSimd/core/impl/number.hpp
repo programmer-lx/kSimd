@@ -194,6 +194,6 @@ namespace ksimd
         // 如果传入的数 == 0，返回 inf，如果传入负数，返回-NaN，与硬件指令匹配
         const F res = (f == static_cast<F>(0.0f)) ? Inf<F> : (f < static_cast<F>(0.0f)) ? -QNaN<F> : y;
 
-        return { res };
+        return res;
     }
 }
