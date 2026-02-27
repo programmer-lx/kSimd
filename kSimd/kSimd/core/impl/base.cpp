@@ -281,6 +281,8 @@ namespace ksimd
 
                     // ebx
                     result.avx512_f = result.avx2 &&
+                                      result.fma3 &&
+                                      result.f16c &&
                                       bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_F) &&
                                       os_support_avx_512;
                     result.avx512_bw = result.avx512_f && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_BW);

@@ -158,6 +158,10 @@
     #endif
 #endif
 
+#if KSIMD_ARCH_ARM_64
+    #define KSIMD_BASELINE_NEON 1
+#endif
+
 // 这些宏开关，表示分发表将会分发哪些函数
 // fallback指令的值，后续可通过类似于
 #define KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE (-1) // fallback值
@@ -212,8 +216,8 @@
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_NEON) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #define KSIMD_INSTRUCTION_FEATURE_NEON 1
 
-        // 64位操作系统必定支持NEON
-        #if KSIMD_ARCH_ARM_64 && !defined(KSIMD_IS_TESTING)
+        // neon fallback
+        #if KSIMD_BASELINE_NEON && !defined(KSIMD_IS_TESTING)
             #undef KSIMD_INSTRUCTION_FEATURE_NEON
             #define KSIMD_INSTRUCTION_FEATURE_NEON KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction

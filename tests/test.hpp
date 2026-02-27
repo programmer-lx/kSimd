@@ -220,3 +220,4 @@ F inf = std::numeric_limits<F>::infinity();
             KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[idx___](idx___); \
         } \
     }
+
