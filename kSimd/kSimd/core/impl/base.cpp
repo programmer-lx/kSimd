@@ -367,11 +367,10 @@ namespace ksimd
 
                     // NEON
                     result.neon = ((hwcaps & HWCAP_ASIMD) != 0);
-                    result.neon_fp16 = ((hwcaps & HWCAP_ASIMDHP) != 0);
+                    result.neon_full_fp16 = ((hwcaps & HWCAP_ASIMDHP) != 0);
 
                     // SVE
                     result.sve = ((hwcaps & HWCAP_SVE) != 0);
-                    result.sve_fp16 = result.sve && result.arm_scalar_fp16;
 
 
                     // other

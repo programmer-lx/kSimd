@@ -76,10 +76,9 @@ TEST(cpuid, support)
     EXPECT_TRUE(result.arm_crc32 == true);
 
     EXPECT_TRUE(result.neon == true);
-    EXPECT_TRUE(result.neon_fp16 == true);
+    EXPECT_TRUE(result.neon_full_fp16 == true);
 
     EXPECT_TRUE(result.sve == true);
-    EXPECT_TRUE(result.sve_fp16 == true);
 
 #else
     #error unknown arch
@@ -142,7 +141,7 @@ TEST(sve_test, sve_vector_size)
 
 TEST(neon_ext, fp16)
 {
-    [[maybe_unused]] auto a = []() KSIMD_DYN_FUNC_ATTR_NEON_FP16
+    [[maybe_unused]] auto a = []() KSIMD_DYN_FUNC_ATTR_NEON_FULL_FP16
     {
         float16x8_t a = vdupq_n_f16(1.0f);
         float16x8_t b = vdupq_n_f16(2.0f);
