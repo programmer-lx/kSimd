@@ -30,6 +30,9 @@
     #define KSIMD_OS_LINUX 1
 #endif
 
+#if defined(__ANDROID__)
+    #define KSIMD_OS_ANDROID 1
+#endif
 
 // arch
 // ----------------------------- x86 64-bit -----------------------------
@@ -121,5 +124,3 @@
     #endif
 
 #endif // MSVC
-
-#define KSIMD_PRAGMA_MESSAGE(msg) KSIMD_PRAGMA(message("[kSimd] - " msg))

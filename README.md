@@ -17,6 +17,23 @@ https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-t
   1. NEON
   2. Scalar (fallback)
 
+## 支持的平台
+### X86
+- Windows x86-64
+- Linux x86-64
+- MacOS x86-64 (未测试)
+
+### Arm
+- Windows on armv8-a (TODO)
+- Linux armv8-a
+- MacOS armv8-a (TODO)
+
+## 支持的编译器
+- MSVC
+- GCC
+- clang
+- clang-cl (TODO)
+
 # 文档
 [简介](./document/introduction.md)
 [功能宏](./document/macros.md)

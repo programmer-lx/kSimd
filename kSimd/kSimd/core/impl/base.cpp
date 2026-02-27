@@ -356,8 +356,8 @@ namespace ksimd
         {
             CpuSupportInfo result{};
 
-            // linux
-            #if KSIMD_OS_LINUX
+            // linux || android
+            #if KSIMD_OS_LINUX || KSIMD_OS_ANDROID
                 #if KSIMD_ARCH_ARM_64
                     unsigned long hwcaps = getauxval(AT_HWCAP);
 
@@ -379,9 +379,9 @@ namespace ksimd
                 #else
                     #error unknown arm arch.
                 #endif
-            #endif // !linux
+            #endif // linux || android
 
-            // apple
+            // mac os
             #if KSIMD_OS_MACOS
                 #error TODO: apple arm intrinsic cpu feature detect.
             #endif // mac os

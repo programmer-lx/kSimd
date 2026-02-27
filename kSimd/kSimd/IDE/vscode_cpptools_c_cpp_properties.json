@@ -14,7 +14,7 @@
         ],
   
         "defines": [
-          "KSIMD_IDE_ANALYSIS"
+          "KSIMD_IDE"
         ],
   
         "compilerArgs": [
@@ -37,7 +37,7 @@
         ],
   
         "defines": [
-          "KSIMD_IDE_ANALYSIS"
+          "KSIMD_IDE"
         ],
   
         "compilerArgs": [

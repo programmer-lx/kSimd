@@ -182,7 +182,7 @@
 
 // macro for debug baseline instruction
 #if defined(KSIMD_DEBUG_ENABLE_BASELINE_MESSAGE)
-    #define KSIMD_PRAGMA_MESSAGE_BASELINE(msg) KSIMD_PRAGMA_MESSAGE(msg)
+    #define KSIMD_PRAGMA_MESSAGE_BASELINE(msg) KSIMD_PRAGMA(message("[kSimd] - " msg))
 #else
     #define KSIMD_PRAGMA_MESSAGE_BASELINE(...)
 #endif
