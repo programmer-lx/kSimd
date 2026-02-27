@@ -3,6 +3,10 @@
 #include <iostream>
 #include <random>
 
+// 用于调试当前的最低指令集
+#undef KSIMD_DEBUG_ENABLE_BASELINE_MESSAGE
+#define KSIMD_DEBUG_ENABLE_BASELINE_MESSAGE
+
 // 可以用于取消某条路径的分发，需要采用这种方式定义
 // 定义之前，必须取消定义，因为该文件会被重复包含，只#define，会造成重复定义
 // #undef KSIMD_DISABLE_X86_V4

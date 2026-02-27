@@ -84,6 +84,7 @@ jobs:
         run: |
           python scripts/test_arm.py --test_mode=max --sve_bits=128
           python scripts/test_arm.py --test_mode=max --sve_bits=256
+          python scripts/test_arm.py --test_mode=max --sve_bits=512
 
 
       - name: Generate & Test GNU Asm Files

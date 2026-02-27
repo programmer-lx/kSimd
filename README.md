@@ -20,6 +20,7 @@ https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-t
 # 文档
 [简介](./document/introduction.md)
 [功能宏](./document/macros.md)
+[编译参数](./document/compiler_options.md)
 
 # 第三方库
 FP16: 用于标量的FP16转换: https://github.com/Maratyszcza/FP16

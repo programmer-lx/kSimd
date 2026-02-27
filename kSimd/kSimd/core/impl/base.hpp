@@ -141,25 +141,50 @@
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
 // 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
 
-// 在编译期进行分发表裁剪，如果已经打开了AVX2+FMA3开关，那么其实就没必要分发标量了
 #if KSIMD_COMPILER_MSVC
-    #ifdef __AVX2__
-        #define KSIMD_BASELINE_X86_V3 1
-    #endif
-    #ifdef __AVX__
+    // V2 (MSVC没有SSE4.1宏，所以保守一点，使用AVX宏来判断)
+    #if defined(__AVX__)
         #define KSIMD_BASELINE_X86_V2 1
+    #endif
+
+    // 因为MSVC只定义__AVX2__宏，只能判断有没有AVX2和FMA3，不能判断有没有F16C，所以只能跳过 V3 baseline
+    // #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && /* no __F16C__ */
+    //     #define KSIMD_BASELINE_X86_V3 1
+    // #endif
+
+    // V4 = V2 + (AVX2 + FMA3) + AVX512F DQ VL
+    // https://learn.microsoft.com/en-us/cpp/build/reference/arch-x64?view=msvc-170
+    // /arch:AVX2 代表开启FMA3指令集
+    #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && \
+        defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512VL__)
+        #define KSIMD_BASELINE_X86_V4 1
     #endif
 #elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
-    #if defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
-        #define KSIMD_BASELINE_X86_V3 1
-    #endif
+    // V2 = SSE4.1
     #if defined(__SSE4_1__)
         #define KSIMD_BASELINE_X86_V2 1
+    #endif
+
+    // V3 = V2 + AVX2 + FMA3 + F16C
+    #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
+        #define KSIMD_BASELINE_X86_V3 1
+    #endif
+
+    // V4 = V3 + AVX512-F + AVX512-DQ + AVX512-VL
+    #if KSIMD_BASELINE_X86_V3 && defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512VL__)
+        #define KSIMD_BASELINE_X86_V4 1
     #endif
 #endif
 
 #if KSIMD_ARCH_ARM_64
     #define KSIMD_BASELINE_NEON 1
+#endif
+
+// macro for debug baseline instruction
+#if defined(KSIMD_DEBUG_ENABLE_BASELINE_MESSAGE)
+    #define KSIMD_PRAGMA_MESSAGE_BASELINE(msg) KSIMD_PRAGMA_MESSAGE(msg)
+#else
+    #define KSIMD_PRAGMA_MESSAGE_BASELINE(...)
 #endif
 
 // 这些宏开关，表示分发表将会分发哪些函数
@@ -176,11 +201,13 @@
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V4) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #define KSIMD_INSTRUCTION_FEATURE_X86_V4 1
 
-        // if fallback
+        // avx512 v4 fallback
         #if KSIMD_BASELINE_X86_V4 && !defined(KSIMD_IS_TESTING)
             #undef KSIMD_INSTRUCTION_FEATURE_X86_V4
             #define KSIMD_INSTRUCTION_FEATURE_X86_V4 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: AVX512 F DQ VL")
         #endif
     #endif
 
@@ -193,6 +220,8 @@
             #undef KSIMD_INSTRUCTION_FEATURE_X86_V3
             #define KSIMD_INSTRUCTION_FEATURE_X86_V3 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: AVX2, FMA3, F16C")
         #endif
     #endif
 
@@ -205,6 +234,8 @@
             #undef KSIMD_INSTRUCTION_FEATURE_X86_V2
             #define KSIMD_INSTRUCTION_FEATURE_X86_V2 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: SSE, SSE2, SSE3, SSSE3, SSE4.1")
         #endif
     #endif
 
@@ -221,6 +252,8 @@
             #undef KSIMD_INSTRUCTION_FEATURE_NEON
             #define KSIMD_INSTRUCTION_FEATURE_NEON KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: NEON")
         #endif
     #endif
 #endif // arm instructions
@@ -229,6 +262,8 @@
 #if defined(KSIMD_IS_TESTING) || (!KSIMD_DETAIL_INST_FEATURE_FALLBACK)
     #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // fallback
+
+    KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: Scalar")
 #endif
 
 // check fallback

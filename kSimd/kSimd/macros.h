@@ -121,3 +121,5 @@
     #endif
 
 #endif // MSVC
+
+#define KSIMD_PRAGMA_MESSAGE(msg) KSIMD_PRAGMA(message("[kSimd] - " msg))
