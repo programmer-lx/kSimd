@@ -6,11 +6,11 @@
 #include <limits>
 #include <type_traits>
 
-#include "base.hpp"
-
 #if __has_include(<stdfloat>)
     #include <stdfloat>
 #endif
+
+#include "base.hpp"
 
 // clang-format off
 
