@@ -141,6 +141,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             // 把 f16 的前半部分的每个元素向高位位移 16bit，占满整个 __m128i
             // [0, d, 0, c, 0, b, 0, a]
             __m128i v32 = _mm_unpacklo_epi16(f16, _mm_setzero_si128());
+            
+            // [d, 0, c, 0, b, 0, a, 0]
             __m128i w = _mm_slli_epi32(v32, 16);
 
             __m128i sign = _mm_and_si128(w, _mm_set1_epi32(SignBitMask<int32_t>));
