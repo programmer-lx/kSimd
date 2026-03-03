@@ -800,16 +800,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
+    KSIMD_API(Batch<Tag>) loadu(Tag t, const tag_scalar_t<Tag>* mem) noexcept
     {
-        return load(Tag{}, mem);
+        return load(t, mem);
     }
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    KSIMD_API(void) storeu(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        storeu(Tag{}, mem, v);
+        storeu(t, mem, v);
     }
 
     template<typename Tag>
