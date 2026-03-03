@@ -816,6 +816,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* , size_t ) noexcept
     {
+        // TODO
+        return undefined(Tag{});
+
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
 
