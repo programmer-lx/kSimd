@@ -19,7 +19,7 @@ namespace ksimd
     // ----------------- scalar type -----------------
 
     // fp16 强类型
-    enum class float16_t : uint16_t {};
+    enum class half : uint16_t {};
 
     // floating point
     static_assert(sizeof(float) == 4 && std::numeric_limits<float>::is_iec559);
@@ -27,7 +27,7 @@ namespace ksimd
 
     template<typename T>
     concept is_scalar_floating_point =
-           std::is_same_v<T, ksimd::float16_t>
+           std::is_same_v<T, half>
         || std::is_same_v<T, float>
         || std::is_same_v<T, double>
 #if KSIMD_SUPPORT_STD_FLOAT16
@@ -71,7 +71,7 @@ namespace ksimd
     template<typename T>
     concept is_scalar_type_float_16bits = is_scalar_type_includes<
         T
-        , ksimd::float16_t
+        , half
     #if KSIMD_SUPPORT_STD_FLOAT16
         , std::float16_t
     #endif
