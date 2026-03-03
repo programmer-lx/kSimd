@@ -14,8 +14,8 @@ https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-t
   3. SSE + SSE2 + SSE3 + SSSE3 + SSE4.1 (X86-64 V2)
   4. Scalar (fallback)
 - arm:
-  1. NEON
-  2. Scalar (fallback)
+  1. NEON (arm64 baseline)
+  2. Scalar
 
 ## 支持的平台
 ### X86
@@ -32,7 +32,7 @@ https://store.steampowered.com/hwsurvey/Steam-Hardware-Software-Survey-Welcome-t
 - MSVC
 - GCC
 - clang
-- clang-cl (TODO)
+- clang-cl
 
 # 文档
 [简介](./document/introduction.md)

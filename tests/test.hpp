@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string>
 #include <random>
+#include <limits>
 
 #include <gtest/gtest.h>
 

@@ -42,6 +42,9 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     # 传递SVE宽度宏
     target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_SVE_BITS=${KSIMD_TEST_SVE_BITS})
 
+    # 包含 FP16 库 用于测试
+    target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${KSIMD_SOURCE_ROOT_DIR}/3rdparty/FP16/include)
+
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
