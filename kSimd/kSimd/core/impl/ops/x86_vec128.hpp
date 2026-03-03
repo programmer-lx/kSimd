@@ -141,7 +141,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             // 把 f16 的前半部分的每个元素向高位位移 16bit，占满整个 __m128i
             // [0, d, 0, c, 0, b, 0, a]
             __m128i v32 = _mm_unpacklo_epi16(f16, _mm_setzero_si128());
-            
+
             // [d, 0, c, 0, b, 0, a, 0]
             __m128i w = _mm_slli_epi32(v32, 16);
 
@@ -765,6 +765,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         // native fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
         #error TODO native fp16: load
+
+        // f16c
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_X86_V3
+        __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
+        return _mm_cvtph_ps(f16);
+
+        // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
         __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
         return detail::mm_f16_to_f32(f16);
@@ -775,29 +782,45 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        _mm_store_ps(reinterpret_cast<float*>(mem), v);
+        // native fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        #error TODO native fp16: load
+
+        // f16c
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_X86_V3
+        __m128i f16 = _mm_cvtps_ph(v, _MM_FROUND_TO_NEAREST_INT);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        __m128i f16 = detail::mm_f32_to_f16(v);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
+        #endif
     }
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
-        return _mm_loadu_ps(reinterpret_cast<const float*>(mem));
+        return load(Tag{}, mem);
     }
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        _mm_storeu_ps(reinterpret_cast<float*>(mem), v);
+        storeu(Tag{}, mem, v);
     }
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
         __m128 cnt = _mm_set1_ps(static_cast<float>(count));
         __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
@@ -829,8 +852,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
         __m128 cnt = _mm_set1_ps(static_cast<float>(count));
         __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
