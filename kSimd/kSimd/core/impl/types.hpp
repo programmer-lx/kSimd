@@ -16,42 +16,65 @@
 
 namespace ksimd
 {
+    template<typename T, typename... Ts>
+    concept is_any_type_of = (std::is_same_v<T, Ts> || ...);
+
     // ----------------- scalar type -----------------
 
     // fp16 强类型
     enum class half : uint16_t {};
 
-    // floating point
+    // float16
+    template<typename T>
+    concept is_scalar_type_float_16bits = is_any_type_of<
+        T
+        , half
+    #if KSIMD_SUPPORT_STD_FLOAT16
+        , std::float16_t
+    #endif
+    #if KSIMD_SUPPORT_EXTENSION_FLOAT16
+        , _Float16
+    #endif
+    #if KSIMD_ARCH_ARM_ANY
+        , __fp16
+    #endif
+    >;
+
+    // float32
     static_assert(sizeof(float) == 4 && std::numeric_limits<float>::is_iec559);
+
+    template<typename T>
+    concept is_scalar_type_float_32bits = is_any_type_of<
+        T
+        , float
+    #if KSIMD_SUPPORT_STD_FLOAT32
+        , std::float32_t
+    #endif
+    #if KSIMD_SUPPORT_EXTENSION_FLOAT32
+        , _Float32
+    #endif
+    >;
+
+    // float64
     static_assert(sizeof(double) == 8 && std::numeric_limits<double>::is_iec559);
 
     template<typename T>
+    concept is_scalar_type_float_64bits = is_any_type_of<
+        T
+        , double
+    #if KSIMD_SUPPORT_STD_FLOAT64
+        , std::float64_t
+    #endif
+    #if KSIMD_SUPPORT_EXTENSION_FLOAT64
+        , _Float64
+    #endif
+    >;
+
+    template<typename T>
     concept is_scalar_floating_point =
-           std::is_same_v<T, half>
-        || std::is_same_v<T, float>
-        || std::is_same_v<T, double>
-
-#if KSIMD_SUPPORT_STD_FLOAT16
-        || std::is_same_v<T, std::float16_t>
-#endif
-#if KSIMD_SUPPORT_EXTENSION_FLOAT16
-        || std::is_same_v<T, _Float16>
-#endif
-
-#if KSIMD_SUPPORT_STD_FLOAT32
-        || std::is_same_v<T, std::float32_t>
-#endif
-#if KSIMD_SUPPORT_EXTENSION_FLOAT32
-        || std::is_same_v<T, _Float32>
-#endif
-
-#if KSIMD_SUPPORT_STD_FLOAT64
-        || std::is_same_v<T, std::float64_t>
-#endif
-#if KSIMD_SUPPORT_EXTENSION_FLOAT64
-        || std::is_same_v<T, _Float64>
-#endif
-        ;
+           is_scalar_type_float_16bits<T>
+        || is_scalar_type_float_32bits<T>
+        || is_scalar_type_float_64bits<T>;
 
     template<typename T>
     concept is_scalar_integer =
@@ -69,54 +92,9 @@ namespace ksimd
         is_scalar_floating_point<T>   ||
         is_scalar_integer<T>;
 
-    template<typename T, typename... Ts>
-    concept is_scalar_type_includes = is_scalar_type<T> && (std::is_same_v<T, Ts> || ...);
-
     // signed types
     template<typename T>
     concept is_scalar_signed = is_scalar_type<T> && std::is_signed_v<T>;
-
-    template<typename T, typename... Ts>
-    concept is_scalar_signed_includes = is_scalar_signed<T> && (std::is_same_v<T, Ts> || ...);
-
-    // float16
-    template<typename T>
-    concept is_scalar_type_float_16bits = is_scalar_type_includes<
-        T
-        , half
-    #if KSIMD_SUPPORT_STD_FLOAT16
-        , std::float16_t
-    #endif
-    #if KSIMD_SUPPORT_EXTENSION_FLOAT16
-        , _Float16
-    #endif
-    >;
-
-    // float32
-    template<typename T>
-    concept is_scalar_type_float_32bits = is_scalar_type_includes<
-        T
-        , float
-    #if KSIMD_SUPPORT_STD_FLOAT32
-        , std::float32_t
-    #endif
-    #if KSIMD_SUPPORT_EXTENSION_FLOAT32
-        , _Float32
-    #endif
-    >;
-
-    // float64
-    template<typename T>
-    concept is_scalar_type_float_64bits = is_scalar_type_includes<
-        T
-        , double
-    #if KSIMD_SUPPORT_STD_FLOAT64
-        , std::float64_t
-    #endif
-    #if KSIMD_SUPPORT_EXTENSION_FLOAT64
-        , _Float64
-    #endif
-    >;
 
     namespace alignment
     {
