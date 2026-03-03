@@ -31,25 +31,55 @@
 // hex float
 #if __cpp_hex_float >= 201603L
     #define KSIMD_SUPPORT_STD_HEX_FLOAT 1
+#else
+    #define KSIMD_SUPPORT_STD_HEX_FLOAT 0
+#endif
+
+// Native extension floating-point type support (such as x86 _Float16, arm __fp16)
+// _Float16
+#if defined(__FLT16_MAX__)
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT16 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT16 0
+#endif
+
+// _Float32
+#if defined(__FLT32_MAX__)
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT32 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT32 0
+#endif
+
+// _Float64
+#if defined(__FLT64_MAX__)
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT64 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT64 0
 #endif
 
 // C++23 std::floatXXX support
-#if __has_include(<stdfloat>)
-    #ifdef __STDCPP_FLOAT16_T__
-        #define KSIMD_SUPPORT_STD_FLOAT16 1
-    #endif
+#ifdef __STDCPP_FLOAT16_T__
+    #define KSIMD_SUPPORT_STD_FLOAT16 1
+#else
+    #define KSIMD_SUPPORT_STD_FLOAT16 0
+#endif
 
-    #ifdef __STDCPP_BFLOAT16_T__
-        #define KSIMD_SUPPORT_STD_BFLOAT16 1
-    #endif
+#ifdef __STDCPP_BFLOAT16_T__
+    #define KSIMD_SUPPORT_STD_BFLOAT16 1
+#else
+    #define KSIMD_SUPPORT_STD_BFLOAT16 0
+#endif
 
-    #ifdef __STDCPP_FLOAT32_T__
-        #define KSIMD_SUPPORT_STD_FLOAT32 1
-    #endif
+#ifdef __STDCPP_FLOAT32_T__
+    #define KSIMD_SUPPORT_STD_FLOAT32 1
+#else
+    #define KSIMD_SUPPORT_STD_FLOAT32 0
+#endif
 
-    #ifdef __STDCPP_FLOAT64_T__
-        #define KSIMD_SUPPORT_STD_FLOAT64 1
-    #endif
+#ifdef __STDCPP_FLOAT64_T__
+    #define KSIMD_SUPPORT_STD_FLOAT64 1
+#else
+    #define KSIMD_SUPPORT_STD_FLOAT64 0
 #endif
 
 
@@ -145,6 +175,8 @@
     // V2 (MSVC没有SSE4.1宏，所以保守一点，使用AVX宏来判断)
     #if defined(__AVX__)
         #define KSIMD_BASELINE_X86_V2 1
+    #else
+        #define KSIMD_BASELINE_X86_V2 0
     #endif
 
     // 因为MSVC只定义__AVX2__宏，只能判断有没有AVX2和FMA3，不能判断有没有F16C，所以只能跳过 V3 baseline
@@ -158,26 +190,36 @@
     #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && \
         defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512VL__)
         #define KSIMD_BASELINE_X86_V4 1
+    #else
+        #define KSIMD_BASELINE_X86_V4 0
     #endif
-#elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
+#elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG || KSIMD_COMPILER_CLANG_CL
     // V2 = SSE4.1
     #if defined(__SSE4_1__)
         #define KSIMD_BASELINE_X86_V2 1
+    #else
+        #define KSIMD_BASELINE_X86_V2 0
     #endif
 
     // V3 = V2 + AVX2 + FMA3 + F16C
     #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
         #define KSIMD_BASELINE_X86_V3 1
+    #else
+        #define KSIMD_BASELINE_X86_V3 0
     #endif
 
     // V4 = V3 + AVX512-F + AVX512-DQ + AVX512-VL
     #if KSIMD_BASELINE_X86_V3 && defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512VL__)
         #define KSIMD_BASELINE_X86_V4 1
+    #else
+        #define KSIMD_BASELINE_X86_V4 0
     #endif
 #endif
 
 #if KSIMD_ARCH_ARM_64
     #define KSIMD_BASELINE_NEON 1
+#else
+    #define KSIMD_BASELINE_NEON 0
 #endif
 
 // macro for debug baseline instruction
@@ -198,7 +240,9 @@
 #if KSIMD_ARCH_X86_ANY
 
     // AVX512: F DQ VL (V4)
+    #define KSIMD_INSTRUCTION_FEATURE_X86_V4 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V4) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #undef KSIMD_INSTRUCTION_FEATURE_X86_V4
         #define KSIMD_INSTRUCTION_FEATURE_X86_V4 1
 
         // avx512 v4 fallback
@@ -212,7 +256,9 @@
     #endif
 
     // AVX2+FMA3+F16C (V3)
+    #define KSIMD_INSTRUCTION_FEATURE_X86_V3 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V3) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #undef KSIMD_INSTRUCTION_FEATURE_X86_V3
         #define KSIMD_INSTRUCTION_FEATURE_X86_V3 1
 
         // avx2 v3 fallback
@@ -226,7 +272,9 @@
     #endif
 
     // SSE4.1 (V2)
+    #define KSIMD_INSTRUCTION_FEATURE_X86_V2 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V2) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #undef KSIMD_INSTRUCTION_FEATURE_X86_V2
         #define KSIMD_INSTRUCTION_FEATURE_X86_V2 1
 
         // sse4.1 fallback
@@ -235,7 +283,7 @@
             #define KSIMD_INSTRUCTION_FEATURE_X86_V2 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
 
-            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: SSE, SSE2, SSE3, SSSE3, SSE4.1")
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: SSE4.1")
         #endif
     #endif
 
@@ -244,7 +292,9 @@
 // --------- arm指令集 ---------
 #if KSIMD_ARCH_ARM_ANY
     // NEON
+    #define KSIMD_INSTRUCTION_FEATURE_NEON 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_NEON) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #undef KSIMD_INSTRUCTION_FEATURE_NEON
         #define KSIMD_INSTRUCTION_FEATURE_NEON 1
 
         // neon fallback
@@ -259,7 +309,9 @@
 #endif // arm instructions
 
 // Scalar
+#define KSIMD_INSTRUCTION_FEATURE_SCALAR 0
 #if defined(KSIMD_IS_TESTING) || (!KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+    #undef KSIMD_INSTRUCTION_FEATURE_SCALAR
     #define KSIMD_INSTRUCTION_FEATURE_SCALAR KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // fallback
 

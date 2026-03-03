@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <stdfloat>
 
+#pragma message("test std::float32_t.")
+
 #define TAG_T ns::Fixed128Tag<FLOAT_T>
 
 using FLOAT_T = std::float32_t;

@@ -14,11 +14,28 @@
 
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
+
+#if KSIMD_COMPILER_MSVC
+    #pragma message("compiler: msvc")
+#endif
+
+#if KSIMD_COMPILER_GCC
+    #pragma message("compiler: GCC")
+#endif
+
+#if KSIMD_COMPILER_CLANG
+    #pragma message("compiler: clang")
+#endif
+
+#if KSIMD_COMPILER_CLANG_CL
+    #pragma message("compiler: clang-cl")
+#endif
+
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR void kernel_dyn_impl(int index) noexcept
     {
-        #ifdef KSIMD_ARCH_X86_ANY
+        #if KSIMD_ARCH_X86_ANY
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
@@ -54,7 +71,7 @@ KSIMD_DYN_DISPATCH_FUNC(kernel_dyn_impl);
 
 TEST(dyn_dispatch, pfn_table)
 {
-#ifdef KSIMD_ARCH_X86_ANY
+#if KSIMD_ARCH_X86_ANY
 
     // 0: avx512 v4
     // 1: avx v3

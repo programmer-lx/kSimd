@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#ifdef KSIMD_ARCH_X86_ANY
+#if KSIMD_ARCH_X86_ANY
     #include <xmmintrin.h>
     #include <immintrin.h>
 #endif
@@ -27,7 +27,7 @@ TEST(aligned_allocate, alignment_test)
     }
 }
 
-#ifdef KSIMD_ARCH_X86_ANY
+#if KSIMD_ARCH_X86_ANY
 TEST(aligned_allocate, std_vector)
 {
     []() KSIMD_DYN_FUNC_ATTR_X86_V3

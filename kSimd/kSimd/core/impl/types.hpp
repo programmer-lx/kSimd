@@ -30,14 +30,26 @@ namespace ksimd
            std::is_same_v<T, half>
         || std::is_same_v<T, float>
         || std::is_same_v<T, double>
+
 #if KSIMD_SUPPORT_STD_FLOAT16
         || std::is_same_v<T, std::float16_t>
 #endif
+#if KSIMD_SUPPORT_EXTENSION_FLOAT16
+        || std::is_same_v<T, _Float16>
+#endif
+
 #if KSIMD_SUPPORT_STD_FLOAT32
         || std::is_same_v<T, std::float32_t>
 #endif
+#if KSIMD_SUPPORT_EXTENSION_FLOAT32
+        || std::is_same_v<T, _Float32>
+#endif
+
 #if KSIMD_SUPPORT_STD_FLOAT64
         || std::is_same_v<T, std::float64_t>
+#endif
+#if KSIMD_SUPPORT_EXTENSION_FLOAT64
+        || std::is_same_v<T, _Float64>
 #endif
         ;
 
@@ -75,6 +87,9 @@ namespace ksimd
     #if KSIMD_SUPPORT_STD_FLOAT16
         , std::float16_t
     #endif
+    #if KSIMD_SUPPORT_EXTENSION_FLOAT16
+        , _Float16
+    #endif
     >;
 
     // float32
@@ -85,6 +100,9 @@ namespace ksimd
     #if KSIMD_SUPPORT_STD_FLOAT32
         , std::float32_t
     #endif
+    #if KSIMD_SUPPORT_EXTENSION_FLOAT32
+        , _Float32
+    #endif
     >;
 
     // float64
@@ -94,6 +112,9 @@ namespace ksimd
         , double
     #if KSIMD_SUPPORT_STD_FLOAT64
         , std::float64_t
+    #endif
+    #if KSIMD_SUPPORT_EXTENSION_FLOAT64
+        , _Float64
     #endif
     >;
 

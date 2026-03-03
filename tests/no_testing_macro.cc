@@ -15,7 +15,7 @@ namespace KSIMD_DYN_INSTRUCTION
 {
     void test_table_size(size_t index)
     {
-        #ifdef KSIMD_ARCH_X86_ANY
+        #if KSIMD_ARCH_X86_ANY
 
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 

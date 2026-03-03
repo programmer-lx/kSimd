@@ -146,7 +146,7 @@
 
 // ---------------------------------------------- Function table ----------------------------------------------
 // Scalar
-#if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+#if KSIMD_INSTRUCTION_FEATURE_SCALAR
     #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, ...) \
         KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SCALAR, __VA_ARGS__)
 #else
@@ -154,7 +154,7 @@
 #endif
 
 // SSE4.1 v2
-#if defined(KSIMD_INSTRUCTION_FEATURE_X86_V2)
+#if KSIMD_INSTRUCTION_FEATURE_X86_V2
     #define KSIMD_DETAIL_X86_V2_FUNC_IMPL(func_name, ...) \
         KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V2, __VA_ARGS__)
 #else
@@ -162,7 +162,7 @@
 #endif
 
 // AVX2_FMA3_F16C V3
-#if defined(KSIMD_INSTRUCTION_FEATURE_X86_V3)
+#if KSIMD_INSTRUCTION_FEATURE_X86_V3
     #define KSIMD_DETAIL_X86_V3_FUNC_IMPL(func_name, ...) \
         KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V3, __VA_ARGS__)
 #else
@@ -170,7 +170,7 @@
 #endif
 
 // AVX512 F DQ VL  V4
-#if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
+#if KSIMD_INSTRUCTION_FEATURE_X86_V4
     #define KSIMD_DETAIL_X86_V4_FUNC_IMPL(func_name, ...) \
         KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V4, __VA_ARGS__)
 #else
@@ -178,7 +178,7 @@
 #endif
 
 // NEON
-#if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
+#if KSIMD_INSTRUCTION_FEATURE_NEON
     #define KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, ...) \
         KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_NEON, __VA_ARGS__)
 #else

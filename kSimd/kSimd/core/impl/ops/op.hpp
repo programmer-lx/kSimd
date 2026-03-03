@@ -170,7 +170,7 @@ namespace ksimd
     concept is_tag_float_64bits = is_tag<Tag> && is_scalar_type_float_64bits<tag_scalar_t<Tag>>;
 
 
-    // --- tag scalar bit size ---
+    // --- tag scalar byte size ---
     template<typename Tag, size_t bytes>
     concept is_tag_scalar_bytes = is_tag<Tag> && (sizeof(tag_scalar_t<Tag>) == bytes);
 

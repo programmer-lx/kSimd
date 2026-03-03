@@ -1,6 +1,6 @@
 #include "test.hpp"
 
-#ifdef KSIMD_ARCH_X86_ANY
+#if KSIMD_ARCH_X86_ANY
 
 #include <iostream>
 
@@ -9,7 +9,7 @@
 #include "kSimd/core/impl/base.hpp"
 
 
-#if KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG
+#if KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG || KSIMD_COMPILER_CLANG_CL
     #define TEST_FUNC_ATTR __attribute__((target("avx512f")))
 #else
     #define TEST_FUNC_ATTR

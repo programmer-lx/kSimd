@@ -3,11 +3,11 @@
 
 #include "test.hpp"
 
-#if defined(KSIMD_ARCH_X86_ANY)
+#if KSIMD_ARCH_X86_ANY
     #include <immintrin.h>
 #endif
 
-#if defined(KSIMD_ARCH_ARM_ANY)
+#if KSIMD_ARCH_ARM_ANY
     #include <arm_sve.h>
     #include <arm_neon.h>
 #endif
