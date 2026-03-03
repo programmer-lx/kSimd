@@ -8,7 +8,7 @@
 
 #include "base.hpp"
 
-#if KSIMD_SUPPORT_STD_FLOAT16 || KSIMD_SUPPORT_STD_BFLOAT16 || KSIMD_SUPPORT_STD_FLOAT32 || KSIMD_SUPPORT_STD_FLOAT64
+#if __has_include(<stdfloat>)
     #include <stdfloat>
 #endif
 
@@ -18,14 +18,21 @@ namespace ksimd
 {
     // ----------------- scalar type -----------------
 
+    // fp16 强类型
+    enum class float16_t : uint16_t {};
+
     // floating point
     static_assert(sizeof(float) == 4 && std::numeric_limits<float>::is_iec559);
     static_assert(sizeof(double) == 8 && std::numeric_limits<double>::is_iec559);
 
     template<typename T>
     concept is_scalar_floating_point =
-           std::is_same_v<T, float>
+           std::is_same_v<T, ksimd::float16_t>
+        || std::is_same_v<T, float>
         || std::is_same_v<T, double>
+#if KSIMD_SUPPORT_STD_FLOAT16
+        || std::is_same_v<T, std::float16_t>
+#endif
 #if KSIMD_SUPPORT_STD_FLOAT32
         || std::is_same_v<T, std::float32_t>
 #endif
@@ -35,8 +42,7 @@ namespace ksimd
         ;
 
     template<typename T>
-    concept is_scalar_type =
-        is_scalar_floating_point<T>   ||
+    concept is_scalar_integer =
         std::is_same_v<T, int8_t>     ||
         std::is_same_v<T, uint8_t>    ||
         std::is_same_v<T, int16_t>    ||
@@ -45,6 +51,11 @@ namespace ksimd
         std::is_same_v<T, uint32_t>   ||
         std::is_same_v<T, int64_t>    ||
         std::is_same_v<T, uint64_t>;
+
+    template<typename T>
+    concept is_scalar_type =
+        is_scalar_floating_point<T>   ||
+        is_scalar_integer<T>;
 
     template<typename T, typename... Ts>
     concept is_scalar_type_includes = is_scalar_type<T> && (std::is_same_v<T, Ts> || ...);
@@ -55,6 +66,16 @@ namespace ksimd
 
     template<typename T, typename... Ts>
     concept is_scalar_signed_includes = is_scalar_signed<T> && (std::is_same_v<T, Ts> || ...);
+
+    // float16
+    template<typename T>
+    concept is_scalar_type_float_16bits = is_scalar_type_includes<
+        T
+        , ksimd::float16_t
+    #if KSIMD_SUPPORT_STD_FLOAT16
+        , std::float16_t
+    #endif
+    >;
 
     // float32
     template<typename T>
@@ -114,7 +135,7 @@ namespace ksimd
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512 = 64;
 
         // 变长向量类型，使用size_t最大值表示
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalable = SIZE_MAX;
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalable = std::numeric_limits<size_t>::max();
     }
 }
 
