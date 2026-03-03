@@ -97,7 +97,7 @@
 // avx family
 #define KSIMD_DYN_INSTRUCTION_X86_V3    KSIMD_X86_V3
 
-// sse family (ssse3, sse4.1, sse4.2)
+// sse family (sse3, ssse3, sse4.1)
 #define KSIMD_DYN_INSTRUCTION_X86_V2    KSIMD_X86_V2
 
 // neon
