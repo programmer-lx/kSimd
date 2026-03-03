@@ -161,6 +161,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
             __m128i denormalized_cutoff = _mm_set1_epi32(INT32_C(1) << 27);
 
+            // 相当于 two_w < denormalized_cutoff，因为SSE没有无符号比较指令，只能这样子实现无符号的比较
             __m128i min_val = _mm_min_epu32(two_w, denormalized_cutoff);
             __m128i cond = _mm_cmpeq_epi32(min_val, two_w);
 
@@ -767,7 +768,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #error TODO native fp16: load
 
         // f16c
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_X86_V3
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
         return _mm_cvtph_ps(f16);
 
@@ -787,7 +788,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #error TODO native fp16: load
 
         // f16c
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_X86_V3
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         __m128i f16 = _mm_cvtps_ph(v, _MM_FROUND_TO_NEAREST_INT);
         _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
 
