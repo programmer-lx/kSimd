@@ -32,8 +32,8 @@ def main():
     # 使用 aarch64 交叉工具链
     # (name, c_compiler, cxx_compiler, sub_dir)
     configs = [
+        ("Clang-17", "clang-17", "clang++-17", "clang17"),
         ("GCC", "aarch64-linux-gnu-gcc-13", "aarch64-linux-gnu-g++-13", "gcc13"),
-        ("Clang-17", "clang-17", "clang++-17", "clang17")
     ]
     if args.test_mode == "min":
         configs = configs[:1]
