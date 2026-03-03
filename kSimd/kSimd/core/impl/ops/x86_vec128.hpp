@@ -762,7 +762,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
-        // native fp16
+        // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
         #error TODO native fp16: load
 
@@ -782,7 +782,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        // native fp16
+        // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
         #error TODO native fp16: load
 
@@ -814,69 +814,69 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
+    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* , size_t ) noexcept
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
 
         // avx512
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
-        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
-        __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
-        return _mm_maskz_loadu_ps(mask, mem);
+        // __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
+        // __m128 cnt = _mm_set1_ps(static_cast<float>(count));
+        // __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
+        // return _mm_maskz_loadu_ps(mask, mem);
 
         // avx
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
-        __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
-        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
-        __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
-        return _mm_maskload_ps(reinterpret_cast<const float*>(mem), _mm_castps_si128(mask));
+        // __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
+        // __m128 cnt = _mm_set1_ps(static_cast<float>(count));
+        // __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
+        // return _mm_maskload_ps(reinterpret_cast<const float*>(mem), _mm_castps_si128(mask));
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-
-        __m128 res = _mm_setzero_ps();
-
-        if (count == 0) [[unlikely]]
-            return res;
-
-        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
-        return res;
+        // constexpr size_t L = lanes(Tag{});
+        // count = count > L ? L : count;
+        //
+        // __m128 res = _mm_setzero_ps();
+        //
+        // if (count == 0) [[unlikely]]
+        //     return res;
+        //
+        // std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
+        // return res;
         #endif
     }
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
+    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* , Batch<Tag> , size_t ) noexcept
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
 
         // avx512
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
-        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
-        __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
-        _mm_mask_storeu_ps(mem, mask, v);
+        // __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
+        // __m128 cnt = _mm_set1_ps(static_cast<float>(count));
+        // __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
+        // _mm_mask_storeu_ps(mem, mask, v);
 
         // avx
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
-        __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
-        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
-        __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
-        return _mm_maskstore_ps(reinterpret_cast<float*>(mem), _mm_castps_si128(mask), v);
+        // __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
+        // __m128 cnt = _mm_set1_ps(static_cast<float>(count));
+        // __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
+        // return _mm_maskstore_ps(reinterpret_cast<float*>(mem), _mm_castps_si128(mask), v);
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        if (count == 0) [[unlikely]]
-            return;
-
-        std::memcpy(mem, &v, sizeof(tag_scalar_t<Tag>) * count);
+        // constexpr size_t L = lanes(Tag{});
+        // count = count > L ? L : count;
+        // if (count == 0) [[unlikely]]
+        //     return;
+        //
+        // std::memcpy(mem, &v, sizeof(tag_scalar_t<Tag>) * count);
         #endif
     }
 #pragma endregion
