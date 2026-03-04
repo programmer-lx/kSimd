@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kSimd/core/impl/types.hpp"
+#include "kSimd/core/impl/number.hpp"
 
 /*
 
@@ -103,15 +104,6 @@ using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 
 namespace ksimd
 {
-    enum class RoundingMode
-    {
-        Up,         // 向上取整
-        Down,       // 向下取整
-        Nearest,    // 向最近偶数取整
-        ToZero,     // 向0取整
-        Round       // 四舍五入
-    };
-
     enum class FloatMinMaxOption
     {
         Native,     // 按照原生硬件指令的行为

@@ -3,8 +3,6 @@
 #include <arm_sve.h>
 
 #include "kSimd/core/impl/dispatch.hpp"
-#include "kSimd/core/impl/types.hpp"
-#include "kSimd/core/impl/number.hpp"
 
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"

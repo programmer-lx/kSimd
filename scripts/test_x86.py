@@ -29,6 +29,7 @@ def run_command(command, env=None):
 def main():
     parser = argparse.ArgumentParser(description="X86 Testing with Intel SDE (Sapphire Rapids)")
     parser.add_argument("--test_mode", choices=["min", "max"], default="min", help="min: Debug/Clang, max: All configs/compilers")
+    parser.add_argument("--compiler", choices=["msvc", "gcc", "clang"], default="gcc")
     args = parser.parse_args()
 
     # 路径定义
@@ -46,7 +47,7 @@ def main():
     print(f"Using SDE found at: {sde_bin}")
 
     # 编译器矩阵
-    config = []
+    configs = []
 
     if CURRENT_OS == "windows":
         configs = [
@@ -54,15 +55,30 @@ def main():
             ("Clang-17", "clang", "clang++", "clang17"),
             ("MSVC", "cl", "cl", "msvc")
         ]
+        if args.test_mode == "min":
+            if args.compiler == "msvc":
+                configs = [configs[2]]
+            elif args.compiler == "gcc":
+                configs = [configs[0]]
+            elif args.compiler == "clang":
+                configs = [configs[1]]
+            else:
+                print("Error: invalid compiler.")
+                sys.exit(1)
     
     if CURRENT_OS == "linux":
         configs = [
             ("Clang-17", "clang-17", "clang++-17", "clang17"),
             ("GCC-13", "gcc-13", "g++-13", "gcc13")
         ]
-
-    if args.test_mode == "min":
-        configs = configs[:1]
+        if args.test_mode == "min":
+            if args.compiler == "gcc":
+                configs = [configs[1]]
+            elif args.compiler == "clang":
+                configs = [configs[0]]
+            else:
+                print("Error: invalid compiler.")
+                sys.exit(1)
 
     # 编译选项矩阵
     build_options = [("Debug", "od")]

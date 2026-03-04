@@ -14,4 +14,5 @@ constexpr size_t ALIGNMENT = 64;
 
 // constexpr size_t ALIGNMENT = 32;
 
-#include "floating_point.inl"
+#define KSIMD_TEST_F32 1
+#include "../floating_point.inl"

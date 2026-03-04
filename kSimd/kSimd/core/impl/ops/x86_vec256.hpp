@@ -4,8 +4,6 @@
 #include <cstring> // memcpy
 
 #include "kSimd/core/impl/dispatch.hpp"
-#include "kSimd/core/impl/types.hpp"
-#include "kSimd/core/impl/number.hpp"
 
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
@@ -985,6 +983,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 #pragma endregion // signed/float32
 
+#if KSIMD_SUPPORT_NATIVE_FP16
 #pragma region--- signed/float16 ---
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
@@ -1000,10 +999,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return neg(detail::Tag256<float>{}, v);
     }
 #pragma endregion // signed/float16
+#endif
 
 #pragma endregion // signed
 
 #pragma region--- floating point ---
+
+#pragma region--- floating point/float32 ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1120,7 +1122,157 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm256_and_ps(_mm256_cmp_ps(_mm256_and_ps(lhs, abs_mask), inf_v, _CMP_LT_OQ),
                              _mm256_cmp_ps(_mm256_and_ps(rhs, abs_mask), inf_v, _CMP_LT_OQ));
     }
-#pragma endregion
+#pragma endregion // floating point/float32
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+#pragma region--- floating point/float16 ---
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return div(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return sqrt(detail::Tag256<float>{}, v);
+        #endif
+    }
+
+    template<RoundingMode mode, typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return round<mode>(detail::Tag256<float>{}, v);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_greater(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_greater_equal(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_less(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_less_equal(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return any_NaN(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return all_NaN(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_NaN(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+    requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return any_finite(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return all_finite(detail::Tag256<float>{}, lhs, rhs);
+        #endif
+    }
+#pragma endregion // floating point/float16
+#endif // FP16
+
+#pragma endregion // floating point
 
 #pragma region--- float32 only ---
     template<typename Tag>

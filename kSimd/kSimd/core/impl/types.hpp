@@ -68,29 +68,39 @@ namespace ksimd
 
     template<typename T>
     concept is_scalar_floating_point =
-        is_scalar_type_float_16bits<T> ||
-        is_scalar_type_float_32bits<T> ||
+        is_scalar_type_float_16bits<T>  ||
+        is_scalar_type_float_32bits<T>  ||
         is_scalar_type_float_64bits<T>;
 
     template<typename T>
-    concept is_scalar_integer =
-        std::is_same_v<T, int8_t>     ||
-        std::is_same_v<T, uint8_t>    ||
-        std::is_same_v<T, int16_t>    ||
-        std::is_same_v<T, uint16_t>   ||
-        std::is_same_v<T, int32_t>    ||
-        std::is_same_v<T, uint32_t>   ||
-        std::is_same_v<T, int64_t>    ||
+    concept is_scalar_signed_integer =
+        std::is_same_v<T, int8_t>       ||
+        std::is_same_v<T, int16_t>      ||
+        std::is_same_v<T, int32_t>      ||
+        std::is_same_v<T, int64_t>;
+
+    template<typename T>
+    concept is_scalar_unsigned_integer =
+        std::is_same_v<T, uint8_t>      ||
+        std::is_same_v<T, uint16_t>     ||
+        std::is_same_v<T, uint32_t>     ||
         std::is_same_v<T, uint64_t>;
 
     template<typename T>
+    concept is_scalar_integer =
+        is_scalar_signed_integer<T>     ||
+        is_scalar_unsigned_integer<T>;
+
+    template<typename T>
     concept is_scalar_type =
-        is_scalar_floating_point<T>   ||
+        is_scalar_floating_point<T>     ||
         is_scalar_integer<T>;
 
     // signed types
     template<typename T>
-    concept is_scalar_signed = is_scalar_type<T> && std::is_signed_v<T>;
+    concept is_scalar_signed =
+        is_scalar_floating_point<T>     ||
+        is_scalar_signed_integer<T>;
 
     namespace alignment
     {

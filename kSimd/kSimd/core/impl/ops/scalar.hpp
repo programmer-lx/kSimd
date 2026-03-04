@@ -7,8 +7,6 @@
 #include <utility>
 
 #include "kSimd/core/impl/dispatch.hpp"
-#include "kSimd/core/impl/types.hpp"
-#include "kSimd/core/impl/number.hpp"
 
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
@@ -533,7 +531,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
         {
-            return { std::abs(v.v[I])... };
+            return { ksimd::abs(v.v[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
@@ -555,7 +553,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
         {
-            return { (lhs.v[I] / rhs.v[I])... };
+            return { static_cast<tag_scalar_t<Tag>>(lhs.v[I] / rhs.v[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
@@ -565,7 +563,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
         {
-            return { std::sqrt(v.v[I])... };
+            return { ksimd::sqrt(v.v[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
@@ -575,20 +573,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
         {
-            auto round_one = [&](tag_scalar_t<Tag> val)
-            {
-                if constexpr (mode == RoundingMode::Up)
-                    return std::ceil(val);
-                else if constexpr (mode == RoundingMode::Down)
-                    return std::floor(val);
-                else if constexpr (mode == RoundingMode::Nearest)
-                    return std::nearbyint(val);
-                else if constexpr (mode == RoundingMode::ToZero)
-                    return std::trunc(val);
-                else
-                    return std::round(val);
-            };
-            return { round_one(v.v[I])... };
+            return { ksimd::round<mode>(v.v[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 

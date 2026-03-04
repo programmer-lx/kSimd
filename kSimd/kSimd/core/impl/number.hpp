@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cmath>
 
 #include <bit>
 #include <type_traits>
@@ -135,7 +136,7 @@ namespace ksimd
         }
 
         template<is_scalar_type S>
-        consteval S Max()
+        consteval S max_val()
         {
             if constexpr (is_scalar_type_float_16bits<S>)
             {
@@ -148,7 +149,7 @@ namespace ksimd
         }
 
         template<is_scalar_type S>
-        consteval S Min()
+        consteval S min_val()
         {
             if constexpr (is_scalar_type_float_16bits<S>)
             {
@@ -159,7 +160,29 @@ namespace ksimd
                 return std::numeric_limits<S>::min();
             }
         }
+
+        template<is_scalar_type S>
+        consteval int digits()
+        {
+            if constexpr (is_scalar_type_float_16bits<S>)
+            {
+                return 11;
+            }
+            else
+            {
+                return std::numeric_limits<S>::digits;
+            }
+        }
     } // namespace detail
+
+    enum class RoundingMode
+    {
+        Up,         // 向上取整
+        Down,       // 向下取整
+        Nearest,    // 向最近偶数取整
+        ToZero,     // 向0取整
+        Round       // 四舍五入
+    };
 
     template<is_scalar_type S>
     using same_bits_uint_t = typename detail::uint_from_bytes<sizeof(S)>::type;
@@ -184,14 +207,17 @@ namespace ksimd
      */
     template<is_scalar_type S>
     KSIMD_HEADER_GLOBAL_CONSTEXPR S SignBitMask = std::bit_cast<S>(
-        static_cast<same_bits_uint_t<S>>(1) << static_cast<same_bits_uint_t<S>>(InverseBitIndex<S, 0>)
+        static_cast<same_bits_uint_t<S>>(
+            static_cast<same_bits_uint_t<S>>(1) << static_cast<same_bits_uint_t<S>>(InverseBitIndex<S, 0>))
     );
 
     /**
      * @brief 0b01111111...
      */
     template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR S SignBitClearMask = std::bit_cast<S>(OneBlock<same_bits_uint_t<S>> >> static_cast<same_bits_uint_t<S>>(1));
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S SignBitClearMask = std::bit_cast<S>(
+        static_cast<same_bits_uint_t<S>>(OneBlock<same_bits_uint_t<S>> >> static_cast<same_bits_uint_t<S>>(1))
+    );
 
     /**
      * @brief 指数位全为1，其余位全为0
@@ -206,10 +232,10 @@ namespace ksimd
     KSIMD_HEADER_GLOBAL_CONSTEXPR F MantissaMask = detail::mantissa_mask<F>();
 
     template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR S Max = detail::Max<S>();
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S Max = detail::max_val<S>();
 
     template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR S Min = detail::Min<S>();
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S Min = detail::min_val<S>();
 
     template<is_scalar_floating_point F>
     KSIMD_HEADER_GLOBAL_CONSTEXPR F Inf = detail::inf<F>();
@@ -219,6 +245,9 @@ namespace ksimd
 
     template<is_scalar_floating_point F>
     KSIMD_HEADER_GLOBAL_CONSTEXPR F SNaN = detail::signaling_NaN<F>();
+
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR int Digits = detail::digits<S>();
 
     template<is_scalar_type S>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr auto bitcast_to_uint(S n) noexcept
@@ -236,6 +265,53 @@ namespace ksimd
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S max(S a, S b) noexcept
     {
         return a > b ? a : b;
+    }
+
+    template<is_scalar_signed_integer S>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S abs(S x) noexcept
+    {
+        return (x < 0) ? -x : x;
+    }
+
+    template<is_scalar_floating_point F>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr F abs(F f) noexcept
+    {
+        // 只需清除符号位即可
+        using uint_t = same_bits_uint_t<F>;
+        constexpr uint_t mask = SignBitClearMask<uint_t>;
+
+        return std::bit_cast<F>(static_cast<uint_t>(mask & std::bit_cast<uint_t>(f)));
+    }
+
+    template<RoundingMode mode, is_scalar_floating_point F>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN F round(const F val) noexcept
+    {
+        if constexpr (is_scalar_type_float_16bits<F>)
+        {
+            if constexpr (mode == RoundingMode::Up)
+                return (F)std::ceil((float)val);
+            else if constexpr (mode == RoundingMode::Down)
+                return (F)std::floor((float)val);
+            else if constexpr (mode == RoundingMode::Nearest)
+                return (F)std::nearbyint((float)val);
+            else if constexpr (mode == RoundingMode::ToZero)
+                return (F)std::trunc((float)val);
+            else
+                return (F)std::round((float)val);
+        }
+        else
+        {
+            if constexpr (mode == RoundingMode::Up)
+                return std::ceil(val);
+            else if constexpr (mode == RoundingMode::Down)
+                return std::floor(val);
+            else if constexpr (mode == RoundingMode::Nearest)
+                return std::nearbyint(val);
+            else if constexpr (mode == RoundingMode::ToZero)
+                return std::trunc(val);
+            else
+                return std::round(val);
+        }
     }
 
     template<is_scalar_floating_point F>
@@ -270,6 +346,30 @@ namespace ksimd
     {
         return (f == Inf<F>) || (f == -Inf<F>);
     }
+
+    // 符号位是否为1
+    template<is_scalar_type S>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool sign_bit(const S x) noexcept
+    {
+        using uint_t = same_bits_uint_t<S>;
+        constexpr auto mask = SignBitMask<uint_t>;
+        return (mask & std::bit_cast<uint_t>(x)) != 0;
+    }
+
+    template<is_scalar_floating_point F>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN F sqrt(const F f) noexcept
+    {
+        if constexpr (is_scalar_type_float_16bits<F>)
+        {
+            return static_cast<F>(std::sqrt(static_cast<float>(f)));
+        }
+        else
+        {
+            return std::sqrt(f);
+        }
+    }
+
+    // template<>
 
     template<is_scalar_type_float_32bits F>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr F rsqrt(const F f) noexcept
