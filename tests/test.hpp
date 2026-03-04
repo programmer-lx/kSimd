@@ -193,6 +193,37 @@ bool test_bit(S bits, int index)
     return ( uint & (static_cast<UInt>(1) << static_cast<UInt>(index)) ) != 0;
 }
 
+template<typename T>
+inline std::string format_arr(const T* arr, size_t size)
+{
+    std::string str = "[ ";
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (i != 0) str += ", ";
+
+        str += std::to_string(static_cast<T>(arr[i]));
+    }
+
+    return str += " ]";
+}
+
+#if KSIMD_SUPPORT_EXTENSION_FLOAT16
+inline std::string format_arr(const _Float16* arr, size_t size)
+{
+    std::string str = "[ ";
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (i != 0) str += ", ";
+
+        str += std::to_string(static_cast<float>(arr[i]));
+    }
+
+    return str += " ]";
+}
+#endif
+
 #define TEST_ONCE_DYN(func_name) \
     KSIMD_DYN_DISPATCH_FUNC(func_name); \
     TEST(dyn_dispatch, func_name) \

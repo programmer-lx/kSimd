@@ -40,6 +40,9 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_IS_TESTING)
 
     # 传递SVE宽度宏
+    if(NOT KSIMD_TEST_SVE_BITS)
+        set(KSIMD_TEST_SVE_BITS 128)
+    endif()
     target_compile_definitions(${FINAL_TARGET_NAME} PRIVATE KSIMD_TEST_SVE_BITS=${KSIMD_TEST_SVE_BITS})
 
     # 包含 FP16 库 用于测试

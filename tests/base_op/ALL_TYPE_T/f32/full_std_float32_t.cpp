@@ -12,7 +12,7 @@
 using TYPE_T = std::float32_t;
 constexpr size_t ALIGNMENT = 64;
 
-#include "all_type.inl"
+#include "../all_type.inl"
 
 #else
 int main()

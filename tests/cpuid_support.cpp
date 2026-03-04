@@ -10,6 +10,9 @@
 #if KSIMD_ARCH_ARM_ANY
     #include <arm_sve.h>
     #include <arm_neon.h>
+
+// #undef KSIMD_TEST_SVE_BITS
+// #define KSIMD_TEST_SVE_BITS 128
 #endif
 
 #include "kSimd/IDE/IDE_hint.hpp"
@@ -141,7 +144,32 @@ TEST(sve_test, sve_vector_size)
 
 TEST(neon_ext, fp16)
 {
-    [[maybe_unused]] auto a = []() KSIMD_DYN_FUNC_ATTR_NEON_FULL_FP16
+    [[maybe_unused]] auto dummy = []() /* no fp16 attribute, just F16C */
+    {
+        float16_t data[] = { 1, 1, 1, 1 };
+        [[maybe_unused]] float16x4_t arr = vld1_f16(data);
+
+        float32x4_t f32 = vdupq_n_f32(0.0f);
+        float16x4_t f16 = vcvt_f16_f32(f32);
+        [[maybe_unused]] float32x4_t f32_2 = vcvt_f32_f16(f16);
+
+        return 0;
+    }();
+
+    [[maybe_unused]] auto dummy2 = []()
+    {
+        // 测试 ARM 的 ABI FP16 类型 是否可以执行算术运算
+        __fp16 a = 3;
+        __fp16 b = 2;
+        __fp16 c = a + b;
+        c =  a - b;
+        c = a * b;
+        c = c / b;
+
+        return c;
+    }();
+
+    [[maybe_unused]] auto dummy3 = []() KSIMD_DYN_FUNC_ATTR_NEON_FULL_FP16
     {
         float16x8_t a = vdupq_n_f16(1.0f);
         float16x8_t b = vdupq_n_f16(2.0f);

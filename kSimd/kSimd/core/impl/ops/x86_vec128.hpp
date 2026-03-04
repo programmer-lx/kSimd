@@ -39,7 +39,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
         if constexpr (is_tag_float_16bits<Tag>)
         {
-            return 4;
+            return vec_size::Vec128 / sizeof(float);
         }
         #endif
         return vec_size::Vec128 / sizeof(tag_scalar_t<Tag>);
@@ -1065,29 +1065,29 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
-    // template<typename Tag>
-    //     requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    // KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag>) noexcept = delete;
-    //
-    // template<typename Tag>
-    //     requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    // KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-    //
-    // template<typename Tag>
-    //     requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    // KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-    //
-    // template<typename Tag>
-    //     requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    // KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-    //
-    // template<typename Tag>
-    //     requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    // KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-    //
-    // template<typename Tag>
-    //     requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    // KSIMD_API(Batch<Tag>) bit_if_then_else(Tag, Batch<Tag>, Batch<Tag>, Batch<Tag>) noexcept = delete;
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag>) noexcept = delete;
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_if_then_else(Tag, Batch<Tag>, Batch<Tag>, Batch<Tag>) noexcept = delete;
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)

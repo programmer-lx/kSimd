@@ -236,23 +236,23 @@ namespace ksimd
         {
             Invalid = -1,
 
-        #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
+        #if KSIMD_INSTRUCTION_FEATURE_X86_V4
             KSIMD_DYN_INSTRUCTION_X86_V4,
         #endif
 
-        #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V3)
+        #if KSIMD_INSTRUCTION_FEATURE_X86_V3
             KSIMD_DYN_INSTRUCTION_X86_V3,
         #endif
 
-        #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V2)
+        #if KSIMD_INSTRUCTION_FEATURE_X86_V2
             KSIMD_DYN_INSTRUCTION_X86_V2,
         #endif
 
-        #if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
+        #if KSIMD_INSTRUCTION_FEATURE_NEON
             KSIMD_DYN_INSTRUCTION_NEON,
         #endif
 
-        #if defined(KSIMD_INSTRUCTION_FEATURE_SCALAR)
+        #if KSIMD_INSTRUCTION_FEATURE_SCALAR
             KSIMD_DYN_INSTRUCTION_SCALAR,
         #endif
 
@@ -268,28 +268,28 @@ namespace ksimd
                 [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
 
                 // 从最高级的指令往下判断
-                #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
+                #if KSIMD_INSTRUCTION_FEATURE_X86_V4
                 if (supports.avx512_f && supports.avx512_dq && supports.avx512_bw && supports.avx512_vl)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V4);
                 }
                 #endif
 
-                #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V3)
+                #if KSIMD_INSTRUCTION_FEATURE_X86_V3
                 if (supports.avx2 && supports.fma3 && supports.f16c)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V3);
                 }
                 #endif
 
-                #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V2)
+                #if KSIMD_INSTRUCTION_FEATURE_X86_V2
                 if (supports.sse4_1)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V2);
                 }
                 #endif
 
-                #if defined(KSIMD_INSTRUCTION_FEATURE_NEON)
+                #if KSIMD_INSTRUCTION_FEATURE_NEON
                 if (supports.neon)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_NEON);

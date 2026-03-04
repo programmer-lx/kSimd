@@ -226,10 +226,12 @@ defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && define
 // 由高到低判断
 
 // --------- x86指令集 ---------
+#define KSIMD_INSTRUCTION_FEATURE_X86_V4 0
+#define KSIMD_INSTRUCTION_FEATURE_X86_V3 0
+#define KSIMD_INSTRUCTION_FEATURE_X86_V2 0
 #if KSIMD_ARCH_X86_ANY
 
     // AVX512: F DQ BW VL (V4)
-    #define KSIMD_INSTRUCTION_FEATURE_X86_V4 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V4) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #undef KSIMD_INSTRUCTION_FEATURE_X86_V4
         #define KSIMD_INSTRUCTION_FEATURE_X86_V4 1
@@ -245,7 +247,6 @@ defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && define
     #endif
 
     // AVX2+FMA3+F16C (V3)
-    #define KSIMD_INSTRUCTION_FEATURE_X86_V3 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V3) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #undef KSIMD_INSTRUCTION_FEATURE_X86_V3
         #define KSIMD_INSTRUCTION_FEATURE_X86_V3 1
@@ -261,7 +262,6 @@ defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && define
     #endif
 
     // SSE4.1 (V2)
-    #define KSIMD_INSTRUCTION_FEATURE_X86_V2 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V2) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #undef KSIMD_INSTRUCTION_FEATURE_X86_V2
         #define KSIMD_INSTRUCTION_FEATURE_X86_V2 1
@@ -279,9 +279,9 @@ defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && define
 #endif // x86 instructions
 
 // --------- arm指令集 ---------
+#define KSIMD_INSTRUCTION_FEATURE_NEON 0
 #if KSIMD_ARCH_ARM_ANY
     // NEON
-    #define KSIMD_INSTRUCTION_FEATURE_NEON 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_NEON) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #undef KSIMD_INSTRUCTION_FEATURE_NEON
         #define KSIMD_INSTRUCTION_FEATURE_NEON 1

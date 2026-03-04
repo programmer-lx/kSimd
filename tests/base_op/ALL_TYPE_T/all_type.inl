@@ -215,7 +215,12 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, out.data(), v);
 
             for (size_t i = 0; i < Lanes; ++i) {
-                if (i < n) EXPECT_EQ(out[i], in[i]);
+                if (i < n)
+                {
+                    EXPECT_EQ(out[i], in[i])
+                        << "out: " << format_arr(out.data(), out.size())
+                        << "in: " << format_arr(in.data(), in.size());
+                }
                 else EXPECT_EQ(out[i], TYPE_T(0)); // 必须清零
             }
         }

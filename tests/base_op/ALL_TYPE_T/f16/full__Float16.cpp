@@ -6,8 +6,6 @@
 #include <cstddef>
 #include <limits>
 
-#include <stdfloat>
-
 #pragma message("test _Float16.")
 
 #define TAG_T ns::FullTag<TYPE_T>
@@ -20,7 +18,7 @@ constexpr size_t ALIGNMENT = 64;
 #if !KSIMD_SUPPORT_FP16
     #error must support fp16
 #endif
-#include "all_type.inl"
+#include "../all_type.inl"
 
 #else
 int main()

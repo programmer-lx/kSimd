@@ -1,21 +1,24 @@
 #include <kSimd/core/impl/base.hpp>
 
-#if KSIMD_SUPPORT_EXTENSION_FLOAT32
+#if KSIMD_ARCH_ARM_ANY
 
 #include <cfloat>
 #include <cstddef>
 #include <limits>
 
-#include <stdfloat>
-
-#pragma message("test _Float32.")
+#pragma message("test arm __fp16.")
 
 #define TAG_T ns::FullTag<TYPE_T>
 
-using TYPE_T = _Float32;
+using TYPE_T = __fp16;
 constexpr size_t ALIGNMENT = 64;
 
-#include "all_type.inl"
+#define KSIMD_TEST_FP16 1
+
+#if !KSIMD_SUPPORT_FP16
+#error must support fp16
+#endif
+#include "../all_type.inl"
 
 #else
 int main()
