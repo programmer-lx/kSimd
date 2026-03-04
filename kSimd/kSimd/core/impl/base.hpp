@@ -82,6 +82,13 @@
     #define KSIMD_SUPPORT_STD_FLOAT64 0
 #endif
 
+// support FP16 macro
+#if KSIMD_SUPPORT_EXTENSION_FLOAT16 || KSIMD_SUPPORT_STD_FLOAT16 || KSIMD_ARCH_ARM_ANY /* arm __fp16 type */
+    #define KSIMD_SUPPORT_FP16 1
+#else
+    #define KSIMD_SUPPORT_FP16 0
+#endif
+
 
 // simd inline op 的调用约定
 #if defined(_MSC_VER) && !defined(_M_ARM) && !defined(_M_ARM64) && !defined(_M_HYBRID_X86_ARM64) && \
@@ -171,49 +178,31 @@
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
 // 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
 
-#if KSIMD_COMPILER_MSVC
-    // V2 (MSVC没有SSE4.1宏，所以保守一点，使用AVX宏来判断)
-    #if defined(__AVX__)
-        #define KSIMD_BASELINE_X86_V2 1
-    #else
-        #define KSIMD_BASELINE_X86_V2 0
-    #endif
+// MSVC:  V2 = AVX
+// other: V2 = SSE4.1
+#if defined(__SSE4_1__) || defined(__AVX__)
+    #define KSIMD_BASELINE_X86_V2 1
+#else
+    #define KSIMD_BASELINE_X86_V2 0
+#endif
 
-    // 因为MSVC只定义__AVX2__宏，只能判断有没有AVX2和FMA3，不能判断有没有F16C，所以只能跳过 V3 baseline
-    // #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && /* no __F16C__ */
-    //     #define KSIMD_BASELINE_X86_V3 1
-    // #endif
+// MSVC: skip
+// other: V3 = V2 + AVX2 + FMA3 + F16C
+// https://learn.microsoft.com/en-us/cpp/build/reference/arch-x64?view=msvc-170
+// MSVC: /arch:AVX2 代表开启FMA3指令集
+#if KSIMD_BASELINE_X86_V2 && \
+defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
+    #define KSIMD_BASELINE_X86_V3 1
+#else
+    #define KSIMD_BASELINE_X86_V3 0
+#endif
 
-    // V4 = V2 + (AVX2 + FMA3) + AVX512F DQ VL
-    // https://learn.microsoft.com/en-us/cpp/build/reference/arch-x64?view=msvc-170
-    // /arch:AVX2 代表开启FMA3指令集
-    #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && \
-        defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512VL__)
-        #define KSIMD_BASELINE_X86_V4 1
-    #else
-        #define KSIMD_BASELINE_X86_V4 0
-    #endif
-#elif KSIMD_COMPILER_GCC || KSIMD_COMPILER_CLANG || KSIMD_COMPILER_CLANG_CL
-    // V2 = SSE4.1
-    #if defined(__SSE4_1__)
-        #define KSIMD_BASELINE_X86_V2 1
-    #else
-        #define KSIMD_BASELINE_X86_V2 0
-    #endif
-
-    // V3 = V2 + AVX2 + FMA3 + F16C
-    #if KSIMD_BASELINE_X86_V2 && defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
-        #define KSIMD_BASELINE_X86_V3 1
-    #else
-        #define KSIMD_BASELINE_X86_V3 0
-    #endif
-
-    // V4 = V3 + AVX512-F + AVX512-DQ + AVX512-VL
-    #if KSIMD_BASELINE_X86_V3 && defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512VL__)
-        #define KSIMD_BASELINE_X86_V4 1
-    #else
-        #define KSIMD_BASELINE_X86_V4 0
-    #endif
+// MSVC & other: V4 = V3 + AVX512-F + AVX512-DQ + AVX512-BW + AVX512-VL
+#if KSIMD_BASELINE_X86_V3 && \
+defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && defined(__AVX512VL__)
+    #define KSIMD_BASELINE_X86_V4 1
+#else
+    #define KSIMD_BASELINE_X86_V4 0
 #endif
 
 #if KSIMD_ARCH_ARM_64
@@ -239,7 +228,7 @@
 // --------- x86指令集 ---------
 #if KSIMD_ARCH_X86_ANY
 
-    // AVX512: F DQ VL (V4)
+    // AVX512: F DQ BW VL (V4)
     #define KSIMD_INSTRUCTION_FEATURE_X86_V4 0
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_X86_V4) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #undef KSIMD_INSTRUCTION_FEATURE_X86_V4
@@ -251,7 +240,7 @@
             #define KSIMD_INSTRUCTION_FEATURE_X86_V4 KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
             #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
 
-            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: AVX512 F DQ VL")
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: AVX512 F DQ BW VL")
         #endif
     #endif
 

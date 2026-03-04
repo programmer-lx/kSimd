@@ -137,18 +137,18 @@ TEST(std_float_types, basic)
 
 TEST(scalar_funcs, basic)
 {
-    EXPECT_FALSE(ksimd::is_NaN(inf<float>));
-    EXPECT_FALSE(ksimd::is_NaN(inf<double>));
+    EXPECT_FALSE(ksimd::is_NaN(std::numeric_limits<float>::infinity()));
+    EXPECT_FALSE(ksimd::is_NaN(std::numeric_limits<double>::infinity()));
 
-    EXPECT_FALSE(ksimd::is_finite(inf<float>));
-    EXPECT_FALSE(ksimd::is_finite(inf<double>));
+    EXPECT_FALSE(ksimd::is_finite(std::numeric_limits<float>::infinity()));
+    EXPECT_FALSE(ksimd::is_finite(std::numeric_limits<double>::infinity()));
     EXPECT_TRUE(ksimd::is_finite(123.f));
     EXPECT_TRUE(ksimd::is_finite(123.0));
 
     EXPECT_FALSE(ksimd::is_inf(123.0f));
     EXPECT_FALSE(ksimd::is_inf(123.0));
-    EXPECT_TRUE(ksimd::is_inf(inf<float>));
-    EXPECT_TRUE(ksimd::is_inf(inf<double>));
+    EXPECT_TRUE(ksimd::is_inf(std::numeric_limits<float>::infinity()));
+    EXPECT_TRUE(ksimd::is_inf(std::numeric_limits<double>::infinity()));
 }
 
 int main(int argc, char **argv)

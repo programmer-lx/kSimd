@@ -46,6 +46,11 @@ function(add_ksimd_test_target TARGET_NAME SOURCE_FILE)
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${KSIMD_SOURCE_ROOT_DIR}/3rdparty/FP16/include)
 
     target_link_libraries(${FINAL_TARGET_NAME} PRIVATE gtest kSimd)
+
+    # MSVC 不支持 _Float16 ，所以需要额外链接clang提供的库
+    if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_link_libraries(${PROJECT_NAME} PRIVATE "clang_rt.builtins-x86_64.lib")
+    endif()
     target_include_directories(${FINAL_TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
     target_compile_features(${FINAL_TARGET_NAME} PRIVATE cxx_std_23) # 测试的时候，使用C++23的部分特性，但是库的最低标准是C++20

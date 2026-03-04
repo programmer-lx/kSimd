@@ -29,7 +29,7 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             // -Inf -> Inf
-            ns::store(t, test, ns::abs(t, ns::set(t, -inf<TYPE_T>)));
+            ns::store(t, test, ns::abs(t, ns::set(t, -ksimd::Inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_TRUE(std::isinf(test[i]) && test[i] > 0);
             }
@@ -98,13 +98,13 @@ namespace KSIMD_DYN_INSTRUCTION
         // 5. 浮点数特殊值
         if constexpr (std::is_floating_point_v<TYPE_T>) {
             // Inf -> -Inf
-            ns::store(t, dst, ns::neg(t, ns::set(t, inf<TYPE_T>)));
+            ns::store(t, dst, ns::neg(t, ns::set(t, ksimd::Inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_TRUE(std::isinf(dst[i]) && std::signbit(dst[i]));
             }
 
             // NaN sign flip
-            batch_t v_nan = ns::set(t, qNaN<TYPE_T>);
+            batch_t v_nan = ns::set(t, ksimd::QNaN<TYPE_T>);
             ns::store(t, src, v_nan);
             ns::store(t, dst, ns::neg(t, v_nan));
             for (size_t i = 0; i < Lanes; ++i) {

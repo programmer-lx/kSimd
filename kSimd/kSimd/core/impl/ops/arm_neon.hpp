@@ -19,6 +19,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     template<is_tag_128 Tag>
     constexpr size_t lanes(Tag) noexcept
     {
+        // fake fp16 (promote to f32 x 4)
+        #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16
+        if constexpr (is_tag_float_16bits<Tag>)
+        {
+            return vec_size::Vec128 / sizeof(float);
+        }
+        #endif
         return vec_size::Vec128 / sizeof(tag_scalar_t<Tag>);
     }
 #pragma endregion
@@ -93,6 +100,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 #pragma region--- any types ---
+
+#pragma region--- any types/float32 ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
@@ -447,7 +456,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         uint32x4_t masked_weights = vandq_u32(mask, v_weights);
         return vaddvq_u32(masked_weights);
     }
-#pragma endregion
+#pragma endregion // any types/float32
+
+#pragma endregion // any types
 
 #pragma region--- signed ---
     template<typename Tag>

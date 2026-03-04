@@ -33,7 +33,10 @@
 #define KSIMD_DYN_DISPATCH_LEVEL_AVX512_END         34
 
 // arm NEON
-#define KSIMD_DYN_DISPATCH_LEVEL_NEON               51
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON_START         51
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON               52
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16     53
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON_END           54
 
 // arm SVE
 #define KSIMD_DYN_DISPATCH_LEVEL_SVE                61
@@ -70,7 +73,7 @@
 #define KSIMD_DYN_FUNC_ATTR_AVX512_F KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx512f")
 
 // x64 v4 (AVX512 F, DQ, VL)
-#define KSIMD_DYN_FUNC_ATTR_X86_V4 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("fma,f16c,avx512f,avx512dq,avx512vl")
+#define KSIMD_DYN_FUNC_ATTR_X86_V4 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("fma,f16c,avx512f,avx512dq,avx512bw,avx512vl")
 
 // neon
 #define KSIMD_DYN_FUNC_ATTR_NEON
@@ -266,7 +269,7 @@ namespace ksimd
 
                 // 从最高级的指令往下判断
                 #if defined(KSIMD_INSTRUCTION_FEATURE_X86_V4)
-                if (supports.avx512_f && supports.avx512_dq && supports.avx512_vl)
+                if (supports.avx512_f && supports.avx512_dq && supports.avx512_bw && supports.avx512_vl)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V4);
                 }

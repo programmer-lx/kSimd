@@ -436,7 +436,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
         {
-            return { (~lhs.m[I] & rhs.m[I])... };
+            return { static_cast<same_bits_uint_t<tag_scalar_t<Tag>>>(~lhs.m[I] & rhs.m[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
@@ -452,7 +452,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 uint_t cond = _if.m[i];
                 uint_t t = bitcast_to_uint(_then.v[i]);
                 uint_t e = bitcast_to_uint(_else.v[i]);
-                return std::bit_cast<tag_scalar_t<Tag>>((cond & t) | ((~cond) & e));
+                return std::bit_cast<tag_scalar_t<Tag>>(
+                    static_cast<uint_t>(uint_t(cond & t) | uint_t((~cond) & e))
+                );
             };
             return { select(I)... };
         }(std::make_index_sequence<lanes(Tag{})>{});
@@ -512,16 +514,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires (is_tag_scalar128<Tag>)
     KSIMD_API(MaskBitset<Tag>) reduce_mask(Tag, Mask<Tag> mask) noexcept
     {
-        // 遍历lanes，提取符号位
+        // 遍历lanes，判断是否非0
         constexpr size_t len = lanes(Tag{});
 
         MaskBitset<Tag> result = static_cast<MaskBitset<Tag>>(0);
         for (size_t i = 0; i < len; ++i)
         {
-            constexpr MaskBitset<Tag> sign_bit_index = InverseBitIndex<MaskBitset<Tag>, 0>;
-
-            const MaskBitset<Tag> value = static_cast<MaskBitset<Tag>>(mask.m[i] >> sign_bit_index);
-            result |= (value << i);
+            result |= static_cast<MaskBitset<Tag>>(static_cast<MaskBitset<Tag>>(mask.m[i] != 0) << i);
         }
         return result;
     }

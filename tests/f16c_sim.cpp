@@ -46,9 +46,9 @@ TEST(f16_to_f32, x86)
         {
             alignas(16) uint16_t f16[] = {
                 fp16_ieee_from_fp32_value(0.0f),
-                fp16_ieee_from_fp32_value(-inf<float>),
-                fp16_ieee_from_fp32_value(inf<float>),
-                fp16_ieee_from_fp32_value(qNaN<float>)
+                fp16_ieee_from_fp32_value(-ksimd::Inf<float>),
+                fp16_ieee_from_fp32_value(ksimd::Inf<float>),
+                fp16_ieee_from_fp32_value(ksimd::QNaN<float>)
             };
 
             __m128i f16_v = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(f16));
@@ -58,10 +58,10 @@ TEST(f16_to_f32, x86)
             _mm_store_ps(f32, f32_v);
 
             EXPECT_EQ(f32[0], 0.0f);
-            EXPECT_EQ(f32[1], -inf<float>);
+            EXPECT_EQ(f32[1], -ksimd::Inf<float>);
             EXPECT_TRUE(std::signbit(f32[1]));
 
-            EXPECT_EQ(f32[2], inf<float>);
+            EXPECT_EQ(f32[2], ksimd::Inf<float>);
             EXPECT_TRUE(!std::signbit(f32[2]));
 
             EXPECT_TRUE(std::isnan(f32[3]));
@@ -137,7 +137,7 @@ TEST(f16_to_f32, x86)
             // 验证 SNaN 是否依然是 NaN
             EXPECT_TRUE(std::isnan(f32[1]));
 
-            EXPECT_EQ(f32[2], -inf<float>);
+            EXPECT_EQ(f32[2], -ksimd::Inf<float>);
             EXPECT_EQ(f32[3], 0.0f);
         }
     }();
@@ -174,9 +174,9 @@ TEST(f32_to_f16, x86)
         // NaN, Inf 与 溢出边界 (NaN, Inf & Overflow)
         {
             alignas(16) float f32[] = {
-                inf<float>,
-                -inf<float>,
-                qNaN<float>,
+                ksimd::Inf<float>,
+                -ksimd::Inf<float>,
+                ksimd::QNaN<float>,
                 70000.0f  // 超过 65504，应该溢出到 FP16 的 Inf
             };
 

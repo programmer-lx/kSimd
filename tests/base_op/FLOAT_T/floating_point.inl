@@ -44,7 +44,7 @@ namespace KSIMD_DYN_INSTRUCTION
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
 
             // Inf / Inf = NaN
-            ns::store(t, test, ns::div(t, ns::set(t, inf<FLOAT_T>), ns::set(t, inf<FLOAT_T>)));
+            ns::store(t, test, ns::div(t, ns::set(t, ksimd::Inf<FLOAT_T>), ns::set(t, ksimd::Inf<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
@@ -66,11 +66,11 @@ namespace KSIMD_DYN_INSTRUCTION
             const size_t Lanes = ns::lanes(t);
             alignas(ALIGNMENT) FLOAT_T test[Lanes];
 
-            EXPECT_TRUE(std::isinf(inf<FLOAT_T>));
-            EXPECT_TRUE(std::isinf(-inf<FLOAT_T>));
+            EXPECT_TRUE(std::isinf(ksimd::Inf<FLOAT_T>));
+            EXPECT_TRUE(std::isinf(-ksimd::Inf<FLOAT_T>));
 
-            EXPECT_TRUE(ksimd::is_inf(inf<FLOAT_T>));
-            EXPECT_TRUE(ksimd::is_inf(-inf<FLOAT_T>));
+            EXPECT_TRUE(ksimd::is_inf(ksimd::Inf<FLOAT_T>));
+            EXPECT_TRUE(ksimd::is_inf(-ksimd::Inf<FLOAT_T>));
 
             // 1. 常规数值 1/4 = 0.25
             ns::store(t, test, ns::rcp(t, ns::set(t, FLOAT_T(4))));
@@ -79,7 +79,7 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             // 2. 边界：1/Inf = 0
-            ns::store(t, test, ns::rcp(t, ns::set(t, inf<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, ksimd::Inf<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_EQ(test[i], FLOAT_T(0));
@@ -87,7 +87,7 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             // 1 / -Inf = -0
-            ns::store(t, test, ns::rcp(t, ns::set(t, -inf<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, -ksimd::Inf<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_EQ(test[i], FLOAT_T(-0));
@@ -96,17 +96,17 @@ namespace KSIMD_DYN_INSTRUCTION
 
             // 1/0 = Inf
             ns::store(t, test, ns::rcp(t, ns::set(t, FLOAT_T(0))));
-            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == inf<FLOAT_T>);
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == ksimd::Inf<FLOAT_T>);
 
             // 1/-0 = Inf
             ns::store(t, test, ns::rcp(t, ns::set(t, FLOAT_T(-0))));
-            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == inf<FLOAT_T>);
+            for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(test[i] == ksimd::Inf<FLOAT_T>);
 
             // 3. 1/NaN = NaN
-            ns::store(t, test, ns::rcp(t, ns::set(t, qNaN<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, ksimd::QNaN<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
 
-            ns::store(t, test, ns::rcp(t, ns::set(t, -qNaN<FLOAT_T>)));
+            ns::store(t, test, ns::rcp(t, ns::set(t, -ksimd::QNaN<FLOAT_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(std::isnan(test[i]));
         }
     }
@@ -169,7 +169,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
         const size_t Lanes = ns::lanes(t);
 
-        auto v_nan = ns::set(t, qNaN<FLOAT_T>);
+        auto v_nan = ns::set(t, ksimd::QNaN<FLOAT_T>);
         auto v_val = ns::set(t, FLOAT_T(2.0));
 
         // =========================================================================
@@ -225,15 +225,15 @@ namespace KSIMD_DYN_INSTRUCTION
         const size_t Lanes = ns::lanes(t);
 
         // any_NaN: 只要有一个是 NaN 就返回 True
-        auto mask = ns::reduce_mask(t, ns::any_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+        auto mask = ns::reduce_mask(t, ns::any_NaN(t,ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
         EXPECT_TRUE(first_n_bit_true(mask, Lanes));
 
         // all_NaN: 两个都是 NaN 才返回 True
-        mask = ns::reduce_mask(t, ns::all_NaN(t,ns::set(t, qNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+        mask = ns::reduce_mask(t, ns::all_NaN(t,ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
         EXPECT_TRUE(first_n_bit_false(mask, Lanes)) << "idx: " << index;
 
         // all_finite: 两个都必须是有限数
-        mask = ns::reduce_mask(t, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, inf<FLOAT_T>)));
+        mask = ns::reduce_mask(t, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, ksimd::Inf<FLOAT_T>)));
         EXPECT_TRUE(first_n_bit_false(mask, Lanes));
     }
 }

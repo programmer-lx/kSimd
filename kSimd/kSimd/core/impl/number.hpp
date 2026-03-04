@@ -48,6 +48,14 @@ namespace ksimd
             return idx;
         }
 
+        template<is_scalar_type_float_16bits F>
+        consteval F exp_mask()
+        {
+            // 1位符号，5位指数，10位尾数
+            constexpr uint16_t mask = UINT16_C(0b11111) << 10;
+            return std::bit_cast<F>(mask);
+        }
+
         template<is_scalar_type_float_32bits F>
         consteval F exp_mask()
         {
@@ -64,6 +72,13 @@ namespace ksimd
             return std::bit_cast<F>(mask);
         }
 
+        template<is_scalar_type_float_16bits F>
+        consteval F mantissa_mask()
+        {
+            // 1位符号，5位指数，10位尾数
+            return std::bit_cast<F>(static_cast<uint16_t>(static_cast<uint16_t>(~UINT16_C(0)) >> 6));
+        }
+
         template<is_scalar_type_float_32bits F>
         consteval F mantissa_mask()
         {
@@ -77,6 +92,73 @@ namespace ksimd
             // 1位符号位，11位指数，52位尾数
             return std::bit_cast<F>((~UINT64_C(0)) >> 12);
         }
+
+        template<is_scalar_floating_point F>
+        consteval F inf()
+        {
+            // 指数均为1，尾数均为0
+
+            if constexpr (is_scalar_type_float_16bits<F>)
+            {
+                return std::bit_cast<F>(uint16_t(0b11111 << 10));
+            }
+            else
+            {
+                return std::numeric_limits<F>::infinity();
+            }
+        }
+
+        template<is_scalar_floating_point F>
+        consteval F quiet_NaN()
+        {
+            if constexpr (is_scalar_type_float_16bits<F>)
+            {
+                return std::bit_cast<F>(uint16_t(0x7e00));
+            }
+            else
+            {
+                return std::numeric_limits<F>::quiet_NaN();
+            }
+        }
+
+        template<is_scalar_floating_point F>
+        consteval F signaling_NaN()
+        {
+            if constexpr (is_scalar_type_float_16bits<F>)
+            {
+                return std::bit_cast<F>(uint16_t(0x7d00));
+            }
+            else
+            {
+                return std::numeric_limits<F>::signaling_NaN();
+            }
+        }
+
+        template<is_scalar_type S>
+        consteval S Max()
+        {
+            if constexpr (is_scalar_type_float_16bits<S>)
+            {
+                return std::bit_cast<S>(uint16_t(0b0'11110'1111111111));
+            }
+            else
+            {
+                return std::numeric_limits<S>::max();
+            }
+        }
+
+        template<is_scalar_type S>
+        consteval S Min()
+        {
+            if constexpr (is_scalar_type_float_16bits<S>)
+            {
+                return std::bit_cast<S>(uint16_t(0b0'00001'0000000000));
+            }
+            else
+            {
+                return std::numeric_limits<S>::min();
+            }
+        }
     } // namespace detail
 
     template<is_scalar_type S>
@@ -89,7 +171,7 @@ namespace ksimd
      * @brief 0b11111111...
      */
     template<is_scalar_type S>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR S OneBlock = std::bit_cast<S>(~static_cast<same_bits_uint_t<S>>(0));
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S OneBlock = std::bit_cast<S>(static_cast<same_bits_uint_t<S>>(~static_cast<same_bits_uint_t<S>>(0)));
 
     /**
      * @brief 0b00000000...
@@ -123,11 +205,20 @@ namespace ksimd
     template<is_scalar_floating_point F>
     KSIMD_HEADER_GLOBAL_CONSTEXPR F MantissaMask = detail::mantissa_mask<F>();
 
-    template<is_scalar_floating_point F>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR F Inf = std::numeric_limits<F>::infinity();
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S Max = detail::Max<S>();
+
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S Min = detail::Min<S>();
 
     template<is_scalar_floating_point F>
-    KSIMD_HEADER_GLOBAL_CONSTEXPR F QNaN = std::numeric_limits<F>::quiet_NaN();
+    KSIMD_HEADER_GLOBAL_CONSTEXPR F Inf = detail::inf<F>();
+
+    template<is_scalar_floating_point F>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR F QNaN = detail::quiet_NaN<F>();
+
+    template<is_scalar_floating_point F>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR F SNaN = detail::signaling_NaN<F>();
 
     template<is_scalar_type S>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr auto bitcast_to_uint(S n) noexcept

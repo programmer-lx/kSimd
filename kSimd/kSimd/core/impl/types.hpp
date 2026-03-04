@@ -21,14 +21,10 @@ namespace ksimd
 
     // ----------------- scalar type -----------------
 
-    // fp16 强类型
-    enum class half : uint16_t {};
-
     // float16
     template<typename T>
     concept is_scalar_type_float_16bits = is_any_type_of<
         T
-        , half
     #if KSIMD_SUPPORT_STD_FLOAT16
         , std::float16_t
     #endif
@@ -72,9 +68,9 @@ namespace ksimd
 
     template<typename T>
     concept is_scalar_floating_point =
-           is_scalar_type_float_16bits<T>
-        || is_scalar_type_float_32bits<T>
-        || is_scalar_type_float_64bits<T>;
+        is_scalar_type_float_16bits<T> ||
+        is_scalar_type_float_32bits<T> ||
+        is_scalar_type_float_64bits<T>;
 
     template<typename T>
     concept is_scalar_integer =
@@ -99,6 +95,7 @@ namespace ksimd
     namespace alignment
     {
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Scalar128 = 16;
+
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec128 = 16;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec256 = 32;
         KSIMD_HEADER_GLOBAL_CONSTEXPR size_t Vec512 = 64;

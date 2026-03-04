@@ -193,12 +193,6 @@ bool test_bit(S bits, int index)
     return ( uint & (static_cast<UInt>(1) << static_cast<UInt>(index)) ) != 0;
 }
 
-template<typename F>
-F qNaN = std::numeric_limits<F>::quiet_NaN();
-
-template<typename F>
-F inf = std::numeric_limits<F>::infinity();
-
 #define TEST_ONCE_DYN(func_name) \
     KSIMD_DYN_DISPATCH_FUNC(func_name); \
     TEST(dyn_dispatch, func_name) \

@@ -8,6 +8,18 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     using ksimd::RoundingMode;
     using ksimd::FloatMinMaxOption;
 
+    namespace detail
+    {
+        template<is_scalar_type S>
+        struct Tag128 : Tag_base<S , vec_size::Vec128> {};
+
+        template<is_scalar_type S>
+        struct Tag256 : Tag_base<S , vec_size::Vec256> {};
+
+        template<is_scalar_type S>
+        struct Tag512 : Tag_base<S , vec_size::Vec512> {};
+    }
+
     // tags
     template<is_scalar_type S>
     struct FullTag : Tag_base<S, ksimd::detail::dyn_vec_size::KSIMD_DYN_INSTRUCTION> {};

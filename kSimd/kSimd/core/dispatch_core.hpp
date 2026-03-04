@@ -35,7 +35,8 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
 
 
 // arm NEON
-#if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON
+#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_NEON_START && \
+    KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_NEON_END
     #include "impl/ops/arm_neon.hpp"
 #endif
 
