@@ -52,7 +52,7 @@ def main():
         configs = [
             ("MinGW-GCC", "x86_64-w64-mingw32-gcc", "x86_64-w64-mingw32-g++", "mingw"),
             ("Clang-17", "clang", "clang++", "clang17"),
-            ("MSVC", "cl", "cl", "msvc"),
+            ("MSVC", "cl", "cl", "msvc")
         ]
     
     if CURRENT_OS == "linux":

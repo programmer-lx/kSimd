@@ -1,24 +1,23 @@
-#if __STDCPP_FLOAT32_T__
-
+#if __STDCPP_FLOAT16_T__
 #include <cfloat>
 #include <cstddef>
 #include <limits>
+
 #include <stdfloat>
 
-#pragma message("test std::float32_t.")
+#pragma message("test std::float16_t.")
 
 #define TAG_T ns::FullTag<TYPE_T>
 
-using TYPE_T = std::float32_t;
+using TYPE_T = std::float16_t;
 constexpr size_t ALIGNMENT = 64;
 
-#include "signed.inl"
+#define KSIMD_TEST_FP16 1
+#include "../signed.inl"
 
 #else
-
 int main()
 {
     return 0;
 }
-
 #endif

@@ -87,7 +87,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
 // avx512
 #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        // 16bits (包含 fake fp16，因为128/16 == 8，所以这里无需特殊处理)
+        // 16bits (包含 fake fp16，因为128/16 == 8，128/32 == 4 => 8，所以这里无需特殊处理)
         template<typename Tag>
         struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_scalar_16<Tag>>>
         {
@@ -821,7 +821,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        #error TODO native fp16: load
+        return _mm_load_ph(mem);
 
         // f16c
         #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
@@ -841,7 +841,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        #error TODO native fp16: load
+        _mm_store_ph(mem, v);
 
         // f16c
         #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
@@ -861,6 +861,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_loadu_ph(mem);
         
         #else
         return load(t, mem);
@@ -873,6 +874,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        _mm_storeu_ph(mem, v);
         
         #else
         store(t, mem, v);
@@ -885,6 +887,10 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128i iota = _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
+        __m128i cnt = _mm_set1_epi16(std::bit_cast<int16_t>(static_cast<uint16_t>(count)));
+        __mmask8 mask = _mm_cmp_epu16_mask(cnt, iota, _MM_CMPINT_LT);
+        return _mm_maskz_loadu_epi16(mask, mem);
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
@@ -908,6 +914,10 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128i iota = _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
+        __m128i cnt = _mm_set1_epi16(std::bit_cast<int16_t>(static_cast<uint16_t>(count)));
+        __mmask8 mask = _mm_cmp_epu16_mask(cnt, iota, _MM_CMPINT_LT);
+        _mm_mask_storeu_epi16(mem, mask, v);
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
@@ -927,6 +937,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_undefined_ph();
 
         #else
         return undefined(detail::Tag128<float>{});
@@ -939,6 +950,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_setzero_ph();
 
         #else
         return zero(detail::Tag128<float>{});
@@ -951,6 +963,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_set1_ph(x);
 
         #else
         return set(detail::Tag128<float>{}, static_cast<float>(x));
@@ -963,6 +976,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_set_ph(
+            static_cast<_Float16>(7), static_cast<_Float16>(6),
+            static_cast<_Float16>(5), static_cast<_Float16>(4),
+            static_cast<_Float16>(3), static_cast<_Float16>(2),
+            static_cast<_Float16>(1), static_cast<_Float16>(0));
 
         #else
         return sequence(detail::Tag128<float>{});
@@ -975,6 +993,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128h iota = _mm_set_ph(
+            static_cast<_Float16>(7), static_cast<_Float16>(6),
+            static_cast<_Float16>(5), static_cast<_Float16>(4),
+            static_cast<_Float16>(3), static_cast<_Float16>(2),
+            static_cast<_Float16>(1), static_cast<_Float16>(0));
+        __m128h base_v = _mm_set1_ph(base);
+        return _mm_add_ph(base_v, iota);
 
         #else
         return sequence(detail::Tag128<float>{}, static_cast<float>(base));
@@ -987,6 +1012,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128h iota = _mm_set_ph(
+            static_cast<_Float16>(7), static_cast<_Float16>(6),
+            static_cast<_Float16>(5), static_cast<_Float16>(4),
+            static_cast<_Float16>(3), static_cast<_Float16>(2),
+            static_cast<_Float16>(1), static_cast<_Float16>(0));
+        __m128h base_v = _mm_set1_ph(base);
+        __m128h stride_v = _mm_set1_ph(stride);
+        return _mm_fmadd_ph(stride_v, iota, base_v);
 
         #else
         return sequence(detail::Tag128<float>{}, static_cast<float>(base), static_cast<float>(stride));
@@ -999,6 +1032,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_add_ph(lhs, rhs);
 
         #else
         return add(detail::Tag128<float>{}, lhs, rhs);
@@ -1011,6 +1045,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_sub_ph(lhs, rhs);
 
         #else
         return sub(detail::Tag128<float>{}, lhs, rhs);
@@ -1023,6 +1058,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_mul_ph(lhs, rhs);
 
         #else
         return mul(detail::Tag128<float>{}, lhs, rhs);
@@ -1035,6 +1071,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_fmadd_ph(a, b, c);
 
         #else
         return mul_add(detail::Tag128<float>{}, a, b, c);
@@ -1095,6 +1132,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512 fp16
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_cmp_ph_mask(lhs, rhs, _CMP_EQ_OQ);
 
         #else
         return equal(detail::Tag128<float>{}, lhs, rhs);
@@ -1301,6 +1339,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion // any type
 
 #pragma region--- signed ---
+
+#pragma region--- signed/float32 ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
@@ -1315,6 +1355,34 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128 mask = _mm_set1_ps(SignBitMask<float>);
         return _mm_xor_ps(v, mask);
     }
+#pragma endregion // signed/float32
+
+#pragma region--- signed/float16 ---
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return abs(detail::Tag128<float>{}, v);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return neg(detail::Tag128<float>{}, v);
+        #endif
+    }
+#pragma endregion // signed/float16
+
 #pragma endregion // signed
 
 #pragma region--- floating point ---

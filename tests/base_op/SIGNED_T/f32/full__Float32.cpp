@@ -14,7 +14,7 @@
 using TYPE_T = _Float32;
 constexpr size_t ALIGNMENT = 64;
 
-#include "signed.inl"
+#include "../signed.inl"
 
 #else
 int main()

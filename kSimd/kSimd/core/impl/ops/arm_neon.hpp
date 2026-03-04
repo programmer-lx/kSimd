@@ -961,6 +961,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion // any types
 
 #pragma region--- signed ---
+
+#pragma region--- signed/float32 ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
@@ -974,7 +976,35 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return vnegq_f32(v);
     }
-#pragma endregion
+#pragma endregion // signed/float32
+
+#pragma region--- signed/float16 ---
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
+    {
+        // full fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16
+
+        #else
+        return abs(detail::Tag128<float>{}, v);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        // full fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16
+
+        #else
+        return neg(detail::Tag128<float>{}, v);
+        #endif
+    }
+#pragma endregion // signed/float16
+
+#pragma endregion // signed
 
 #pragma region--- floating point ---
     template<typename Tag>

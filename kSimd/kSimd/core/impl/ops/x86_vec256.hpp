@@ -967,6 +967,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion // any types
 
 #pragma region--- signed ---
+
+#pragma region--- signed/float32 ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
@@ -981,7 +983,25 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m256 mask = _mm256_set1_ps(SignBitMask<tag_scalar_t<Tag>>);
         return _mm256_xor_ps(v, mask);
     }
-#pragma endregion
+#pragma endregion // signed/float32
+
+#pragma region--- signed/float16 ---
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
+    {
+        return abs(detail::Tag256<float>{}, v);
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_256<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        return neg(detail::Tag256<float>{}, v);
+    }
+#pragma endregion // signed/float16
+
+#pragma endregion // signed
 
 #pragma region--- floating point ---
     template<typename Tag>

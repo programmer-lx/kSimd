@@ -1,11 +1,8 @@
 // using TYPE_T = uint32_t;
 
-#if defined(_WIN32) || defined(WIN64)
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #include <windows.h>
-#endif
+// #if defined(_WIN32) || defined(WIN64)
+//     #include <windows.h>
+// #endif
 
 #include "../../test.hpp"
 

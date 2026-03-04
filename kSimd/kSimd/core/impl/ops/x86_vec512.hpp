@@ -935,6 +935,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion // any types
 
 #pragma region--- signed ---
+
+#pragma region--- signed/float32 ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
@@ -949,7 +951,33 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m512 mask = _mm512_set1_ps(SignBitMask<tag_scalar_t<Tag>>);
         return _mm512_xor_ps(v, mask);
     }
-#pragma endregion
+#pragma endregion // signed/float32
+
+#pragma region--- signed/float16 ---
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_512<Tag>)
+    KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        #else
+        return abs(detail::Tag512<float>{}, v);
+        #endif
+    }
+
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_512<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        #else
+        return neg(detail::Tag512<float>{}, v);
+        #endif
+    }
+#pragma endregion // signed/float16
+
+#pragma endregion // signed
 
 #pragma region--- floating point ---
     template<typename Tag>

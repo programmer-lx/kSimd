@@ -1,20 +1,19 @@
-#include <kSimd/core/impl/base.hpp>
-
-#if KSIMD_SUPPORT_EXTENSION_FLOAT32
-
+#if __STDCPP_FLOAT16_T__
 #include <cfloat>
 #include <cstddef>
 #include <limits>
+
 #include <stdfloat>
 
-#pragma message("test _Float32.")
+#pragma message("test std::float16_t.")
 
 #define TAG_T ns::Fixed128Tag<TYPE_T>
 
-using TYPE_T = _Float32;
+using TYPE_T = std::float16_t;
 constexpr size_t ALIGNMENT = 64;
 
-#include "signed.inl"
+#define KSIMD_TEST_FP16 1
+#include "../signed.inl"
 
 #else
 int main()
