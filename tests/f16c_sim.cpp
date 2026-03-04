@@ -142,6 +142,99 @@ TEST(f16_to_f32, x86)
         }
     }();
 }
+
+TEST(f32_to_f16, x86)
+{
+    []() KSIMD_DYN_FUNC_ATTR_X86_V2
+    {
+        // 基础数值与精度截断 (Normal values & Rounding)
+        {
+            alignas(16) float f32[] = {
+                0.0f,
+                -0.0f,
+                12.123f,  // 会被舍入到最接近的 FP16 (12.125)
+                -45.56f   // 会被舍入到 -45.5625
+            };
+
+            __m128 f32_v = _mm_load_ps(f32);
+            // 假设你的 store 逻辑最终返回一个包含 4 个 uint16_t 的 __m128i 低 64 位
+            __m128i f16_v = ns::detail::mm_f32_to_f16(f32_v);
+
+            alignas(16) uint16_t f16[8]; // 只读取前 4 个
+            _mm_storel_epi64(reinterpret_cast<__m128i*>(f16), f16_v);
+
+            EXPECT_EQ(f16[0], 0x0000); // 0.0
+            EXPECT_EQ(f16[1], 0x8000); // -0.0
+
+            // 验证舍入后的位模式
+            EXPECT_EQ(f16[2], fp16_ieee_from_fp32_value(12.123f));
+            EXPECT_EQ(f16[3], fp16_ieee_from_fp32_value(-45.56f));
+        }
+
+        // NaN, Inf 与 溢出边界 (NaN, Inf & Overflow)
+        {
+            alignas(16) float f32[] = {
+                inf<float>,
+                -inf<float>,
+                qNaN<float>,
+                70000.0f  // 超过 65504，应该溢出到 FP16 的 Inf
+            };
+
+            __m128 f32_v = _mm_load_ps(f32);
+            __m128i f16_v = ns::detail::mm_f32_to_f16(f32_v);
+
+            alignas(16) uint16_t f16[4];
+            _mm_storel_epi64(reinterpret_cast<__m128i*>(f16), f16_v);
+
+            EXPECT_EQ(f16[0], 0x7C00); // +inf
+            EXPECT_EQ(f16[1], 0xFC00); // -inf
+            EXPECT_TRUE((f16[2] & 0x7C00) == 0x7C00 && (f16[2] & 0x03FF) != 0); // Is NaN
+            EXPECT_EQ(f16[3], 0x7C00); // 70000.0 -> +inf
+        }
+
+        // 极小值与下溢 (Small values & Underflow)
+        {
+            alignas(16) float f32[] = {
+                6.1035e-5f,  // FP16 最小规格化数 (0x0400)
+                5.9604e-8f,  // FP16 最小非规格化数 (0x0001)
+                1.0e-10f,    // 太小了，应该下溢到 0.0
+                -1.0e-10f    // 应该下溢到 -0.0
+            };
+
+            __m128 f32_v = _mm_load_ps(f32);
+            __m128i f16_v = ns::detail::mm_f32_to_f16(f32_v);
+
+            alignas(16) uint16_t f16[4];
+            _mm_storel_epi64(reinterpret_cast<__m128i*>(f16), f16_v);
+
+            EXPECT_EQ(f16[0], 0x0400);
+            EXPECT_EQ(f16[1], 0x0001);
+            EXPECT_EQ(f16[2], 0x0000);
+            EXPECT_EQ(f16[3], 0x8000);
+        }
+
+        // 符号位与最大规格化数
+        {
+            alignas(16) float f32[] = {
+                65504.0f,    // FP16 Max Normal
+                -65504.0f,   // FP16 Min Normal
+                1.0f,
+                -1.0f
+            };
+
+            __m128 f32_v = _mm_load_ps(f32);
+            __m128i f16_v = ns::detail::mm_f32_to_f16(f32_v);
+
+            alignas(16) uint16_t f16[4];
+            _mm_storel_epi64(reinterpret_cast<__m128i*>(f16), f16_v);
+
+            EXPECT_EQ(f16[0], 0x7BFF);
+            EXPECT_EQ(f16[1], 0xFBFF);
+            EXPECT_EQ(f16[2], 0x3C00);
+            EXPECT_EQ(f16[3], 0xBC00);
+        }
+    }();
+}
 #endif
 
 int main(int argc, char **argv)

@@ -161,24 +161,64 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
             __m128i denormalized_cutoff = _mm_set1_epi32(INT32_C(1) << 27);
 
-            // 相当于 two_w < denormalized_cutoff，因为SSE没有无符号比较指令，只能这样子实现无符号的比较
-            __m128i min_val = _mm_min_epu32(two_w, denormalized_cutoff);
-            __m128i cond = _mm_cmpeq_epi32(min_val, two_w);
+            // cond 相当于 !(two_w < denormalized_cutoff)，因为SSE没有无符号比较指令，只能这样子实现无符号的比较
+            __m128i max_val = _mm_max_epu32(two_w, denormalized_cutoff);
+            __m128i cond = _mm_cmpeq_epi32(max_val, two_w);
 
             __m128i denormalized_value_bits = _mm_castps_si128(denormalized_value);
             __m128i normalized_value_bits = _mm_castps_si128(normalized_value);
 
-            __m128i result = _mm_or_si128(_mm_and_si128(cond, denormalized_value_bits),
-                                          _mm_andnot_si128(cond, normalized_value_bits));
+            __m128i result = _mm_blendv_epi8(denormalized_value_bits, normalized_value_bits, cond);
             result = _mm_or_si128(result, sign);
 
             return _mm_castsi128_ps(result);
         }
 
         // return value: only lower half is valid
-        KSIMD_API(__m128i) mm_f32_to_f16(__m128) noexcept
+        KSIMD_API(__m128i) mm_f32_to_f16(__m128 f32) noexcept
         {
-            return _mm_undefined_si128();
+            __m128 scale_to_inf = _mm_set1_ps(std::bit_cast<float>(UINT32_C(0x77800000)));
+            __m128 scale_to_zero = _mm_set1_ps(std::bit_cast<float>(UINT32_C(0x08800000)));
+            __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
+            __m128 saturated_f = _mm_mul_ps(_mm_and_ps(f32, abs_mask), scale_to_inf);
+
+            __m128 base = _mm_mul_ps(saturated_f, scale_to_zero);
+
+            __m128i w = _mm_castps_si128(f32);
+            __m128i shl1_w = _mm_add_epi32(w, w);
+            __m128i sign = _mm_and_si128(w, _mm_set1_epi32(SignBitMask<int32_t>));
+
+            // 1111 1111 0000 0000 ....
+            __m128i bias_mask = _mm_set1_epi32(0xff << 24);
+            __m128i bias = _mm_and_si128(shl1_w, bias_mask);
+
+            // if (bias < UINT32_C(0x71000000)) bias = UINT32_C(0x71000000);
+            bias = _mm_max_epu32(_mm_set1_epi32(INT32_C(0x71000000)), bias);
+
+            __m128i magic = _mm_add_epi32(_mm_srli_epi32(bias, 1), _mm_set1_epi32(INT32_C(0x07800000)));
+            base = _mm_add_ps(_mm_castsi128_ps(magic), base);
+            __m128i bits = _mm_castps_si128(base);
+            __m128i exp_bits = _mm_and_si128(_mm_srli_epi32(bits, 13), _mm_set1_epi32(INT32_C(0x00007C00)));
+            __m128i mantissa_bits = _mm_and_si128(bits, _mm_set1_epi32(INT32_C(0x00000FFF)));
+            __m128i nosign = _mm_add_epi32(exp_bits, mantissa_bits);
+
+            // cond = shl1_w > UINT32(0xFF000000)
+            // sse没有无符号比较指令，而0xFF000000有符号位，所以必须采用以下的指令来修正
+            // if shl1_w <= 0xFF000000: min_val = shl1_w        -> cond = true
+            // if shl1_w > 0xFF000000: min_val = 0xFF000000     -> cond = false
+            // num = shl1_w > UINT32_C(0xFF000000) ? UINT16_C(0x7E00) : nonsign
+            // 等价于 cond ? nonsign : UINT16_C(0x7E00)
+            __m128i min_val = _mm_min_epu32(shl1_w, _mm_set1_epi32(INT32_C(0xff) << 24));
+            __m128i cond = _mm_cmpeq_epi32(shl1_w, min_val);
+            __m128i f16 = _mm_blendv_epi8(_mm_set1_epi32(0x7E00), nosign, cond);
+            __m128i sign_f16 = _mm_srli_epi32(sign, 16);
+            f16 = _mm_or_si128(sign_f16, f16);
+
+            // 现在的 f16 是 [?, d, ?, c, ?, b, ?, a]
+            // 现在要将他变成 [?, ?, ?, ?, d, c, b, a]，将数据移动到低64bit
+            __m128i result = _mm_packus_epi32(f16, f16);
+
+            return result;
         }
     }
 #pragma endregion
