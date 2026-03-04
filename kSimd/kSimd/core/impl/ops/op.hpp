@@ -189,4 +189,7 @@ namespace ksimd
 
     template<typename Tag>
     concept is_tag_scalar_64 = is_tag_scalar_bytes<Tag, 8>;
+
+    #define KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(tag) \
+        static_assert(!is_tag_float_16bits<tag>, "FP16 does not support bit operation.")
 }

@@ -283,7 +283,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if (count == 0) [[unlikely]]
             return res;
 
-        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
+        std::memcpy(&res, mem, sizeof(float) * count);
         return res;
         #endif
     }
@@ -313,7 +313,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if (count == 0) [[unlikely]]
             return;
 
-        std::memcpy(mem, &v, sizeof(tag_scalar_t<Tag>) * count);
+        std::memcpy(mem, &v, sizeof(float) * count);
         #endif
     }
 
@@ -333,7 +333,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
+    KSIMD_API(Batch<Tag>) set(Tag, float x) noexcept
     {
         return _mm_set1_ps(x);
     }
@@ -347,19 +347,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
+    KSIMD_API(Batch<Tag>) sequence(Tag, float base) noexcept
     {
-        __m128 base_v = _mm_set1_ps(static_cast<float>(base));
+        __m128 base_v = _mm_set1_ps(base);
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
         return _mm_add_ps(iota, base_v);
     }
 
     template<typename Tag>
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
+    KSIMD_API(Batch<Tag>) sequence(Tag, float base, float stride) noexcept
     {
-        __m128 stride_v = _mm_set1_ps(static_cast<float>(stride));
-        __m128 base_v = _mm_set1_ps(static_cast<float>(base));
+        __m128 stride_v = _mm_set1_ps(stride);
+        __m128 base_v = _mm_set1_ps(base);
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
 
         // avx v3 v4
@@ -417,14 +417,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
             __mmask8 has_nan = _mm_cmp_ps_mask(lhs, rhs, _CMP_UNORD_Q);
             __m128 min_v = _mm_min_ps(lhs, rhs);
-            __m128 nan_v = _mm_set1_ps(QNaN<tag_scalar_t<Tag>>);
+            __m128 nan_v = _mm_set1_ps(QNaN<float>);
             return _mm_mask_blend_ps(has_nan, min_v, nan_v);
 
             // sse
             #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
             __m128 has_nan = _mm_cmpunord_ps(lhs, rhs);
             __m128 min_v = _mm_min_ps(lhs, rhs);
-            __m128 nan_v = _mm_set1_ps(QNaN<tag_scalar_t<Tag>>);
+            __m128 nan_v = _mm_set1_ps(QNaN<float>);
             return _mm_blendv_ps(min_v, nan_v, has_nan);
             #endif
         }
@@ -444,14 +444,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
             __mmask8 has_nan = _mm_cmp_ps_mask(lhs, rhs, _CMP_UNORD_Q);
             __m128 max_v = _mm_max_ps(lhs, rhs);
-            __m128 nan_v = _mm_set1_ps(QNaN<tag_scalar_t<Tag>>);
+            __m128 nan_v = _mm_set1_ps(QNaN<float>);
             return _mm_mask_blend_ps(has_nan, max_v, nan_v);
 
             // sse
             #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
             __m128 has_nan = _mm_cmpunord_ps(lhs, rhs);
             __m128 max_v = _mm_max_ps(lhs, rhs);
-            __m128 nan_v = _mm_set1_ps(QNaN<tag_scalar_t<Tag>>);
+            __m128 nan_v = _mm_set1_ps(QNaN<float>);
             return _mm_blendv_ps(max_v, nan_v, has_nan);
             #endif
         }
@@ -465,7 +465,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
     {
-        __m128 mask = _mm_set1_ps(OneBlock<tag_scalar_t<Tag>>);
+        KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(Tag);
+        
+        __m128 mask = _mm_set1_ps(OneBlock<float>);
         return _mm_xor_ps(v, mask);
     }
 
@@ -473,6 +475,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
+        KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(Tag);
+        
         return _mm_and_ps(lhs, rhs);
     }
 
@@ -480,6 +484,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
+        KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(Tag);
+        
         return _mm_andnot_ps(lhs, rhs);
     }
 
@@ -487,6 +493,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
+        KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(Tag);
+        
         return _mm_or_ps(lhs, rhs);
     }
 
@@ -494,6 +502,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
+        KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(Tag);
+        
         return _mm_xor_ps(lhs, rhs);
     }
 
@@ -501,6 +511,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_if_then_else(Tag, Batch<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
+        KSIMD_DETAIL_UNSUPPORT_FP16_BIT_OP(Tag);
+        
         return _mm_or_ps(_mm_and_ps(_if, _then), _mm_andnot_ps(_if, _else));
     }
 
@@ -640,7 +652,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        __m128 m = _mm_set1_ps(OneBlock<tag_scalar_t<Tag>>);
+        __m128 m = _mm_set1_ps(OneBlock<float>);
         return _mm_xor_ps(mask, m);
         #endif
     }
@@ -677,6 +689,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
+        static_assert(!is_tag_float_16bits<Tag>, "TODO");
+
         // [2, 1, 4, 3]
         __m128 shuffle1 = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
 
@@ -696,6 +710,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
+        static_assert(!is_tag_float_16bits<Tag>, "TODO");
+
         // [2, 1, 4, 3]
         __m128 shuffle1 = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
 
@@ -715,6 +731,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
+        static_assert(!is_tag_float_16bits<Tag>, "TODO");
+
         // [2, 1, 4, 3]
         __m128 shuffle1 = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
 
@@ -734,13 +752,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
             __mmask8 nan_check = _mm_cmp_ps_mask(v, v, _CMP_UNORD_Q);
             unsigned char no_nan = _ktestz_mask8_u8(nan_check, nan_check);
-            return no_nan ? _mm_cvtss_f32(res) : QNaN<tag_scalar_t<Tag>>;
+            return no_nan ? _mm_cvtss_f32(res) : QNaN<float>;
 
             // sse
             #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
             __m128 nan_check = _mm_cmpunord_ps(v, v);
             int32_t has_nan = _mm_movemask_ps(nan_check);
-            return has_nan ? QNaN<tag_scalar_t<Tag>> : _mm_cvtss_f32(res);
+            return has_nan ? QNaN<float> : _mm_cvtss_f32(res);
             #endif
         }
 
@@ -751,6 +769,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
+        static_assert(!is_tag_float_16bits<Tag>, "TODO");
+
         // [2, 1, 4, 3]
         __m128 shuffle1 = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
 
@@ -770,13 +790,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
             __mmask8 nan_check = _mm_cmp_ps_mask(v, v, _CMP_UNORD_Q);
             unsigned char no_nan = _ktestz_mask8_u8(nan_check, nan_check);
-            return no_nan ? _mm_cvtss_f32(res) : QNaN<tag_scalar_t<Tag>>;
+            return no_nan ? _mm_cvtss_f32(res) : QNaN<float>;
 
             // sse
             #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
             __m128 nan_check = _mm_cmpunord_ps(v, v);
             int32_t has_nan = _mm_movemask_ps(nan_check);
-            return has_nan ? QNaN<tag_scalar_t<Tag>> : _mm_cvtss_f32(res);
+            return has_nan ? QNaN<float> : _mm_cvtss_f32(res);
             #endif
         }
 
@@ -843,14 +863,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag t, const tag_scalar_t<Tag>* mem) noexcept
     {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        
+        #else
         return load(t, mem);
+        #endif
     }
 
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) storeu(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        
+        #else
         storeu(t, mem, v);
+        #endif
     }
 
     template<typename Tag>
@@ -932,14 +962,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
-        return _mm_and_ps(v, _mm_set1_ps(SignBitClearMask<tag_scalar_t<Tag>>));
+        return _mm_and_ps(v, _mm_set1_ps(SignBitClearMask<float>));
     }
 
     template<typename Tag>
         requires(KSIMD_IS_TAG_F32_OR_FAKE_F16(Tag) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
     {
-        __m128 mask = _mm_set1_ps(SignBitMask<tag_scalar_t<Tag>>);
+        __m128 mask = _mm_set1_ps(SignBitMask<float>);
         return _mm_xor_ps(v, mask);
     }
 #pragma endregion // signed
@@ -981,7 +1011,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
         else /* if constexpr (mode == RoundingMode::Round) */
         {
-            __m128 sign_bit = _mm_set1_ps(SignBitMask<tag_scalar_t<Tag>>);
+            __m128 sign_bit = _mm_set1_ps(SignBitMask<float>);
 
             __m128 half = _mm_set1_ps(0.5f);
 
@@ -1098,15 +1128,15 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<tag_scalar_t<Tag>>);
-        __m128 inf_v = _mm_set1_ps(Inf<tag_scalar_t<Tag>>);
+        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
+        __m128 inf_v = _mm_set1_ps(Inf<float>);
         return _kor_mask8(_mm_cmp_ps_mask(_mm_and_ps(lhs, abs_mask), inf_v, _CMP_LT_OQ),
             _mm_cmp_ps_mask(_mm_and_ps(rhs, abs_mask), inf_v, _CMP_LT_OQ));
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<tag_scalar_t<Tag>>);
-        __m128 inf_v = _mm_set1_ps(Inf<tag_scalar_t<Tag>>);
+        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
+        __m128 inf_v = _mm_set1_ps(Inf<float>);
         return _mm_or_ps(_mm_cmplt_ps(_mm_and_ps(lhs, abs_mask), inf_v),
                          _mm_cmplt_ps(_mm_and_ps(rhs, abs_mask), inf_v));
         #endif
@@ -1118,16 +1148,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<tag_scalar_t<Tag>>);
-        __m128 inf_v = _mm_set1_ps(Inf<tag_scalar_t<Tag>>);
+        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
+        __m128 inf_v = _mm_set1_ps(Inf<float>);
 
         return _kand_mask8(_mm_cmp_ps_mask(_mm_and_ps(lhs, abs_mask), inf_v, _CMP_LT_OQ),
             _mm_cmp_ps_mask(_mm_and_ps(rhs, abs_mask), inf_v, _CMP_LT_OQ));
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<tag_scalar_t<Tag>>);
-        __m128 inf_v = _mm_set1_ps(Inf<tag_scalar_t<Tag>>);
+        __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
+        __m128 inf_v = _mm_set1_ps(Inf<float>);
 
         return _mm_and_ps(_mm_cmplt_ps(_mm_and_ps(lhs, abs_mask), inf_v),
                           _mm_cmplt_ps(_mm_and_ps(rhs, abs_mask), inf_v));
