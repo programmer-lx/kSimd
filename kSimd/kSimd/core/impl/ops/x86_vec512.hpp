@@ -470,7 +470,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 #pragma endregion // any types/float32
 
-#if KSIMD_SUPPORT_FP16
+#if KSIMD_SUPPORT_NATIVE_FP16
 #pragma region--- any types/float16 ---
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_512<Tag>)

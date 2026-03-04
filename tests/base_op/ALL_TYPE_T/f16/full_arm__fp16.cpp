@@ -15,7 +15,7 @@ constexpr size_t ALIGNMENT = 64;
 
 #define KSIMD_TEST_FP16 1
 
-#if !KSIMD_SUPPORT_FP16
+#if !KSIMD_SUPPORT_NATIVE_FP16
 #error must support fp16
 #endif
 #include "../all_type.inl"

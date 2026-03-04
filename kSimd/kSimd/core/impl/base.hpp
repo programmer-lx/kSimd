@@ -82,11 +82,11 @@
     #define KSIMD_SUPPORT_STD_FLOAT64 0
 #endif
 
-// support FP16 macro
+// support native FP16 (such as __fp16, _Float16, std::float16_t)
 #if KSIMD_SUPPORT_EXTENSION_FLOAT16 || KSIMD_SUPPORT_STD_FLOAT16 || KSIMD_ARCH_ARM_ANY /* arm __fp16 type */
-    #define KSIMD_SUPPORT_FP16 1
+    #define KSIMD_SUPPORT_NATIVE_FP16 1
 #else
-    #define KSIMD_SUPPORT_FP16 0
+    #define KSIMD_SUPPORT_NATIVE_FP16 0
 #endif
 
 
