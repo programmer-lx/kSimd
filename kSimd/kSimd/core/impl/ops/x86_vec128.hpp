@@ -16,8 +16,6 @@
 
 #include <cstring> // memcpy
 
-#include "kSimd/core/impl/dispatch.hpp"
-
 #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START && \
     KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SSE_END
     #include "shared.hpp"

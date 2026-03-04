@@ -3,8 +3,6 @@
 #include <immintrin.h> // AVX+
 #include <cstring> // memcpy
 
-#include "kSimd/core/impl/dispatch.hpp"
-
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 

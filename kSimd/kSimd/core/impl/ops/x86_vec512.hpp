@@ -2,8 +2,6 @@
 
 #include <immintrin.h> // AVX+
 
-#include "kSimd/core/impl/dispatch.hpp"
-
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 

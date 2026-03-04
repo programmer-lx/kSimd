@@ -2,8 +2,6 @@
 
 #include <arm_sve.h>
 
-#include "kSimd/core/impl/dispatch.hpp"
-
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 
