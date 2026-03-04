@@ -151,6 +151,23 @@ namespace MyNamespace // 命名空间一定要与上面的函数一致
         fn(src, dst, size);
     }
 
+    // fp16
+    // (windows MSVC目前不支持_Float16类型，并且也不支持FP16的SIMD算术指令，所以 KSIMD_SUPPORT_FP16 == 0，
+    // 不过GCC, clang 已经支持 FP16 了)
+    // 所以在windows上，如果要计算FP16，建议使用GCC/clang/clang-cl，并且暂时不要使用FP16的std::numeric_limits类，因为MSVC STL未实现，
+    // 所以ksimd库补充实现了FP16的各种常量，比如 ksimd::QNaN<_Float16> 等
+    // arm 支持 __fp16 类型
+    #if KSIMD_SUPPORT_FP16
+    void kernel_f16(
+        const _Float16* KSIMD_RESTRICT src,
+              _Float16* KSIMD_RESTRICT dst,
+        const size_t                   size
+    ) noexcept
+    {
+        KSIMD_DYN_CALL(kernel_template, <_Float16, false>)(src, dst, size);
+    }
+    #endif
+
     // 非模板分发
     // 被分发的函数可以有返回值
     KSIMD_DYN_DISPATCH_FUNC(kernel_without_template);
@@ -177,6 +194,17 @@ int main()
     // 模板分发
     MyNamespace::kernel(src.data(), dst.data(), NUM);
     MyNamespace::kernel_with_tag(src.data(), dst.data(), NUM);
+
+    // FP16
+    #if KSIMD_SUPPORT_FP16
+    std::vector<_Float16, ksimd::AlignedAllocator<_Float16>> src_f16(NUM);
+    std::vector<_Float16, ksimd::AlignedAllocator<_Float16>> dst_f16(NUM);
+    for (size_t i = 0; i < NUM; ++i)
+    {
+        src_f16[i] = (_Float16)i / NUM;
+    }
+    MyNamespace::kernel_f16(src_f16.data(), dst_f16.data(), NUM);
+    #endif
 
     // 非模板分发
     // 获取函数的返回值
