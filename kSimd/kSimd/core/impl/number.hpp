@@ -369,8 +369,6 @@ namespace ksimd
         }
     }
 
-    // template<>
-
     template<is_scalar_type_float_32bits F>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr F rsqrt(const F f) noexcept
     {
