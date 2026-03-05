@@ -23,6 +23,10 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/kSimd
 )
 target_compile_features(kSimd PUBLIC cxx_std_20)
+# MSVC 不支持 _Float16 ，所以需要额外链接clang提供的库
+if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_link_libraries(kSimd PRIVATE "clang_rt.builtins-x86_64.lib")
+endif()
 
 if(KSIMD_BUILD_EXAMPLES)
     add_subdirectory(examples)

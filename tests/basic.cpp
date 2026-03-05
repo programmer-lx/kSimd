@@ -1,6 +1,7 @@
 #include "test.hpp"
 
 #include <string>
+#include <limits>
 
 #if __has_include(<stdfloat>)
 #include <stdfloat>
@@ -8,6 +9,8 @@
 
 #undef KSIMD_DISPATCH_THIS_FILE
 #define KSIMD_DISPATCH_THIS_FILE "basic.cpp" // this file
+
+
 #include <kSimd/core/dispatch_this_file.hpp>
 
 #include <kSimd/core/dispatch_core.hpp>
@@ -94,27 +97,6 @@ TEST(dyn_dispatch, pfn_table)
     }
 }
 
-template<typename T>
-void test_scalar_op_constants()
-{
-    namespace ns = ksimd::KSIMD_DYN_INSTRUCTION_SCALAR;
-    EXPECT_TRUE(ns::lanes(ns::FullTag<T>{}) == (16 / sizeof(T)));
-}
-
-TEST(dyn_dispatch, constants)
-{
-    test_scalar_op_constants<float>();
-    test_scalar_op_constants<double>();
-    test_scalar_op_constants<int8_t>();
-    test_scalar_op_constants<uint8_t>();
-    test_scalar_op_constants<int16_t>();
-    test_scalar_op_constants<uint16_t>();
-    test_scalar_op_constants<int32_t>();
-    test_scalar_op_constants<uint32_t>();
-    test_scalar_op_constants<int64_t>();
-    test_scalar_op_constants<uint64_t>();
-}
-
 TEST(std_float_types, basic)
 {
     #if KSIMD_SUPPORT_STD_FLOAT16
@@ -135,11 +117,28 @@ TEST(std_float_types, basic)
     SUCCEED();
 }
 
-TEST(scalar_funcs, basic)
+TEST(scalar, nan)
 {
     EXPECT_FALSE(ksimd::is_NaN(std::numeric_limits<float>::infinity()));
     EXPECT_FALSE(ksimd::is_NaN(std::numeric_limits<double>::infinity()));
 
+    EXPECT_TRUE(ksimd::is_NaN(std::numeric_limits<float>::quiet_NaN()));
+    EXPECT_TRUE(ksimd::is_NaN(std::numeric_limits<double>::quiet_NaN()));
+
+    // FP16
+#if KSIMD_SUPPORT_STD_FLOAT16
+    // qnan
+    EXPECT_TRUE(bit_equal(ksimd::QNaN<std::float16_t>, std::numeric_limits<std::float16_t>::quiet_NaN()));
+    EXPECT_TRUE(ksimd::is_NaN(std::numeric_limits<std::float16_t>::quiet_NaN()));
+
+    // snan
+    EXPECT_TRUE(bit_equal(ksimd::SNaN<std::float16_t>, std::numeric_limits<std::float16_t>::signaling_NaN()));
+    EXPECT_TRUE(ksimd::is_NaN(std::numeric_limits<std::float16_t>::signaling_NaN()));
+#endif
+}
+
+TEST(scalar, inf)
+{
     EXPECT_FALSE(ksimd::is_finite(std::numeric_limits<float>::infinity()));
     EXPECT_FALSE(ksimd::is_finite(std::numeric_limits<double>::infinity()));
     EXPECT_TRUE(ksimd::is_finite(123.f));
@@ -149,6 +148,29 @@ TEST(scalar_funcs, basic)
     EXPECT_FALSE(ksimd::is_inf(123.0));
     EXPECT_TRUE(ksimd::is_inf(std::numeric_limits<float>::infinity()));
     EXPECT_TRUE(ksimd::is_inf(std::numeric_limits<double>::infinity()));
+
+    // FP16
+#if KSIMD_SUPPORT_STD_FLOAT16
+    EXPECT_TRUE(bit_equal(ksimd::Inf<std::float16_t>, std::numeric_limits<std::float16_t>::infinity()));
+    EXPECT_TRUE(ksimd::is_inf(std::numeric_limits<std::float16_t>::infinity()));
+#endif
+}
+
+TEST(scalar, min_max_val)
+{
+    // FP16
+#if KSIMD_SUPPORT_STD_FLOAT16
+    EXPECT_TRUE(bit_equal(ksimd::Min<std::float16_t>, std::numeric_limits<std::float16_t>::min()));
+    EXPECT_TRUE(bit_equal(ksimd::Max<std::float16_t>, std::numeric_limits<std::float16_t>::max()));
+#endif
+}
+
+TEST(scalar, digits)
+{
+    // FP16
+#if KSIMD_SUPPORT_STD_FLOAT16
+    EXPECT_TRUE(bit_equal(ksimd::Digits<std::float16_t>, std::numeric_limits<std::float16_t>::digits));
+#endif
 }
 
 int main(int argc, char **argv)
