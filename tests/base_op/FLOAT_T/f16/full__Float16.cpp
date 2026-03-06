@@ -11,7 +11,7 @@
 #define TAG_T ns::FullTag<FLOAT_T>
 
 using FLOAT_T = _Float16;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #define FLOAT_T_EPSILON (__FLT16_EPSILON__)
 #define FLOAT_T_EPSILON_RSQRT 1e-3f

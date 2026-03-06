@@ -4,7 +4,7 @@
 #define TAG_T ns::Fixed128Tag<FLOAT_T>
 
 using FLOAT_T = float;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #define FLOAT_T_EPSILON (FLT_EPSILON)
 #define FLOAT_T_EPSILON_RSQRT 1e-3f

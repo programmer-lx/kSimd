@@ -11,7 +11,7 @@
 #define TAG_T ns::FullTag<TYPE_T>
 
 using TYPE_T = __fp16;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #define KSIMD_TEST_FP16 1
 

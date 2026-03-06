@@ -11,7 +11,7 @@
 #define TAG_T ns::Fixed128Tag<TYPE_T>
 
 using TYPE_T = __fp16;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #define KSIMD_TEST_FP16 1
 #include "../signed.inl"

@@ -12,7 +12,7 @@
 #define TAG_T ns::FullTag<TYPE_T>
 
 using TYPE_T = _Float32;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #include "../signed.inl"
 

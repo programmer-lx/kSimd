@@ -8,16 +8,19 @@
 #include "shared.hpp"
 #include "kSimd/IDE/IDE_hint.hpp"
 
+// 复用 NEON 的逻辑，实现 Fixed128Tag
+#include "arm_neon.hpp"
+
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
 
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
 #pragma region--- constants ---
     template<is_tag_scalable_full Tag>
-    size_t lanes(Tag) noexcept
+    KSIMD_API(size_t) lanes(Tag) noexcept
     {
         // fake fp16 (promote to f32)
-        #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16
+        #if KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16
         if constexpr (is_tag_float_16bits<Tag>)
         {
             return static_cast<size_t>(svcntw());
@@ -34,19 +37,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return static_cast<size_t>(svcntd()); /* if constexpr (len == 8) */
     }
 
-    template<is_tag_128 Tag>
-    constexpr size_t lanes(Tag) noexcept
-    {
-        // fake fp16 (promote to f32)
-        #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16
-        if constexpr (is_tag_float_16bits<Tag>)
-        {
-            return vec_size::Vec128 / sizeof(float);
-        }
-        #endif
-
-        return vec_size::Vec128 / sizeof(tag_scalar_t<Tag>);
-    }
 #pragma endregion
 
 #pragma region--- types ---
@@ -75,8 +65,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct mask_type;
 
         template<typename Tag>
-        struct mask_type<Tag, std::enable_if_t<is_tag_scalable_full<Tag> &&
-                                               (is_tag_float_16bits<Tag> || is_tag_float_32bits<Tag>)>>
+        struct mask_type<Tag, std::enable_if_t<is_tag_scalable_full<Tag>>>
         {
             using type = svbool_t;
         };
@@ -85,8 +74,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct mask_bitset_type;
 
         template<typename Tag>
-        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_scalable_full<Tag> &&
-                                                      (is_tag_float_16bits<Tag> || is_tag_float_32bits<Tag>)>>
+        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_scalable_full<Tag>>>
         {
             using type = uint64_t;
         };

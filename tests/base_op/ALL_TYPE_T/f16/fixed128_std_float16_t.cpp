@@ -10,7 +10,7 @@
 #define TAG_T ns::Fixed128Tag<TYPE_T>
 
 using TYPE_T = std::float16_t;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #define KSIMD_TEST_FP16 1
 #include "../all_type.inl"

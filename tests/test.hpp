@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cmath>
 
+#include <array> // std::size
 #include <type_traits>
 #include <stdexcept>
 #include <iostream>
@@ -69,9 +70,9 @@ bool bit_equal(const auto& a, const auto& b)
     return (std::memcmp(&a, &b, sizeof(Ta)) == 0);
 }
 
-#define FILL_ARRAY(arr, val) \
+#define FILL_VECTOR(arr, val) \
     do { \
-        for (size_t i___ = 0; i___ < std::size(arr); ++i___) { \
+        for (size_t i___ = 0; i___ < arr.size(); ++i___) { \
             (arr)[i___] = val; \
         } \
     } while (0)

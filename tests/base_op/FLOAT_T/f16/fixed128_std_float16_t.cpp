@@ -10,7 +10,7 @@
 #define TAG_T ns::Fixed128Tag<FLOAT_T>
 
 using FLOAT_T = std::float16_t;
-constexpr size_t ALIGNMENT = 64;
+// constexpr size_t ALIGNMENT = 64;
 
 #define FLOAT_T_EPSILON (__FLT16_EPSILON__)
 #define FLOAT_T_EPSILON_RSQRT 1e-3f

@@ -32,9 +32,10 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
 
         bool result =
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SVE) && index == 0) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 1);
 
-        EXPECT_TRUE(result);
+        EXPECT_TRUE(result) << "str = " << str << ", index = " << index;
 
         #else
         #error unknown test arch
@@ -53,8 +54,8 @@ TEST(table_size, basic)
 
 #elif KSIMD_ARCH_ARM_64
 
-    // arm64: NEON == 1
-    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 1);
+    // arm64: NEON + SVE == 2
+    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 2);
 
 #else
     #error unknown arch

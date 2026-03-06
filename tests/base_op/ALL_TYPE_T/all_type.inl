@@ -37,7 +37,7 @@ TEST_ONCE_DYN(undefined)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void zero() noexcept
+    void zero(size_t index) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
@@ -48,12 +48,12 @@ namespace KSIMD_DYN_INSTRUCTION
         ns::store(t, arr.data(), z);
         for (size_t i = 0; i < Lanes; ++i)
         {
-            EXPECT_TRUE(arr[i] == TYPE_T(0));
+            EXPECT_TRUE(arr[i] == TYPE_T(0)) << "arr = " << format_arr(arr.data(), arr.size()) << ", index = " << index;
         }
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(zero)
+TEST_ONCE_DYN_WITH_IDX(zero)
 #endif
 
 
@@ -237,12 +237,10 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // 3. Unaligned safety
-        if constexpr (Lanes > 1) {
-            ns::Batch<decltype(t)> v = ns::loadu_partial(t, in.data() + 1, 1);
-            ns::store(t, out.data(), v);
-            EXPECT_EQ(out[0], in[1]);
-            EXPECT_EQ(out[1], TYPE_T(0));
-        }
+        ns::Batch<decltype(t)> v1 = ns::loadu_partial(t, in.data() + 1, 1);
+        ns::store(t, out.data(), v1);
+        EXPECT_EQ(out[0], in[1]);
+        EXPECT_EQ(out[1], TYPE_T(0));
 
         // 4. Overflow tolerance (n > Lanes)
         {
@@ -253,9 +251,9 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // load 0
         {
-            FILL_ARRAY(in, TYPE_T(99));
+            FILL_VECTOR(in, TYPE_T(99));
             ns::Batch<decltype(t)> v = ns::loadu_partial(t, in.data(), 0);
-            FILL_ARRAY(out, TYPE_T(10));
+            FILL_VECTOR(out, TYPE_T(10));
             ns::storeu(t, out.data(), v);
             for (size_t i = 0; i < Lanes; ++i)
             {
@@ -264,9 +262,9 @@ namespace KSIMD_DYN_INSTRUCTION
         }
         // store 0
         {
-            FILL_ARRAY(in, TYPE_T(99));
+            FILL_VECTOR(in, TYPE_T(99));
             ns::Batch<decltype(t)> v = ns::load(t, in.data());
-            FILL_ARRAY(out, TYPE_T(10));
+            FILL_VECTOR(out, TYPE_T(10));
             ns::storeu_partial(t, out.data(), v, 0);
             for (size_t i = 0; i < Lanes; ++i)
             {
@@ -291,7 +289,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         // 测试数据：验证位选择逻辑 (mask & a) | (~mask & b)
         TYPE_T val_a    = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b10101));
@@ -299,7 +297,7 @@ namespace KSIMD_DYN_INSTRUCTION
         TYPE_T val_mask = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b00010));
         uint_t expected = static_cast<uint_t>(0b11101);
 
-        ns::store(t, res, ns::bit_if_then_else(t, ns::set(t, val_mask), ns::set(t, val_a), ns::set(t, val_b)));
+        ns::store(t, res.data(), ns::bit_if_then_else(t, ns::set(t, val_mask), ns::set(t, val_a), ns::set(t, val_b)));
 
         for (size_t i = 0; i < Lanes; ++i)
         {
@@ -317,7 +315,7 @@ namespace KSIMD_DYN_INSTRUCTION
             TYPE_T s_mask  = ksimd::SignBitMask<TYPE_T>;
 
             // 从 neg_val 取符号位，从 pos_val 取数值位，结果应为 -1.0
-            ns::store(t, res, ns::bit_if_then_else(t, ns::set(t, s_mask), ns::set(t, neg_val), ns::set(t, pos_val)));
+            ns::store(t, res.data(), ns::bit_if_then_else(t, ns::set(t, s_mask), ns::set(t, neg_val), ns::set(t, pos_val)));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_EQ(res[i], TYPE_T(-1.0));
@@ -342,7 +340,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         ns::Batch<decltype(t)> v_a = ns::set(t, TYPE_T(10));
         ns::Batch<decltype(t)> v_b = ns::set(t, TYPE_T(20));
@@ -350,28 +348,28 @@ namespace KSIMD_DYN_INSTRUCTION
         // 1. 全 1 掩码选择
         {
             auto mask_true = ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(1)));
-            ns::store(t, res, ns::if_then_else(t, mask_true, v_a, v_b));
+            ns::store(t, res.data(), ns::if_then_else(t, mask_true, v_a, v_b));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], TYPE_T(10));
         }
 
         // 2. 全 0 掩码选择
         {
             auto mask_false = ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2)));
-            ns::store(t, res, ns::if_then_else(t, mask_false, v_a, v_b));
+            ns::store(t, res.data(), ns::if_then_else(t, mask_false, v_a, v_b));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(res[i], TYPE_T(20));
         }
 
         // 3. 混合掩码交叉选择
         {
-            alignas(ALIGNMENT) TYPE_T data_lhs[Lanes];
-            alignas(ALIGNMENT) TYPE_T data_rhs[Lanes];
+            std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data_lhs(Lanes);
+            std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data_rhs(Lanes);
             for (size_t i = 0; i < Lanes; ++i) {
                 data_lhs[i] = static_cast<TYPE_T>(i);
                 data_rhs[i] = TYPE_T(1);
             }
 
-            auto mask_mixed = ns::greater(t, ns::load(t, data_lhs), ns::load(t, data_rhs));
-            ns::store(t, res, ns::if_then_else(t, mask_mixed, v_a, v_b));
+            auto mask_mixed = ns::greater(t, ns::load(t, data_lhs.data()), ns::load(t, data_rhs.data()));
+            ns::store(t, res.data(), ns::if_then_else(t, mask_mixed, v_a, v_b));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 TYPE_T expected = (i > 1) ? TYPE_T(10) : TYPE_T(20);
@@ -396,13 +394,13 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         // 输入数据: ...010101 (0x15) -> 取反期望: ...101010 (低5位)
         uint_t input_bits = 0b10101;
         TYPE_T input_val = make_var_from_bits<TYPE_T>(static_cast<uint_t>(input_bits));
 
-        ns::store(t, res, ns::bit_not(t, ns::set(t, input_val)));
+        ns::store(t, res.data(), ns::bit_not(t, ns::set(t, input_val)));
 
         for (size_t i = 0; i < Lanes; ++i)
         {
@@ -418,7 +416,7 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             uint_t zero_bits = 0;
             uint_t expected_bits = ~zero_bits;
-            ns::store(t, res, ns::bit_not(t, ns::set(t, make_var_from_bits<TYPE_T>(zero_bits))));
+            ns::store(t, res.data(), ns::bit_not(t, ns::set(t, make_var_from_bits<TYPE_T>(zero_bits))));
 
             for (size_t i = 0; i < Lanes; ++i)
             {
@@ -445,12 +443,12 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         // a: 10101, b: 10011 -> res: 10001
         uint_t a = 0b10101, b = 0b10011, exp = 0b10001;
 
-        ns::store(t, res, ns::bit_and(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
+        ns::store(t, res.data(), ns::bit_and(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
                                    ns::set(t, make_var_from_bits<TYPE_T>(b))));
 
         for (size_t i = 0; i < Lanes; ++i)
@@ -477,7 +475,7 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         // 逻辑通常为: (~a) & b
         // a: 10101 (~a 低位: 01010)
@@ -485,7 +483,7 @@ namespace KSIMD_DYN_INSTRUCTION
         // res: 00010
         uint_t a = 0b10101, b = 0b10011, exp = 0b00010;
 
-        ns::store(t, res, ns::bit_and_not(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
+        ns::store(t, res.data(), ns::bit_and_not(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
                                        ns::set(t, make_var_from_bits<TYPE_T>(b))));
 
         for (size_t i = 0; i < Lanes; ++i)
@@ -512,12 +510,12 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         // a: 10101, b: 10011 -> res: 10111
         uint_t a = 0b10101, b = 0b10011, exp = 0b10111;
 
-        ns::store(t, res, ns::bit_or(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
+        ns::store(t, res.data(), ns::bit_or(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
                                   ns::set(t, make_var_from_bits<TYPE_T>(b))));
 
         for (size_t i = 0; i < Lanes; ++i)
@@ -544,12 +542,12 @@ namespace KSIMD_DYN_INSTRUCTION
         using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
         const size_t Lanes = ns::lanes(t);
 
-        alignas(ALIGNMENT) TYPE_T res[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
 
         // a: 10101, b: 10011 -> res: 00110
         uint_t a = 0b10101, b = 0b10011, exp = 0b00110;
 
-        ns::store(t, res, ns::bit_xor(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
+        ns::store(t, res.data(), ns::bit_xor(t, ns::set(t, make_var_from_bits<TYPE_T>(a)),
                                    ns::set(t, make_var_from_bits<TYPE_T>(b))));
 
         for (size_t i = 0; i < Lanes; ++i)
@@ -575,25 +573,25 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T test[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> test(Lanes);
 
         // 常规数值测试
-        ns::store(t, test, ns::add(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
+        ns::store(t, test.data(), ns::add(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
 
         // 浮点特殊边界测试
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // Inf + 1 = Inf
-            ns::store(t, test, ns::add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(1))));
+            ns::store(t, test.data(), ns::add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(1))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_inf(test[i]) && test[i] > 0);
 
             // NaN + 1 = NaN
-            ns::store(t, test, ns::add(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(1))));
+            ns::store(t, test.data(), ns::add(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(1))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
 
             // Inf + (-Inf) = NaN
-            ns::store(t, test, ns::add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, -ksimd::Inf<TYPE_T>)));
+            ns::store(t, test.data(), ns::add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, -ksimd::Inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
         }
     }
@@ -613,20 +611,20 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T test[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> test(Lanes);
 
         // 常规数值测试
-        ns::store(t, test, ns::sub(t, ns::set(t, TYPE_T(50)), ns::set(t, TYPE_T(20))));
+        ns::store(t, test.data(), ns::sub(t, ns::set(t, TYPE_T(50)), ns::set(t, TYPE_T(20))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // Inf - Inf = NaN
-            ns::store(t, test, ns::sub(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
+            ns::store(t, test.data(), ns::sub(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
 
             // 1.0 - NaN = NaN
-            ns::store(t, test, ns::sub(t, ns::set(t, TYPE_T(1)), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            ns::store(t, test.data(), ns::sub(t, ns::set(t, TYPE_T(1)), ns::set(t, ksimd::QNaN<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
         }
     }
@@ -646,20 +644,20 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T test[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> test(Lanes);
 
         // 常规数值测试
-        ns::store(t, test, ns::mul(t, ns::set(t, TYPE_T(6)), ns::set(t, TYPE_T(7))));
+        ns::store(t, test.data(), ns::mul(t, ns::set(t, TYPE_T(6)), ns::set(t, TYPE_T(7))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(42));
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
         {
             // Inf * 0 = NaN
-            ns::store(t, test, ns::mul(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(0))));
+            ns::store(t, test.data(), ns::mul(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(0))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
 
             // Inf * (-2) = -Inf
-            ns::store(t, test, ns::mul(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(-2))));
+            ns::store(t, test.data(), ns::mul(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(-2))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_inf(test[i]) && test[i] < 0);
         }
     }
@@ -679,24 +677,24 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T data[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
         TYPE_T expected = 0;
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(i + 1);
             expected += data[i];
         }
 
-        TYPE_T res = ns::reduce_add(t, ns::load(t, data));
+        TYPE_T res = ns::reduce_add(t, ns::load(t, data.data()));
         EXPECT_NEAR((res), (expected), std::numeric_limits<TYPE_T>::epsilon() * 10);
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Inf in sum
             data[0] = ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_add(t, ns::load(t, data))));
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_add(t, ns::load(t, data.data()))));
 
             // NaN in sum
             data[0] = ksimd::QNaN<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_add(t, ns::load(t, data))));
+            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_add(t, ns::load(t, data.data()))));
         }
     }
 }
@@ -714,7 +712,7 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T data[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
 
         // --- 1. 基础阶乘/累乘测试 ---
         TYPE_T expected = 1;
@@ -725,7 +723,7 @@ namespace KSIMD_DYN_INSTRUCTION
             expected *= data[i];
         }
 
-        TYPE_T res = ns::reduce_mul(t, ns::load(t, data));
+        TYPE_T res = ns::reduce_mul(t, ns::load(t, data.data()));
         
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             EXPECT_NEAR(res, expected, std::numeric_limits<TYPE_T>::epsilon() * 100);
@@ -735,19 +733,16 @@ namespace KSIMD_DYN_INSTRUCTION
 
         // --- 2. 包含 0 的测试 (归零律) ---
         data[Lanes / 2] = TYPE_T(0);
-        EXPECT_EQ(ns::reduce_mul(t, ns::load(t, data)), TYPE_T(0)) << "Multiplication by zero failed";
+        EXPECT_EQ(ns::reduce_mul(t, ns::load(t, data.data())), TYPE_T(0)) << "Multiplication by zero failed";
 
         // --- 3. 负数符号位测试 ---
         // 设置所有 lane 为 1，仅设置两个为 -1，结果应为 1
         if constexpr (ksimd::is_scalar_signed<TYPE_T>)
         {
-            if constexpr (Lanes > 1)
-            {
-                for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(1);
-                data[0] = TYPE_T(-1);
-                data[1] = TYPE_T(-1);
-                EXPECT_EQ(ns::reduce_mul(t, ns::load(t, data)), TYPE_T(1)) << "Double negative sign failed";
-            }
+            for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(1);
+            data[0] = TYPE_T(-1);
+            data[1] = TYPE_T(-1);
+            EXPECT_EQ(ns::reduce_mul(t, ns::load(t, data.data())), TYPE_T(1)) << "Double negative sign failed";
         }
 
         // --- 4. 浮点数特殊值测试 ---
@@ -755,20 +750,17 @@ namespace KSIMD_DYN_INSTRUCTION
             // Infinity 传播: inf * 2 = inf
             for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(2);
             data[Lanes / 2] = ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_mul(t, ns::load(t, data))));
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_mul(t, ns::load(t, data.data()))));
 
             // NaN 传播: NaN * 1 = NaN
             data[Lanes / 2] = ksimd::QNaN<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data))));
+            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data()))));
             
-            if constexpr (Lanes > 1)
-            {
-                // 0 * inf = NaN
-                data[0] = TYPE_T(0);
-                data[1] = ksimd::Inf<TYPE_T>;
-                // 注意：某些架构优化可能导致结果不同，但 IEEE754 标准下应为 NaN
-                EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data))));
-            }
+            // 0 * inf = NaN
+            data[0] = TYPE_T(0);
+            data[1] = ksimd::Inf<TYPE_T>;
+            // 注意：某些架构优化可能导致结果不同，但 IEEE754 标准下应为 NaN
+            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data()))));
         }
     }
 }
@@ -786,20 +778,20 @@ namespace KSIMD_DYN_INSTRUCTION
         
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T data[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
 
         // 1. 常规场景测试：[1, 2, 3, ..., Lanes]
         TYPE_T expected = TYPE_T(1);
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(i + 1);
         }
-        TYPE_T res = ns::reduce_min<ns::FloatMinMaxOption::Native>(t, ns::load(t, data));
+        TYPE_T res = ns::reduce_min<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data()));
         EXPECT_EQ(res, expected);
 
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(i + 1);
         }
-        res = ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data));
+        res = ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()));
         EXPECT_EQ(res, expected);
 
 
@@ -807,47 +799,47 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(Lanes - i);
         }
-        res = ns::reduce_min<ns::FloatMinMaxOption::Native>(t, ns::load(t, data));
+        res = ns::reduce_min<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data()));
         EXPECT_EQ(res, TYPE_T(1));
 
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(Lanes - i);
         }
-        res = ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data));
+        res = ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()));
         EXPECT_EQ(res, TYPE_T(1));
 
 
         // 3. 包含负数
         if constexpr (ksimd::is_scalar_signed<TYPE_T>)
         {
-            FILL_ARRAY(data, TYPE_T(0));
+            FILL_VECTOR(data, TYPE_T(0));
             data[Lanes / 2] = TYPE_T(-100);
-            res = ns::reduce_min<ns::FloatMinMaxOption::Native>(t, ns::load(t, data));
+            res = ns::reduce_min<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data()));
             EXPECT_EQ(res, TYPE_T(-100));
 
-            FILL_ARRAY(data, TYPE_T(0));
+            FILL_VECTOR(data, TYPE_T(0));
             data[Lanes / 2] = TYPE_T(-100);
-            res = ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data));
+            res = ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()));
             EXPECT_EQ(res, TYPE_T(-100));
         }
 
         // 4. 浮点数特殊边界测试
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // 测试包含 -Inf (应为最小值)
-            FILL_ARRAY(data, TYPE_T(0));
+            FILL_VECTOR(data, TYPE_T(0));
             data[0] = -ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_min(t, ns::load(t, data))) && ns::reduce_min(t, ns::load(t, data)) < 0);
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_min(t, ns::load(t, data.data()))) && ns::reduce_min(t, ns::load(t, data.data())) < 0);
 
-            FILL_ARRAY(data, TYPE_T(0));
+            FILL_VECTOR(data, TYPE_T(0));
             data[Lanes - 1] = -ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_min(t, ns::load(t, data))) && ns::reduce_min(t, ns::load(t, data)) < 0);
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_min(t, ns::load(t, data.data()))) && ns::reduce_min(t, ns::load(t, data.data())) < 0);
 
             // 测试 NaN 传播
             for (size_t i = 0; i < Lanes; ++i)
             {
-                FILL_ARRAY(data, TYPE_T(0));
+                FILL_VECTOR(data, TYPE_T(0));
                 data[i] = ksimd::QNaN<TYPE_T>;
-                EXPECT_TRUE(ksimd::is_NaN(ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data))));
+                EXPECT_TRUE(ksimd::is_NaN(ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()))));
             }
         }
     }
@@ -865,7 +857,7 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T data[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
 
         TYPE_T res = TYPE_T(0);
 
@@ -876,13 +868,13 @@ namespace KSIMD_DYN_INSTRUCTION
             for (size_t i = 0; i < Lanes; ++i) {
                 data[i] = -TYPE_T(Lanes - i);
             }
-            res = ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data));
+            res = ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data()));
             EXPECT_EQ(res, TYPE_T(-1));
 
             for (size_t i = 0; i < Lanes; ++i) {
                 data[i] = -TYPE_T(Lanes - i);
             }
-            res = ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data));
+            res = ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()));
             EXPECT_EQ(res, TYPE_T(-1));
         }
 
@@ -891,37 +883,37 @@ namespace KSIMD_DYN_INSTRUCTION
             data[i] = TYPE_T(i);
         }
         data[Lanes / 2] = TYPE_T(999);
-        res = ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data));
+        res = ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data()));
         EXPECT_EQ(res, TYPE_T(999));
 
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(i);
         }
         data[Lanes / 2] = TYPE_T(999);
-        res = ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data));
+        res = ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()));
         EXPECT_EQ(res, TYPE_T(999));
 
 
         // 3. 浮点数特殊边界测试
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // 测试正无穷 +Inf
-            FILL_ARRAY(data, TYPE_T(0));
+            FILL_VECTOR(data, TYPE_T(0));
             data[0] = ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data)))
-                && ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data)) > 0);
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data())))
+                && ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data())) > 0);
 
-            FILL_ARRAY(data, TYPE_T(0));
+            FILL_VECTOR(data, TYPE_T(0));
             data[0] = ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data)))
-                && ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data)) > 0);
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data())))
+                && ns::reduce_max<ns::FloatMinMaxOption::Native>(t, ns::load(t, data.data())) > 0);
 
 
             // 测试 NaN 传播
             for (size_t i = 0; i < Lanes; ++i)
             {
-                FILL_ARRAY(data, TYPE_T(0));
+                FILL_VECTOR(data, TYPE_T(0));
                 data[i] = ksimd::QNaN<TYPE_T>;
-                EXPECT_TRUE(ksimd::is_NaN(ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data))));
+                EXPECT_TRUE(ksimd::is_NaN(ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()))));
             }
         }
     }
@@ -940,7 +932,7 @@ namespace KSIMD_DYN_INSTRUCTION
         TAG_T t;
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T data[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
 
         using MaskBitset = ns::MaskBitset<TAG_T>;
 
@@ -949,7 +941,7 @@ namespace KSIMD_DYN_INSTRUCTION
             data[i] = TYPE_T(0);
         }
         // 假设这里通过比较生成掩码，例如：data > 0
-        auto mask_none = ns::greater(t, ns::load(t, data), ns::zero(t));
+        auto mask_none = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
         MaskBitset res_none = ns::reduce_mask(t, mask_none);
         EXPECT_TRUE(first_n_bit_false(res_none, Lanes));
 
@@ -957,7 +949,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(1);
         }
-        auto mask_all = ns::greater(t, ns::load(t, data), ns::zero(t));
+        auto mask_all = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
         MaskBitset res_all = ns::reduce_mask(t, mask_all);
         // 对于 32位 128bit (4 lanes)，全 1 应该是 0b1111 (即 15)
         EXPECT_TRUE(first_n_bit_true(res_all, Lanes)) << "index: " << index;
@@ -969,7 +961,7 @@ namespace KSIMD_DYN_INSTRUCTION
             // 仅令第 i 个元素大于 0
             data[i] = TYPE_T(1.0);
 
-            auto mask_single = ns::greater(t, ns::load(t, data), ns::zero(t));
+            auto mask_single = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
             MaskBitset res_single = ns::reduce_mask(t, mask_single);
 
             // 结果应该是第 i 位被置 1
@@ -980,7 +972,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = (i % 2 == 0) ? TYPE_T(1) : TYPE_T(-1);
         }
-        auto mask_alt = ns::greater(t, ns::load(t, data), ns::zero(t));
+        auto mask_alt = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
         MaskBitset res_alt = ns::reduce_mask(t, mask_alt);
 
         MaskBitset expected_alt = 0;
@@ -1004,19 +996,19 @@ namespace KSIMD_DYN_INSTRUCTION
         // 
 
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T test[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> test(Lanes);
 
         // (2 * 3) + 4 = 10
-        ns::store(t, test, ns::mul_add(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3)), ns::set(t, TYPE_T(4))));
-        EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(10)));
+        ns::store(t, test.data(), ns::mul_add(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3)), ns::set(t, TYPE_T(4))));
+        EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(10)));
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // NaN propagation
-            ns::store(t, test, ns::mul_add(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
+            ns::store(t, test.data(), ns::mul_add(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
 
             // Inf propagation
-            ns::store(t, test, ns::mul_add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
+            ns::store(t, test.data(), ns::mul_add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_inf(test[i]) && test[i] > 0);
         }
     }
@@ -1034,19 +1026,19 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T test[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> test(Lanes);
 
-        ns::store(t, test, ns::min(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
-        EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(10)));
+        ns::store(t, test.data(), ns::min(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
+        EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(10)));
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Min(Inf, 100) = 100
-            ns::store(t, test, ns::min(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(100))));
-            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(100)));
+            ns::store(t, test.data(), ns::min(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(100))));
+            EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(100)));
 
             // Min(100, Inf) = 100
-            ns::store(t, test, ns::min(t, ns::set(t, TYPE_T(100)), ns::set(t, ksimd::Inf<TYPE_T>)));
-            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(100)));
+            ns::store(t, test.data(), ns::min(t, ns::set(t, TYPE_T(100)), ns::set(t, ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(100)));
 
             // NaN 行为 (不同指令行为不同，不进行测试)
             // ns::store(t, test, ns::min(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
@@ -1060,12 +1052,12 @@ namespace KSIMD_DYN_INSTRUCTION
             // }
 
             // Check 模式，无论左右，都返回NaN
-            ns::store(t, test, ns::min<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, TYPE_T(5)), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            ns::store(t, test.data(), ns::min<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, TYPE_T(5)), ns::set(t, ksimd::QNaN<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(ksimd::is_NaN(test[i]));
             }
-            ns::store(t, test, ns::min<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
+            ns::store(t, test.data(), ns::min<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(ksimd::is_NaN(test[i]));
@@ -1079,15 +1071,15 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
         const size_t Lanes = ns::lanes(t);
-        alignas(ALIGNMENT) TYPE_T test[Lanes];
+        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> test(Lanes);
 
-        ns::store(t, test, ns::max(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
-        EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(20)));
+        ns::store(t, test.data(), ns::max(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
+        EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(20)));
 
         if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
             // Max(-Inf, -100) = -100
-            ns::store(t, test, ns::max(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(-100))));
-            EXPECT_TRUE(array_equal(test, Lanes, TYPE_T(-100)));
+            ns::store(t, test.data(), ns::max(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(-100))));
+            EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(-100)));
 
             // NaN 行为 (不同指令集行为不同，不进行测试)
             // ns::store(t, test, ns::max(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(-100))));
@@ -1100,12 +1092,12 @@ namespace KSIMD_DYN_INSTRUCTION
             // }
 
             // Check 模式，无论左右，都返回NaN
-            ns::store(t, test, ns::max<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, TYPE_T(5)), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            ns::store(t, test.data(), ns::max<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, TYPE_T(5)), ns::set(t, ksimd::QNaN<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(ksimd::is_NaN(test[i]));
             }
-            ns::store(t, test, ns::max<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
+            ns::store(t, test.data(), ns::max<ns::FloatMinMaxOption::CheckNaN>(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(5))));
             for (size_t i = 0; i < Lanes; ++i)
             {
                 EXPECT_TRUE(ksimd::is_NaN(test[i]));
@@ -1299,16 +1291,16 @@ namespace KSIMD_DYN_INSTRUCTION
         // 2. 混合模式测试 (逐位验证)
         {
             // 手动构造一个混合数组，例如 [true, false, true, false]
-            alignas(ALIGNMENT) TYPE_T data[ns::lanes(t)];
-            for (size_t i = 0; i < ns::lanes(t); ++i) {
+            std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
+            for (size_t i = 0; i < Lanes; ++i) {
                 data[i] = (i % 2 == 0) ? TYPE_T(10) : TYPE_T(20);
             }
 
-            mask_t m_mixed = ns::equal(t, ns::load(t, data), v1);
+            mask_t m_mixed = ns::equal(t, ns::load(t, data.data()), v1);
             bitset_t res_mixed = ns::reduce_mask(t, m_mixed);
 
             bitset_t expected_mixed = 0;
-            for (size_t i = 0; i < ns::lanes(t); i += 2) {
+            for (size_t i = 0; i < Lanes; i += 2) {
                 expected_mixed |= (bitset_t(1) << i);
             }
 

@@ -55,8 +55,9 @@ namespace KSIMD_DYN_INSTRUCTION
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         
         bool result =
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 0);
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 2) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_NEON) && index == 1) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SVE) && index == 0);
 
         EXPECT_TRUE(result);
 
@@ -84,9 +85,10 @@ TEST(dyn_dispatch, pfn_table)
 
 #elif KSIMD_ARCH_ARM_ANY
 
-    // 0: neon
-    // 1: scalar
-    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 2);
+    // 0: sve
+    // 1: neon
+    // 2: scalar
+    EXPECT_EQ(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_dyn_impl)), 3);
 
 #endif
 
