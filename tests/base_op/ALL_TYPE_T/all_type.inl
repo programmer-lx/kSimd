@@ -75,7 +75,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(arr[i], val);
 
         // 针对浮点数的特殊值测试
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
             // NaN 广播
             ns::store(t, arr.data(), ns::set(t, ksimd::QNaN<TYPE_T>));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(arr[i]));
@@ -83,7 +83,7 @@ namespace KSIMD_DYN_INSTRUCTION
             // Inf 广播
             ns::store(t, arr.data(), ns::set(t, ksimd::Inf<TYPE_T>));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_inf(arr[i]));
-        }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -122,13 +122,15 @@ namespace KSIMD_DYN_INSTRUCTION
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(b_v + static_cast<TYPE_T>(i) * stride));
         }
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             TYPE_T f_base = TYPE_T(1.5), f_stride = TYPE_T(-0.5);
             ns::store(t, arr.data(), ns::sequence(t, f_base, f_stride));
             for (size_t i = 0; i < Lanes; ++i) {
                 EXPECT_NEAR(arr[i], f_base + static_cast<TYPE_T>(i) * f_stride, TYPE_T(1e-6));
             }
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -276,58 +278,6 @@ namespace KSIMD_DYN_INSTRUCTION
 #if KSIMD_ONCE
 TEST_ONCE_DYN(partial_load_store)
 #endif
-
-// ------------------------------------------ bit_if_then_else ------------------------------------------
-#if !KSIMD_TEST_FP16
-namespace KSIMD_DYN_INSTRUCTION
-{
-    KSIMD_DYN_FUNC_ATTR
-    void bit_if_then_else() noexcept
-    {
-        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-
-        using uint_t = ksimd::same_bits_uint_t<TYPE_T>;
-
-        const size_t Lanes = ns::lanes(t);
-        std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> res(Lanes);
-
-        // 测试数据：验证位选择逻辑 (mask & a) | (~mask & b)
-        TYPE_T val_a    = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b10101));
-        TYPE_T val_b    = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b11111));
-        TYPE_T val_mask = make_var_from_bits<TYPE_T>(static_cast<uint_t>(0b00010));
-        uint_t expected = static_cast<uint_t>(0b11101);
-
-        ns::store(t, res.data(), ns::bit_if_then_else(t, ns::set(t, val_mask), ns::set(t, val_a), ns::set(t, val_b)));
-
-        for (size_t i = 0; i < Lanes; ++i)
-        {
-            EXPECT_TRUE(bit_equal(res[i], make_var_from_bits<TYPE_T>(expected)))
-                << "Bit select failed at lane " << i
-                << "\n  Expected bits: 0x" << std::hex << (uint64_t)expected
-                << "\n  Actual bits:   0x" << (uint64_t)std::bit_cast<uint_t>(res[i]);
-        }
-
-        // 浮点数特殊验证：符号位搬运
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
-        {
-            TYPE_T pos_val = TYPE_T(1.0);
-            TYPE_T neg_val = TYPE_T(-2.0);
-            TYPE_T s_mask  = ksimd::SignBitMask<TYPE_T>;
-
-            // 从 neg_val 取符号位，从 pos_val 取数值位，结果应为 -1.0
-            ns::store(t, res.data(), ns::bit_if_then_else(t, ns::set(t, s_mask), ns::set(t, neg_val), ns::set(t, pos_val)));
-
-            for (size_t i = 0; i < Lanes; ++i) {
-                EXPECT_EQ(res[i], TYPE_T(-1.0));
-            }
-        }
-    }
-}
-#if KSIMD_ONCE
-TEST_ONCE_DYN(bit_if_then_else)
-#endif
-
-#endif // FP16
 
 // ------------------------------------------ if_then_else ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
@@ -580,7 +530,7 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
 
         // 浮点特殊边界测试
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
+        #if KSIMD_TEST_FP
         {
             // Inf + 1 = Inf
             ns::store(t, test.data(), ns::add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(1))));
@@ -594,6 +544,7 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, test.data(), ns::add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, -ksimd::Inf<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -617,7 +568,7 @@ namespace KSIMD_DYN_INSTRUCTION
         ns::store(t, test.data(), ns::sub(t, ns::set(t, TYPE_T(50)), ns::set(t, TYPE_T(20))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(30));
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
+        #if KSIMD_TEST_FP
         {
             // Inf - Inf = NaN
             ns::store(t, test.data(), ns::sub(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
@@ -627,6 +578,7 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, test.data(), ns::sub(t, ns::set(t, TYPE_T(1)), ns::set(t, ksimd::QNaN<TYPE_T>)));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -650,7 +602,7 @@ namespace KSIMD_DYN_INSTRUCTION
         ns::store(t, test.data(), ns::mul(t, ns::set(t, TYPE_T(6)), ns::set(t, TYPE_T(7))));
         for (size_t i = 0; i < Lanes; ++i) EXPECT_EQ(test[i], TYPE_T(42));
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>)
+        #if KSIMD_TEST_FP
         {
             // Inf * 0 = NaN
             ns::store(t, test.data(), ns::mul(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(0))));
@@ -660,6 +612,7 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, test.data(), ns::mul(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(-2))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_inf(test[i]) && test[i] < 0);
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -687,7 +640,8 @@ namespace KSIMD_DYN_INSTRUCTION
         TYPE_T res = ns::reduce_add(t, ns::load(t, data.data()));
         EXPECT_NEAR((res), (expected), std::numeric_limits<TYPE_T>::epsilon() * 10);
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // Inf in sum
             data[0] = ksimd::Inf<TYPE_T>;
             EXPECT_TRUE(ksimd::is_inf(ns::reduce_add(t, ns::load(t, data.data()))));
@@ -696,6 +650,7 @@ namespace KSIMD_DYN_INSTRUCTION
             data[0] = ksimd::QNaN<TYPE_T>;
             EXPECT_TRUE(ksimd::is_NaN(ns::reduce_add(t, ns::load(t, data.data()))));
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -724,12 +679,16 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         TYPE_T res = ns::reduce_mul(t, ns::load(t, data.data()));
-        
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+
+        #if KSIMD_TEST_FP
+        {
             EXPECT_NEAR(res, expected, std::numeric_limits<TYPE_T>::epsilon() * 100);
-        } else {
+        }
+        #else
+        {
             EXPECT_EQ(res, expected);
         }
+        #endif
 
         // --- 2. 包含 0 的测试 (归零律) ---
         data[Lanes / 2] = TYPE_T(0);
@@ -746,7 +705,8 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // --- 4. 浮点数特殊值测试 ---
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // Infinity 传播: inf * 2 = inf
             for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(2);
             data[Lanes / 2] = ksimd::Inf<TYPE_T>;
@@ -762,6 +722,7 @@ namespace KSIMD_DYN_INSTRUCTION
             // 注意：某些架构优化可能导致结果不同，但 IEEE754 标准下应为 NaN
             EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data()))));
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -824,7 +785,8 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         // 4. 浮点数特殊边界测试
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // 测试包含 -Inf (应为最小值)
             FILL_VECTOR(data, TYPE_T(0));
             data[0] = -ksimd::Inf<TYPE_T>;
@@ -842,6 +804,7 @@ namespace KSIMD_DYN_INSTRUCTION
                 EXPECT_TRUE(ksimd::is_NaN(ns::reduce_min<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()))));
             }
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -895,7 +858,8 @@ namespace KSIMD_DYN_INSTRUCTION
 
 
         // 3. 浮点数特殊边界测试
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // 测试正无穷 +Inf
             FILL_VECTOR(data, TYPE_T(0));
             data[0] = ksimd::Inf<TYPE_T>;
@@ -916,17 +880,18 @@ namespace KSIMD_DYN_INSTRUCTION
                 EXPECT_TRUE(ksimd::is_NaN(ns::reduce_max<ns::FloatMinMaxOption::CheckNaN>(t, ns::load(t, data.data()))));
             }
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
 TEST_ONCE_DYN(reduce_max)
 #endif
 
-// ------------------------------------------ reduce_mask ------------------------------------------
+// ------------------------------------------ mask_test ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void reduce_mask(size_t index) noexcept
+    void mask_test(size_t index) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         TAG_T t;
@@ -934,55 +899,35 @@ namespace KSIMD_DYN_INSTRUCTION
         const size_t Lanes = ns::lanes(t);
         std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
 
-        using MaskBitset = ns::MaskBitset<TAG_T>;
-
         // 1. 全 0 测试：所有掩码均为 false
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(0);
         }
         // 假设这里通过比较生成掩码，例如：data > 0
         auto mask_none = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
-        MaskBitset res_none = ns::reduce_mask(t, mask_none);
-        EXPECT_TRUE(first_n_bit_false(res_none, Lanes));
+        EXPECT_TRUE(ns::mask_none(t, mask_none));
 
         // 2. 全 1 测试：所有掩码均为 true
         for (size_t i = 0; i < Lanes; ++i) {
             data[i] = TYPE_T(1);
         }
         auto mask_all = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
-        MaskBitset res_all = ns::reduce_mask(t, mask_all);
-        // 对于 32位 128bit (4 lanes)，全 1 应该是 0b1111 (即 15)
-        EXPECT_TRUE(first_n_bit_true(res_all, Lanes)) << "index: " << index;
+        EXPECT_TRUE(ns::mask_all(t, mask_all)) << "index: " << index;
 
-        // 3. 逐通道测试：依次激活每一个通道
-        for (size_t i = 0; i < Lanes; ++i) {
-            // 清空数组
-            for (size_t j = 0; j < Lanes; ++j) data[j] = TYPE_T(-1.0);
-            // 仅令第 i 个元素大于 0
-            data[i] = TYPE_T(1.0);
-
-            auto mask_single = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
-            MaskBitset res_single = ns::reduce_mask(t, mask_single);
-
-            // 结果应该是第 i 位被置 1
-            EXPECT_EQ(res_single, MaskBitset(1ULL << i));
+        // any 交叉
+        for (size_t i = 0; i < Lanes; ++i)
+        {
+            if (i & 1)
+                data[i] = 1;
+            else
+                data[i] = 0;
         }
-
-        // 4. 交替位测试：0101...
-        for (size_t i = 0; i < Lanes; ++i) {
-            data[i] = (i % 2 == 0) ? TYPE_T(1) : TYPE_T(-1);
-        }
-        auto mask_alt = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
-        MaskBitset res_alt = ns::reduce_mask(t, mask_alt);
-
-        MaskBitset expected_alt = 0;
-        for (size_t i = 0; i < Lanes; i += 2) expected_alt |= (1ULL << i);
-
-        EXPECT_EQ(res_alt, expected_alt);
+        auto mask_any = ns::greater(t, ns::load(t, data.data()), ns::zero(t));
+        EXPECT_TRUE(ns::mask_any(t, mask_any));
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN_WITH_IDX(reduce_mask)
+TEST_ONCE_DYN_WITH_IDX(mask_test)
 #endif
 
 // ------------------------------------------ mul_add ------------------------------------------
@@ -1002,7 +947,8 @@ namespace KSIMD_DYN_INSTRUCTION
         ns::store(t, test.data(), ns::mul_add(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3)), ns::set(t, TYPE_T(4))));
         EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(10)));
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // NaN propagation
             ns::store(t, test.data(), ns::mul_add(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_NaN(test[i]));
@@ -1011,6 +957,7 @@ namespace KSIMD_DYN_INSTRUCTION
             ns::store(t, test.data(), ns::mul_add(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
             for (size_t i = 0; i < Lanes; ++i) EXPECT_TRUE(ksimd::is_inf(test[i]) && test[i] > 0);
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -1031,7 +978,8 @@ namespace KSIMD_DYN_INSTRUCTION
         ns::store(t, test.data(), ns::min(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
         EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(10)));
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // Min(Inf, 100) = 100
             ns::store(t, test.data(), ns::min(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(100))));
             EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(100)));
@@ -1063,6 +1011,7 @@ namespace KSIMD_DYN_INSTRUCTION
                 EXPECT_TRUE(ksimd::is_NaN(test[i]));
             }
         }
+        #endif
     }
 
     KSIMD_DYN_FUNC_ATTR
@@ -1076,7 +1025,8 @@ namespace KSIMD_DYN_INSTRUCTION
         ns::store(t, test.data(), ns::max(t, ns::set(t, TYPE_T(10)), ns::set(t, TYPE_T(20))));
         EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(20)));
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // Max(-Inf, -100) = -100
             ns::store(t, test.data(), ns::max(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, TYPE_T(-100))));
             EXPECT_TRUE(array_equal(test.data(), Lanes, TYPE_T(-100)));
@@ -1103,6 +1053,7 @@ namespace KSIMD_DYN_INSTRUCTION
                 EXPECT_TRUE(ksimd::is_NaN(test[i]));
             }
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -1117,38 +1068,40 @@ namespace KSIMD_DYN_INSTRUCTION
     void equal() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        const size_t Lanes = ns::lanes(t);
-        
+
         // 1 == 1 (True)
-        auto mask = ns::reduce_mask(t, ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(1))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        auto res = ns::mask_all(t, ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(1))));
+        EXPECT_TRUE(res);
 
         // 1 == 2 (False)
-        mask = ns::reduce_mask(t, ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        res = ns::mask_none(t, ns::equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // NaN == NaN (False)
-            mask = ns::reduce_mask(t, ns::equal(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+            res = ns::mask_none(t, ns::equal(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            EXPECT_TRUE(res);
         }
+        #endif
     }
 
     KSIMD_DYN_FUNC_ATTR
     void not_equal() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        const size_t Lanes = ns::lanes(t);
-        
-        // 1 != 2 (True)
-        auto mask = ns::reduce_mask(t, ns::not_equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        // 1 != 2 (True)
+        auto res = ns::mask_all(t, ns::not_equal(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
+
+        #if KSIMD_TEST_FP
+        {
             // NaN != NaN (True)
-            mask = ns::reduce_mask(t, ns::not_equal(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+            res = ns::mask_all(t, ns::not_equal(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            EXPECT_TRUE(res);
         }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -1163,39 +1116,39 @@ namespace KSIMD_DYN_INSTRUCTION
     void greater() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        const size_t Lanes = ns::lanes(t);
-        
+
         // 2 > 1 (True), 1 > 2 (False)
-        auto mask = ns::reduce_mask(t, ns::greater(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(1))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        auto res = ns::mask_all(t, ns::greater(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(1))));
+        EXPECT_TRUE(res);
 
-        mask = ns::reduce_mask(t, ns::greater(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        res = ns::mask_none(t, ns::greater(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // Inf > 1e30 (True)
-            mask = ns::reduce_mask(t, ns::greater(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Max<TYPE_T> - 2)));
-            EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+            res = ns::mask_all(t, ns::greater(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Max<TYPE_T> - 2)));
+            EXPECT_TRUE(res);
 
             // 1 > -Inf (True)
-            mask = ns::reduce_mask(t, ns::greater(t, ns::set(t, TYPE_T(1)), ns::set(t, -ksimd::Inf<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+            res = ns::mask_all(t, ns::greater(t, ns::set(t, TYPE_T(1)), ns::set(t, -ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
 
             // NaN > 任何数 (False)
-            mask = ns::reduce_mask(t, ns::greater(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+            res = ns::mask_none(t, ns::greater(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
         }
+        #endif
     }
 
     KSIMD_DYN_FUNC_ATTR
     void greater_equal() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        const size_t Lanes = ns::lanes(t);
-        
+
         // 2 >= 2 (True)
-        auto mask = ns::reduce_mask(t, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(2))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        auto res = ns::mask_all(t, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
     }
 }
 #if KSIMD_ONCE
@@ -1210,35 +1163,34 @@ namespace KSIMD_DYN_INSTRUCTION
     void less() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        const size_t Lanes = ns::lanes(t);
-        
         // 1 < 2 (True)
-        auto mask = ns::reduce_mask(t, ns::less(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        auto res = ns::mask_all(t, ns::less(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
 
-        if constexpr (ksimd::is_scalar_floating_point<TYPE_T>) {
+        #if KSIMD_TEST_FP
+        {
             // -Inf < Inf (True)
-            mask = ns::reduce_mask(t, ns::less(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+            res = ns::mask_all(t, ns::less(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
 
             // NaN 相关比较应为 False
-            mask = ns::reduce_mask(t, ns::less(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+            res = ns::mask_none(t, ns::less(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            EXPECT_TRUE(res);
 
-            mask = ns::reduce_mask(t, ns::less(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, -ksimd::Inf<TYPE_T>)));
-            EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+            res = ns::mask_none(t, ns::less(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, -ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
         }
+        #endif
     }
 
     KSIMD_DYN_FUNC_ATTR
     void less_equal() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        const size_t Lanes = ns::lanes(t);
-        
+
         // 5 <= 5 (True)
-        auto mask = ns::reduce_mask(t, ns::less_equal(t, ns::set(t, TYPE_T(5)), ns::set(t, TYPE_T(5))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        auto res = ns::mask_all(t, ns::less_equal(t, ns::set(t, TYPE_T(5)), ns::set(t, TYPE_T(5))));
+        EXPECT_TRUE(res);
     }
 }
 #if KSIMD_ONCE
@@ -1255,10 +1207,8 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         TAG_T t;
 
-        const auto Lanes = ns::lanes(t);
 
         using mask_t = ns::Mask<decltype(t)>;
-        using bitset_t = ns::MaskBitset<decltype(t)>;
 
         // 准备测试数据
         ns::Batch<decltype(t)> v1 = ns::set(t, static_cast<TYPE_T>(10));
@@ -1270,41 +1220,22 @@ namespace KSIMD_DYN_INSTRUCTION
         // 1. 基础位运算函数测试 (and, or, xor, not, and_not)
         {
             // AND: true & false == false
-            EXPECT_TRUE(first_n_bit_false(ns::reduce_mask(t, ns::mask_and(t, m_true, m_false)), Lanes));
+            EXPECT_TRUE(ns::mask_none(t, ns::mask_and(t, m_true, m_false)));
 
             // OR: true | false == true
-            EXPECT_TRUE(first_n_bit_true(ns::reduce_mask(t, ns::mask_or(t, m_true, m_false)), Lanes));
+            EXPECT_TRUE(ns::mask_all(t, ns::mask_or(t, m_true, m_false)));
 
             // XOR: true ^ true == false
-            EXPECT_TRUE(first_n_bit_false(ns::reduce_mask(t, ns::mask_xor(t, m_true, m_true)), Lanes));
+            EXPECT_TRUE(ns::mask_none(t, ns::mask_xor(t, m_true, m_true)));
 
             // NOT: !true == false
-            EXPECT_TRUE(first_n_bit_false(ns::reduce_mask(t, ns::mask_not(t, m_true)), Lanes));
+            EXPECT_TRUE(ns::mask_none(t, ns::mask_not(t, m_true))) << "index = " << index;
 
             // NOT: !false == true
-            EXPECT_TRUE(first_n_bit_true(ns::reduce_mask(t, ns::mask_not(t, m_false)), Lanes));
+            EXPECT_TRUE(ns::mask_all(t, ns::mask_not(t, m_false))) << "index = " << index;
 
             // AND NOT: !false & true == true
-            EXPECT_TRUE(first_n_bit_true(ns::reduce_mask(t, ns::mask_and_not(t, m_false, m_true)), Lanes));
-        }
-
-        // 2. 混合模式测试 (逐位验证)
-        {
-            // 手动构造一个混合数组，例如 [true, false, true, false]
-            std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
-            for (size_t i = 0; i < Lanes; ++i) {
-                data[i] = (i % 2 == 0) ? TYPE_T(10) : TYPE_T(20);
-            }
-
-            mask_t m_mixed = ns::equal(t, ns::load(t, data.data()), v1);
-            bitset_t res_mixed = ns::reduce_mask(t, m_mixed);
-
-            bitset_t expected_mixed = 0;
-            for (size_t i = 0; i < Lanes; i += 2) {
-                expected_mixed |= (bitset_t(1) << i);
-            }
-
-            EXPECT_EQ(res_mixed, expected_mixed) << "idx: " << index;
+            EXPECT_TRUE(ns::mask_all(t, ns::mask_and_not(t, m_false, m_true))) << "index = " << index;
         }
     }
 }

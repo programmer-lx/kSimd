@@ -171,7 +171,6 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
-        const size_t Lanes = ns::lanes(t);
 
         auto v_nan = ns::set(t, ksimd::QNaN<FLOAT_T>);
         auto v_val = ns::set(t, FLOAT_T(2.0));
@@ -179,38 +178,38 @@ namespace KSIMD_DYN_INSTRUCTION
         // =========================================================================
         // Greater vs Not Greater
         // =========================================================================
-        auto mask = ns::reduce_mask(t, ns::greater(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        auto res = ns::mask_none(t, ns::greater(t, v_nan, v_val));
+        EXPECT_TRUE(res);
 
-        mask = ns::reduce_mask(t, ns::not_greater(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        res = ns::mask_all(t, ns::not_greater(t, v_nan, v_val));
+        EXPECT_TRUE(res);
 
         // =========================================================================
         // Greater Equal vs Not Greater Equal
         // =========================================================================
-        mask = ns::reduce_mask(t, ns::greater_equal(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        res = ns::mask_none(t, ns::greater_equal(t, v_nan, v_val));
+        EXPECT_TRUE(res);
 
-        mask = ns::reduce_mask(t, ns::not_greater_equal(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
-
-        // =========================================================================
-        // Less Equal vs Not Less Equal
-        // =========================================================================
-        mask = ns::reduce_mask(t, ns::less(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
-
-        mask = ns::reduce_mask(t, ns::not_less(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        res = ns::mask_all(t, ns::not_greater_equal(t, v_nan, v_val));
+        EXPECT_TRUE(res);
 
         // =========================================================================
         // Less Equal vs Not Less Equal
         // =========================================================================
-        mask = ns::reduce_mask(t, ns::less_equal(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        res = ns::mask_none(t, ns::less(t, v_nan, v_val));
+        EXPECT_TRUE(res);
 
-        mask = ns::reduce_mask(t, ns::not_less_equal(t, v_nan, v_val));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        res = ns::mask_all(t, ns::not_less(t, v_nan, v_val));
+        EXPECT_TRUE(res);
+
+        // =========================================================================
+        // Less Equal vs Not Less Equal
+        // =========================================================================
+        res = ns::mask_none(t, ns::less_equal(t, v_nan, v_val));
+        EXPECT_TRUE(res);
+
+        res = ns::mask_all(t, ns::not_less_equal(t, v_nan, v_val));
+        EXPECT_TRUE(res);
     }
 }
 #if KSIMD_ONCE
@@ -226,19 +225,18 @@ namespace KSIMD_DYN_INSTRUCTION
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION;
         TAG_T t;
         
-        const size_t Lanes = ns::lanes(t);
 
         // any_NaN: 只要有一个是 NaN 就返回 True
-        auto mask = ns::reduce_mask(t, ns::any_NaN(t,ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
-        EXPECT_TRUE(first_n_bit_true(mask, Lanes));
+        auto res = ns::mask_all(t, ns::any_NaN(t,ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(res) << "idx: " << index;
 
         // all_NaN: 两个都是 NaN 才返回 True
-        mask = ns::reduce_mask(t, ns::all_NaN(t,ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes)) << "idx: " << index;
+        res = ns::mask_none(t, ns::all_NaN(t,ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(res) << "idx: " << index;
 
         // all_finite: 两个都必须是有限数
-        mask = ns::reduce_mask(t, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, ksimd::Inf<FLOAT_T>)));
-        EXPECT_TRUE(first_n_bit_false(mask, Lanes));
+        res = ns::mask_none(t, ns::all_finite(t,ns::set(t, FLOAT_T(1)), ns::set(t, ksimd::Inf<FLOAT_T>)));
+        EXPECT_TRUE(res);
     }
 }
 #if KSIMD_ONCE

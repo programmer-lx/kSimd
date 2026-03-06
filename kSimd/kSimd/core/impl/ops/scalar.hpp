@@ -54,15 +54,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         {
             using type = scalar_simd_mask<Tag>;
         };
-
-        template<typename Tag, typename Enable>
-        struct mask_bitset_type;
-
-        template<typename Tag>
-        struct mask_bitset_type<Tag, std::enable_if_t<is_tag_scalar128<Tag>>>
-        {
-            using type = int;
-        };
     }
 
     // public user types
@@ -71,9 +62,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<is_tag Tag>
     using Mask = typename detail::mask_type<Tag, void>::type;
-
-    template<is_tag Tag>
-    using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 #pragma endregion
 
 #pragma region--- any type ---
@@ -422,6 +410,45 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires (is_tag_scalar128<Tag>)
+    KSIMD_API(bool) mask_all(Tag t, Mask<Tag> mask) noexcept
+    {
+        constexpr size_t len = lanes(t);
+        for (size_t i = 0; i < len; ++i)
+        {
+            if (bitcast_to_uint(mask.m[i]) == 0)
+                return false;
+        }
+        return true;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(bool) mask_any(Tag t, Mask<Tag> mask) noexcept
+    {
+        constexpr size_t len = lanes(t);
+        for (size_t i = 0; i < len; ++i)
+        {
+            if (bitcast_to_uint(mask.m[i]) != 0)
+                return true;
+        }
+        return false;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(bool) mask_none(Tag t, Mask<Tag> mask) noexcept
+    {
+        constexpr size_t len = lanes(t);
+        for (size_t i = 0; i < len; ++i)
+        {
+            if (bitcast_to_uint(mask.m[i]) != 0)
+                return false;
+        }
+        return true;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
@@ -488,21 +515,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                 res = ksimd::max(res, v.v[i]);
         }
         return res;
-    }
-
-    template<typename Tag>
-        requires (is_tag_scalar128<Tag>)
-    KSIMD_API(MaskBitset<Tag>) reduce_mask(Tag, Mask<Tag> mask) noexcept
-    {
-        // 遍历lanes，判断是否非0
-        constexpr size_t len = lanes(Tag{});
-
-        MaskBitset<Tag> result = static_cast<MaskBitset<Tag>>(0);
-        for (size_t i = 0; i < len; ++i)
-        {
-            result |= static_cast<MaskBitset<Tag>>(static_cast<MaskBitset<Tag>>(mask.m[i] != 0) << i);
-        }
-        return result;
     }
 #pragma endregion
 

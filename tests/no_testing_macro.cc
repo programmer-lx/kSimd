@@ -50,12 +50,12 @@ TEST(table_size, basic)
 #if KSIMD_ARCH_X86_ANY
 
     // x86: AVX512_V4 + AVX2_V3 + SSE4_1_V2 + SCALAR == 4
-    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 4);
+    EXPECT_TRUE(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 4);
 
 #elif KSIMD_ARCH_ARM_64
 
     // arm64: NEON + SVE == 2
-    static_assert(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 2);
+    EXPECT_TRUE(std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(test_table_size)) == 2);
 
 #else
     #error unknown arch

@@ -151,6 +151,10 @@ namespace ksimd
     template<typename Tag>
     concept is_tag_float_16bits = is_tag<Tag> && is_scalar_type_float_16bits<tag_scalar_t<Tag>>;
 
+    // i32
+    template<typename Tag>
+    concept is_tag_int32 = is_tag<Tag> && std::is_same_v<tag_scalar_t<Tag>, int32_t>;
+
     // f32
     template<typename Tag>
     concept is_tag_float_32bits = is_tag<Tag> && is_scalar_type_float_32bits<tag_scalar_t<Tag>>;

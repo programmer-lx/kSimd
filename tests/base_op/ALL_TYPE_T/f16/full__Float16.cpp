@@ -13,6 +13,7 @@
 using TYPE_T = _Float16;
 // constexpr size_t ALIGNMENT = 64;
 
+#define KSIMD_TEST_FP 1
 #define KSIMD_TEST_FP16 1
 
 #if !KSIMD_SUPPORT_NATIVE_FP16

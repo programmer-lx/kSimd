@@ -7,4 +7,6 @@
 using TYPE_T = float;
 // constexpr size_t ALIGNMENT = 64;
 
+#define KSIMD_TEST_FP 1
+#define KSIMD_TEST_FP32 1
 #include "../all_type.inl"

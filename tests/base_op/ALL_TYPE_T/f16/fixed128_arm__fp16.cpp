@@ -13,6 +13,7 @@
 using TYPE_T = __fp16;
 // constexpr size_t ALIGNMENT = 64;
 
+#define KSIMD_TEST_FP 1
 #define KSIMD_TEST_FP16 1
 #include "../all_type.inl"
 
