@@ -77,7 +77,7 @@ namespace ksimd
         consteval F mantissa_mask()
         {
             // 1位符号，5位指数，10位尾数
-            return std::bit_cast<F>(static_cast<uint16_t>(static_cast<uint16_t>(~UINT16_C(0)) >> 6));
+            return std::bit_cast<F>(static_cast<uint16_t>((~UINT16_C(0)) >> 6));
         }
 
         template<is_scalar_type_float_32bits F>
