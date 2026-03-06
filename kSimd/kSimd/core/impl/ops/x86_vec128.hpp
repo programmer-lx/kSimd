@@ -231,9 +231,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 
 
-#pragma region--- any types ---
-
-#pragma region--- any type/float32 ---
+#pragma region--- any type ---
+#pragma region--- any type/load ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
@@ -242,12 +241,78 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
+    {
+        return _mm_load_si128(reinterpret_cast<const __m128i*>(mem));
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_load_ph(mem);
+
+        // f16c
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
+        __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
+        return _mm_cvtph_ps(f16);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
+        return detail::mm_f16_to_f32(f16);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/load
+
+#pragma region--- any type/store ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         _mm_store_ps(reinterpret_cast<float*>(mem), v);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    {
+        _mm_store_si128(reinterpret_cast<__m128i*>(mem), v);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        _mm_store_ph(mem, v);
+
+        // f16c
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
+        __m128i f16 = _mm_cvtps_ph(v, _MM_FROUND_TO_NEAREST_INT);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        __m128i f16 = detail::mm_f32_to_f16(v);
+        _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/store
+
+#pragma region--- any type/loadu ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
@@ -256,12 +321,64 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
+    {
+        return _mm_loadu_si128(reinterpret_cast<const __m128i*>(mem));
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) loadu(Tag t, const tag_scalar_t<Tag>* mem) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_loadu_ph(mem);
+        
+        #else
+        return load(t, mem);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/loadu
+
+#pragma region--- any type/storeu ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         _mm_storeu_ps(reinterpret_cast<float*>(mem), v);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    {
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(mem), v);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(void) storeu(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        _mm_storeu_ph(mem, v);
+        
+        #else
+        store(t, mem, v);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/storeu
+
+#pragma region--- any type/loadu_partial ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
@@ -296,6 +413,50 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
+    {
+        constexpr size_t L = lanes(Tag{});
+        count = count > L ? L : count;
+        alignas(16) int32_t tmp[4] = {};
+        std::memcpy(tmp, mem, sizeof(int32_t) * count);
+        return _mm_load_si128(reinterpret_cast<const __m128i*>(tmp));
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128i iota = _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
+        __m128i cnt = _mm_set1_epi16(std::bit_cast<int16_t>(static_cast<uint16_t>(count)));
+        __mmask8 mask = _mm_cmp_epu16_mask(cnt, iota, _MM_CMPINT_LT);
+        return _mm_maskz_loadu_epi16(mask, mem);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        constexpr size_t L = lanes(Tag{});
+        count = count > L ? L : count;
+
+        if (count == 0) [[unlikely]]
+            return _mm_setzero_ps();
+
+        __m128i res = _mm_setzero_si128();
+        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
+
+        __m128 f32 = detail::mm_f16_to_f32(res);
+        return f32;
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/loadu_partial
+
+#pragma region--- any type/storeu_partial ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
@@ -325,12 +486,78 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
+    {
+        constexpr size_t L = lanes(Tag{});
+        count = count > L ? L : count;
+        alignas(16) int32_t tmp[4];
+        _mm_store_si128(reinterpret_cast<__m128i*>(tmp), v);
+        std::memcpy(mem, tmp, sizeof(int32_t) * count);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128i iota = _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
+        __m128i cnt = _mm_set1_epi16(std::bit_cast<int16_t>(static_cast<uint16_t>(count)));
+        __mmask8 mask = _mm_cmp_epu16_mask(cnt, iota, _MM_CMPINT_LT);
+        _mm_mask_storeu_epi16(mem, mask, v);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        constexpr size_t L = lanes(Tag{});
+        count = count > L ? L : count;
+        if (count == 0) [[unlikely]]
+            return;
+
+        __m128i f16 = detail::mm_f32_to_f16(v);
+        std::memcpy(mem, &f16, sizeof(tag_scalar_t<Tag>) * count);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/storeu_partial
+
+#pragma region--- any type/undefined ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
     {
         return _mm_undefined_ps();
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
+    {
+        return _mm_setzero_si128();
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+    requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_undefined_ph();
+
+        #else
+        return undefined(detail::Tag128<float>{});
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/undefined
+
+#pragma region--- any type/zero ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) zero(Tag) noexcept
@@ -339,6 +566,32 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) zero(Tag) noexcept
+    {
+        return _mm_setzero_si128();
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) zero(Tag) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_setzero_ph();
+
+        #else
+        return zero(detail::Tag128<float>{});
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/zero
+
+#pragma region--- any type/set ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
     {
@@ -346,12 +599,68 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
+    {
+        return _mm_set1_epi32(x);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_set1_ph(x);
+
+        #else
+        return set(detail::Tag128<float>{}, static_cast<float>(x));
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/set
+
+#pragma region--- any type/sequence ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
     {
         return _mm_set_ps(3.f, 2.f, 1.f, 0.f);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
+    {
+        return _mm_set_epi32(3, 2, 1, 0);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_set_ph(
+            static_cast<_Float16>(7), static_cast<_Float16>(6),
+            static_cast<_Float16>(5), static_cast<_Float16>(4),
+            static_cast<_Float16>(3), static_cast<_Float16>(2),
+            static_cast<_Float16>(1), static_cast<_Float16>(0));
+
+        #else
+        return sequence(detail::Tag128<float>{});
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/sequence
+
+#pragma region--- any type/sequence ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
@@ -361,6 +670,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_add_ps(iota, base_v);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
+    {
+        return _mm_add_epi32(_mm_set_epi32(3, 2, 1, 0), _mm_set1_epi32(base));
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128h iota = _mm_set_ph(
+            static_cast<_Float16>(7), static_cast<_Float16>(6),
+            static_cast<_Float16>(5), static_cast<_Float16>(4),
+            static_cast<_Float16>(3), static_cast<_Float16>(2),
+            static_cast<_Float16>(1), static_cast<_Float16>(0));
+        __m128h base_v = _mm_set1_ph(base);
+        return _mm_add_ph(base_v, iota);
+
+        #else
+        return sequence(detail::Tag128<float>{}, static_cast<float>(base));
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/sequence
+
+#pragma region--- any type/sequence ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
@@ -380,12 +721,74 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
+    {
+        __m128i iota = _mm_set_epi32(3, 2, 1, 0);
+        __m128i base_v = _mm_set1_epi32(base);
+        __m128i stride_v = _mm_set1_epi32(stride);
+        return _mm_add_epi32(_mm_mullo_epi32(iota, stride_v), base_v);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        __m128h iota = _mm_set_ph(
+            static_cast<_Float16>(7), static_cast<_Float16>(6),
+            static_cast<_Float16>(5), static_cast<_Float16>(4),
+            static_cast<_Float16>(3), static_cast<_Float16>(2),
+            static_cast<_Float16>(1), static_cast<_Float16>(0));
+        __m128h base_v = _mm_set1_ph(base);
+        __m128h stride_v = _mm_set1_ph(stride);
+        return _mm_fmadd_ph(stride_v, iota, base_v);
+
+        #else
+        return sequence(detail::Tag128<float>{}, static_cast<float>(base), static_cast<float>(stride));
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/sequence
+
+#pragma region--- any type/add ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm_add_ps(lhs, rhs);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_add_epi32(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_add_ph(lhs, rhs);
+
+        #else
+        return add(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/add
+
+#pragma region--- any type/sub ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -394,12 +797,64 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_sub_epi32(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_sub_ph(lhs, rhs);
+
+        #else
+        return sub(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/sub
+
+#pragma region--- any type/mul ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm_mul_ps(lhs, rhs);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_mullo_epi32(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_mul_ph(lhs, rhs);
+
+        #else
+        return mul(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mul
+
+#pragma region--- any type/mul_add ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
@@ -414,6 +869,32 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) mul_add(Tag t, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
+    {
+        return add(t, mul(t, a, b), c);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_fmadd_ph(a, b, c);
+
+        #else
+        return mul_add(detail::Tag128<float>{}, a, b, c);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mul_add
+
+#pragma region--- any type/min ---
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -441,6 +922,31 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
+    template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_min_epi32(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return min<option>(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/min
+
+#pragma region--- any type/max ---
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -468,6 +974,31 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
+    template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_max_epi32(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return max<option>(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/max
+
+#pragma region--- any type/bit_not ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
@@ -477,12 +1008,46 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
+    {
+        return _mm_xor_si128(v, _mm_set1_epi32(-1));
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag>) noexcept = delete;
+
+#endif // FP16
+
+#pragma endregion // any type/bit_not
+
+#pragma region--- any type/bit_and ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm_and_ps(lhs, rhs);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_and_si128(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+#endif // FP16
+
+#pragma endregion // any type/bit_and
+
+#pragma region--- any type/bit_and_not ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -491,6 +1056,23 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_andnot_si128(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+#endif // FP16
+
+#pragma endregion // any type/bit_and_not
+
+#pragma region--- any type/bit_or ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
@@ -498,12 +1080,46 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_or_si128(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+#endif // FP16
+
+#pragma endregion // any type/bit_or
+
+#pragma region--- any type/bit_xor ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm_xor_ps(lhs, rhs);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return _mm_xor_si128(lhs, rhs);
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
+
+#endif // FP16
+
+#pragma endregion // any type/bit_xor
+
+#pragma region--- any type/equal ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -519,6 +1135,39 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_cmpeq_epi32_mask(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_cmpeq_epi32(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+        return _mm_cmp_ph_mask(lhs, rhs, _CMP_EQ_OQ);
+
+        #else
+        return equal(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/equal
+
+#pragma region--- any type/not_equal ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
@@ -532,6 +1181,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_cmpneq_epi32_mask(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_xor_si128(_mm_cmpeq_epi32(lhs, rhs), _mm_set1_epi32(-1));
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_equal(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/not_equal
+
+#pragma region--- any type/greater ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -547,6 +1228,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_cmpgt_epi32_mask(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_cmpgt_epi32(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return greater(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/greater
+
+#pragma region--- any type/greater_equal ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
@@ -560,6 +1273,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_cmpge_epi32_mask(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_or_si128(_mm_cmpgt_epi32(lhs, rhs), _mm_cmpeq_epi32(lhs, rhs));
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return greater_equal(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/greater_equal
+
+#pragma region--- any type/less ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -575,6 +1320,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_cmplt_epi32_mask(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_cmplt_epi32(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return less(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/less
+
+#pragma region--- any type/less_equal ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
@@ -588,6 +1365,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_cmple_epi32_mask(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_or_si128(_mm_cmplt_epi32(lhs, rhs), _mm_cmpeq_epi32(lhs, rhs));
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return less_equal(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/less_equal
+
+#pragma region--- any type/mask_and ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
@@ -603,6 +1412,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _kand_mask8(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_and_si128(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return mask_and(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_and
+
+#pragma region--- any type/mask_or ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
@@ -617,6 +1458,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _kor_mask8(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_or_si128(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return mask_or(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_or
+
+#pragma region--- any type/mask_xor ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
@@ -630,6 +1503,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _kxor_mask8(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_xor_si128(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return mask_xor(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_xor
+
+#pragma region--- any type/mask_not ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
@@ -646,6 +1551,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _knot_mask8(mask);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_xor_si128(mask, _mm_set1_epi32(-1));
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return mask_not(detail::Tag128<float>{}, mask);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_not
+
+#pragma region--- any type/mask_and_not ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
@@ -659,6 +1596,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
     
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _kandn_mask8(lhs, rhs);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_andnot_si128(lhs, rhs);
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return mask_and_not(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_and_not
+
+#pragma region--- any type/mask_all ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
@@ -676,6 +1645,44 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_int32<Tag> && is_tag_128<Tag>)
+    KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        constexpr int lane_mask = 0b1111;
+        return (mask & lane_mask) == lane_mask;
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        int m = _mm_movemask_epi8(mask);
+        constexpr int test = 0b1000'1000'1000'1000;
+        return (m & test) == test;
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        constexpr int lane_mask = 0b1111;
+        return (mask & lane_mask) == 0b1111;
+
+        #else
+        int m = _mm_movemask_ps(mask);
+        return m == 0b1111; // 4 lanes are true
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_all
+
+#pragma region--- any type/mask_any ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
     {
@@ -691,6 +1698,43 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_int32<Tag> && is_tag_128<Tag>)
+    KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        constexpr int lane_mask = 0b1111;
+        return (mask & lane_mask) != 0;
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        int m = _mm_movemask_epi8(mask);
+        return m != 0;
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        constexpr int lane_mask = 0b1111;
+        return (mask & lane_mask) != 0;
+
+        #else
+        int m = _mm_movemask_ps(mask);
+        return m != 0;
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_any
+
+#pragma region--- any type/mask_none ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
@@ -708,6 +1752,43 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_int32<Tag> && is_tag_128<Tag>)
+    KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        constexpr int lane_mask = 0b1111;
+        return (mask & lane_mask) == 0;
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        int m = _mm_movemask_epi8(mask);
+        return m == 0;
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        constexpr int lane_mask = 0b1111;
+        return (mask & lane_mask) == 0;
+
+        #else
+        int m = _mm_movemask_ps(mask);
+        return m == 0;
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/mask_none
+
+#pragma region--- any type/if_then_else ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
@@ -721,6 +1802,38 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
+    {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        return _mm_mask_blend_epi32(_if, _else, _then);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        return _mm_or_si128(_mm_and_si128(_if, _then), _mm_andnot_si128(_if, _else));
+        #endif
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return if_then_else(detail::Tag128<float>{}, _if, _then, _else);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/if_then_else
+
+#pragma region--- any type/reduce_add ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
@@ -741,6 +1854,33 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag t, Batch<Tag> v) noexcept
+    {
+        alignas(16) int32_t tmp[4];
+        store(t, tmp, v);
+        return tmp[0] + tmp[1] + tmp[2] + tmp[3];
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return static_cast<tag_scalar_t<Tag>>(reduce_add(detail::Tag128<float>{}, v));
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/reduce_add
+
+#pragma region--- any type/reduce_mul ---
+    template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
@@ -759,6 +1899,33 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_cvtss_f32(mul2);
     }
 
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
+    {
+        alignas(16) int32_t tmp[4];
+        store(t, tmp, v);
+        return tmp[0] * tmp[1] * tmp[2] * tmp[3];
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return static_cast<tag_scalar_t<Tag>>(reduce_mul(detail::Tag128<float>{}, v));
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/reduce_mul
+
+#pragma region--- any type/reduce_min ---
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
@@ -795,6 +1962,34 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_cvtss_f32(res);
     }
 
+    template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
+    {
+        alignas(16) int32_t tmp[4];
+        store(t, tmp, v);
+        return ksimd::min(ksimd::min(tmp[0], tmp[1]), ksimd::min(tmp[2], tmp[3]));
+    }
+
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        float res = reduce_min<option>(detail::Tag128<float>{}, v);
+        return static_cast<tag_scalar_t<Tag>>(res);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // any type/reduce_min
+
+#pragma region--- any type/reduce_max ---
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
@@ -830,425 +2025,6 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
         return _mm_cvtss_f32(res);
     }
-#pragma endregion // any type/float32
-
-#pragma region--- any type/int32 ---
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        return _mm_load_si128(reinterpret_cast<const __m128i*>(mem));
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
-    {
-        _mm_store_si128(reinterpret_cast<__m128i*>(mem), v);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        return _mm_loadu_si128(reinterpret_cast<const __m128i*>(mem));
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
-    {
-        _mm_storeu_si128(reinterpret_cast<__m128i*>(mem), v);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
-    {
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        alignas(16) int32_t tmp[4] = {};
-        std::memcpy(tmp, mem, sizeof(int32_t) * count);
-        return _mm_load_si128(reinterpret_cast<const __m128i*>(tmp));
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
-    {
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        alignas(16) int32_t tmp[4];
-        _mm_store_si128(reinterpret_cast<__m128i*>(tmp), v);
-        std::memcpy(mem, tmp, sizeof(int32_t) * count);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
-    {
-        return _mm_setzero_si128();
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) zero(Tag) noexcept
-    {
-        return _mm_setzero_si128();
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
-    {
-        return _mm_set1_epi32(x);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
-    {
-        return _mm_set_epi32(3, 2, 1, 0);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
-    {
-        return _mm_add_epi32(_mm_set_epi32(3, 2, 1, 0), _mm_set1_epi32(base));
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
-    {
-        __m128i iota = _mm_set_epi32(3, 2, 1, 0);
-        __m128i base_v = _mm_set1_epi32(base);
-        __m128i stride_v = _mm_set1_epi32(stride);
-        return _mm_add_epi32(_mm_mullo_epi32(iota, stride_v), base_v);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_add_epi32(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_sub_epi32(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_mullo_epi32(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) mul_add(Tag t, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
-    {
-        return add(t, mul(t, a, b), c);
-    }
-
-    template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_min_epi32(lhs, rhs);
-    }
-
-    template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_max_epi32(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
-    {
-        return _mm_xor_si128(v, _mm_set1_epi32(-1));
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_and_si128(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_andnot_si128(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_or_si128(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        return _mm_xor_si128(lhs, rhs);
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_cmpeq_epi32_mask(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_cmpeq_epi32(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_cmpneq_epi32_mask(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_xor_si128(_mm_cmpeq_epi32(lhs, rhs), _mm_set1_epi32(-1));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_cmpgt_epi32_mask(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_cmpgt_epi32(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_cmpge_epi32_mask(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_or_si128(_mm_cmpgt_epi32(lhs, rhs), _mm_cmpeq_epi32(lhs, rhs));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_cmplt_epi32_mask(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_cmplt_epi32(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_cmple_epi32_mask(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_or_si128(_mm_cmplt_epi32(lhs, rhs), _mm_cmpeq_epi32(lhs, rhs));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _kand_mask8(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_and_si128(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _kor_mask8(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_or_si128(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _kxor_mask8(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_xor_si128(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _knot_mask8(mask);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_xor_si128(mask, _mm_set1_epi32(-1));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _kandn_mask8(lhs, rhs);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_andnot_si128(lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_128<Tag>)
-    KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        constexpr int lane_mask = 0b1111;
-        return (mask & lane_mask) == lane_mask;
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        int m = _mm_movemask_epi8(mask);
-        constexpr int test = 0b1000'1000'1000'1000;
-        return (m & test) == test;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_128<Tag>)
-    KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        constexpr int lane_mask = 0b1111;
-        return (mask & lane_mask) != 0;
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        int m = _mm_movemask_epi8(mask);
-        return m != 0;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_128<Tag>)
-    KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        constexpr int lane_mask = 0b1111;
-        return (mask & lane_mask) == 0;
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        int m = _mm_movemask_epi8(mask);
-        return m == 0;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        return _mm_mask_blend_epi32(_if, _else, _then);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        return _mm_or_si128(_mm_and_si128(_if, _then), _mm_andnot_si128(_if, _else));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag t, Batch<Tag> v) noexcept
-    {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return tmp[0] + tmp[1] + tmp[2] + tmp[3];
-    }
-
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
-    {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return tmp[0] * tmp[1] * tmp[2] * tmp[3];
-    }
-
-    template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
-    {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return ksimd::min(ksimd::min(tmp[0], tmp[1]), ksimd::min(tmp[2], tmp[3]));
-    }
-
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
@@ -1257,544 +2033,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         store(t, tmp, v);
         return ksimd::max(ksimd::max(tmp[0], tmp[1]), ksimd::max(tmp[2], tmp[3]));
     }
-#pragma endregion // any type/int32
-
 #if KSIMD_SUPPORT_NATIVE_FP16
-#pragma region--- any type/float16 ---
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_load_ph(mem);
-
-        // f16c
-        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
-        __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
-        return _mm_cvtph_ps(f16);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
-        return detail::mm_f16_to_f32(f16);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        _mm_store_ph(mem, v);
-
-        // f16c
-        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
-        __m128i f16 = _mm_cvtps_ph(v, _MM_FROUND_TO_NEAREST_INT);
-        _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        __m128i f16 = detail::mm_f32_to_f16(v);
-        _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) loadu(Tag t, const tag_scalar_t<Tag>* mem) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_loadu_ph(mem);
-        
-        #else
-        return load(t, mem);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) storeu(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        _mm_storeu_ph(mem, v);
-        
-        #else
-        store(t, mem, v);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        __m128i iota = _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
-        __m128i cnt = _mm_set1_epi16(std::bit_cast<int16_t>(static_cast<uint16_t>(count)));
-        __mmask8 mask = _mm_cmp_epu16_mask(cnt, iota, _MM_CMPINT_LT);
-        return _mm_maskz_loadu_epi16(mask, mem);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-
-        if (count == 0) [[unlikely]]
-            return _mm_setzero_ps();
-
-        __m128i res = _mm_setzero_si128();
-        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
-
-        __m128 f32 = detail::mm_f16_to_f32(res);
-        return f32;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        __m128i iota = _mm_set_epi16(7, 6, 5, 4, 3, 2, 1, 0);
-        __m128i cnt = _mm_set1_epi16(std::bit_cast<int16_t>(static_cast<uint16_t>(count)));
-        __mmask8 mask = _mm_cmp_epu16_mask(cnt, iota, _MM_CMPINT_LT);
-        _mm_mask_storeu_epi16(mem, mask, v);
-
-        // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        if (count == 0) [[unlikely]]
-            return;
-
-        __m128i f16 = detail::mm_f32_to_f16(v);
-        std::memcpy(mem, &f16, sizeof(tag_scalar_t<Tag>) * count);
-        #endif
-    }
-
-    template<typename Tag>
-    requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_undefined_ph();
-
-        #else
-        return undefined(detail::Tag128<float>{});
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) zero(Tag) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_setzero_ph();
-
-        #else
-        return zero(detail::Tag128<float>{});
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_set1_ph(x);
-
-        #else
-        return set(detail::Tag128<float>{}, static_cast<float>(x));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_set_ph(
-            static_cast<_Float16>(7), static_cast<_Float16>(6),
-            static_cast<_Float16>(5), static_cast<_Float16>(4),
-            static_cast<_Float16>(3), static_cast<_Float16>(2),
-            static_cast<_Float16>(1), static_cast<_Float16>(0));
-
-        #else
-        return sequence(detail::Tag128<float>{});
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        __m128h iota = _mm_set_ph(
-            static_cast<_Float16>(7), static_cast<_Float16>(6),
-            static_cast<_Float16>(5), static_cast<_Float16>(4),
-            static_cast<_Float16>(3), static_cast<_Float16>(2),
-            static_cast<_Float16>(1), static_cast<_Float16>(0));
-        __m128h base_v = _mm_set1_ph(base);
-        return _mm_add_ph(base_v, iota);
-
-        #else
-        return sequence(detail::Tag128<float>{}, static_cast<float>(base));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        __m128h iota = _mm_set_ph(
-            static_cast<_Float16>(7), static_cast<_Float16>(6),
-            static_cast<_Float16>(5), static_cast<_Float16>(4),
-            static_cast<_Float16>(3), static_cast<_Float16>(2),
-            static_cast<_Float16>(1), static_cast<_Float16>(0));
-        __m128h base_v = _mm_set1_ph(base);
-        __m128h stride_v = _mm_set1_ph(stride);
-        return _mm_fmadd_ph(stride_v, iota, base_v);
-
-        #else
-        return sequence(detail::Tag128<float>{}, static_cast<float>(base), static_cast<float>(stride));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_add_ph(lhs, rhs);
-
-        #else
-        return add(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_sub_ph(lhs, rhs);
-
-        #else
-        return sub(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_mul_ph(lhs, rhs);
-
-        #else
-        return mul(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_fmadd_ph(a, b, c);
-
-        #else
-        return mul_add(detail::Tag128<float>{}, a, b, c);
-        #endif
-    }
-
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return min<option>(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return max<option>(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag>) noexcept = delete;
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag>, Batch<Tag>) noexcept = delete;
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-        return _mm_cmp_ph_mask(lhs, rhs, _CMP_EQ_OQ);
-
-        #else
-        return equal(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return not_equal(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return greater(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return greater_equal(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return less(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return less_equal(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return mask_and(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return mask_or(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return mask_xor(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return mask_not(detail::Tag128<float>{}, mask);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return mask_and_not(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        constexpr int lane_mask = 0b1111;
-        return (mask & lane_mask) == 0b1111;
-
-        #else
-        int m = _mm_movemask_ps(mask);
-        return m == 0b1111; // 4 lanes are true
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        constexpr int lane_mask = 0b1111;
-        return (mask & lane_mask) != 0;
-
-        #else
-        int m = _mm_movemask_ps(mask);
-        return m != 0;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
-    {
-        // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        constexpr int lane_mask = 0b1111;
-        return (mask & lane_mask) == 0;
-
-        #else
-        int m = _mm_movemask_ps(mask);
-        return m == 0;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return if_then_else(detail::Tag128<float>{}, _if, _then, _else);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return static_cast<tag_scalar_t<Tag>>(reduce_add(detail::Tag128<float>{}, v));
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return static_cast<tag_scalar_t<Tag>>(reduce_mul(detail::Tag128<float>{}, v));
-        #endif
-    }
-
-    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        float res = reduce_min<option>(detail::Tag128<float>{}, v);
-        return static_cast<tag_scalar_t<Tag>>(res);
-        #endif
-    }
-
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
@@ -1807,14 +2046,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return static_cast<tag_scalar_t<Tag>>(res);
         #endif
     }
-#pragma endregion // any type/float16
 #endif // FP16
+
+#pragma endregion // any type/reduce_max
 
 #pragma endregion // any type
 
 #pragma region--- signed ---
-
-#pragma region--- signed/float32 ---
+#pragma region--- signed/abs ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
@@ -1823,32 +2062,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
-    {
-        __m128 mask = _mm_set1_ps(SignBitMask<float>);
-        return _mm_xor_ps(v, mask);
-    }
-#pragma endregion // signed/float32
-
-#pragma region--- signed/int32 ---
-    template<typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
         return _mm_abs_epi32(v);
     }
 
-    template<typename Tag>
-        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
-    {
-        return _mm_sub_epi32(_mm_setzero_si128(), v);
-    }
-#pragma endregion // signed/int32
-
 #if KSIMD_SUPPORT_NATIVE_FP16
-#pragma region--- signed/float16 ---
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
@@ -1861,6 +2081,25 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#endif // FP16
+
+#pragma endregion // signed/abs
+
+#pragma region--- signed/neg ---
+    template<typename Tag>
+        requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        __m128 mask = _mm_set1_ps(SignBitMask<float>);
+        return _mm_xor_ps(v, mask);
+    }
+    template<typename Tag>
+        requires(is_tag_128<Tag> && is_tag_int32<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        return _mm_sub_epi32(_mm_setzero_si128(), v);
+    }
+#if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
@@ -1872,14 +2111,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return neg(detail::Tag128<float>{}, v);
         #endif
     }
-#pragma endregion // signed/float16
 #endif // FP16
+
+#pragma endregion // signed/neg
 
 #pragma endregion // signed
 
 #pragma region--- floating point ---
-
-#pragma region--- floating point/float32 ---
+#pragma region--- floating point/div ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1887,6 +2126,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_div_ps(lhs, rhs);
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // full fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return div(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/div
+
+#pragma region--- floating point/sqrt ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
@@ -1894,6 +2151,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_sqrt_ps(v);
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
+    {
+        // full fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return sqrt(detail::Tag128<float>{}, v);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/sqrt
+
+#pragma region--- floating point/round ---
     template<RoundingMode mode, typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
@@ -1927,6 +2202,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         }
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<RoundingMode mode, typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
+    {
+        // full fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return round<mode>(detail::Tag128<float>{}, v);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/round
+
+#pragma region--- floating point/not_greater ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1941,6 +2234,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_greater(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/not_greater
+
+#pragma region--- floating point/not_greater_equal ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1955,6 +2266,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_greater_equal(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/not_greater_equal
+
+#pragma region--- floating point/not_less ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1969,6 +2298,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_less(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/not_less
+
+#pragma region--- floating point/not_less_equal ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1983,6 +2330,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_less_equal(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/not_less_equal
+
+#pragma region--- floating point/any_NaN ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -1997,6 +2362,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return any_NaN(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/any_NaN
+
+#pragma region--- floating point/all_NaN ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -2013,6 +2396,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return all_NaN(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/all_NaN
+
+#pragma region--- floating point/not_NaN ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -2027,6 +2428,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return not_NaN(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/not_NaN
+
+#pragma region--- floating point/any_finite ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -2047,6 +2466,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #endif
     }
 
+#if KSIMD_SUPPORT_NATIVE_FP16
+    template<typename Tag>
+        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
+    KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        // avx512 fp16
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+
+        #else
+        return any_finite(detail::Tag128<float>{}, lhs, rhs);
+        #endif
+    }
+
+#endif // FP16
+
+#pragma endregion // floating point/any_finite
+
+#pragma region--- floating point/all_finite ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -2068,142 +2505,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
                           _mm_cmplt_ps(_mm_and_ps(rhs, abs_mask), inf_v));
         #endif
     }
-#pragma endregion // floating point/float32
-
 #if KSIMD_SUPPORT_NATIVE_FP16
-#pragma region--- floating point/float16 ---
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // full fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return div(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
-    {
-        // full fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return sqrt(detail::Tag128<float>{}, v);
-        #endif
-    }
-
-    template<RoundingMode mode, typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
-    {
-        // full fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return round<mode>(detail::Tag128<float>{}, v);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return not_greater(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return not_greater_equal(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return not_less(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return not_less_equal(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return any_NaN(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return all_NaN(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return not_NaN(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
-    {
-        // avx512 fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
-
-        #else
-        return any_finite(detail::Tag128<float>{}, lhs, rhs);
-        #endif
-    }
-
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
@@ -2215,8 +2517,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return all_finite(detail::Tag128<float>{}, lhs, rhs);
         #endif
     }
-#pragma endregion // floating point/float16
 #endif // FP16
+
+#pragma endregion // floating point/all_finite
 
 #pragma endregion // floating point
 
