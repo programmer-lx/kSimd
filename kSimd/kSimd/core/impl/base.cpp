@@ -149,7 +149,7 @@ namespace
         #else
 
         uint32_t eax, edx;
-        __asm__ volatile("xgetbv" : "=a"(eax), "=d"(edx) : "c"(idx));
+        __asm__ __volatile__ ("xgetbv" : "=a"(eax), "=d"(edx) : "c"(idx));
         return (static_cast<uint64_t>(edx) << 32) | eax;
 
         #endif
