@@ -627,8 +627,6 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
-        // 
-
         const size_t Lanes = ns::lanes(t);
         std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> data(Lanes);
         TYPE_T expected = 0;
@@ -638,7 +636,7 @@ namespace KSIMD_DYN_INSTRUCTION
         }
 
         TYPE_T res = ns::reduce_add(t, ns::load(t, data.data()));
-        EXPECT_NEAR((res), (expected), std::numeric_limits<TYPE_T>::epsilon() * 10);
+        EXPECT_NEAR((res), (expected), ksimd::Epsilon<TYPE_T> * 10);
 
         #if KSIMD_TEST_FP
         {
@@ -661,7 +659,7 @@ TEST_ONCE_DYN(reduce_add)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void reduce_mul() noexcept
+    void reduce_mul(size_t index) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
@@ -682,11 +680,11 @@ namespace KSIMD_DYN_INSTRUCTION
 
         #if KSIMD_TEST_FP
         {
-            EXPECT_NEAR(res, expected, std::numeric_limits<TYPE_T>::epsilon() * 100);
+            EXPECT_NEAR(res, expected, ksimd::Epsilon<TYPE_T> * 100);
         }
         #else
         {
-            EXPECT_EQ(res, expected);
+            EXPECT_EQ(res, expected) << "index = " << index;
         }
         #endif
 
@@ -701,7 +699,7 @@ namespace KSIMD_DYN_INSTRUCTION
             for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(1);
             data[0] = TYPE_T(-1);
             data[1] = TYPE_T(-1);
-            EXPECT_EQ(ns::reduce_mul(t, ns::load(t, data.data())), TYPE_T(1)) << "Double negative sign failed";
+            EXPECT_EQ(ns::reduce_mul(t, ns::load(t, data.data())), TYPE_T(1)) << "Double negative sign failed, " << "index = " << index;
         }
 
         // --- 4. 浮点数特殊值测试 ---
@@ -726,7 +724,7 @@ namespace KSIMD_DYN_INSTRUCTION
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(reduce_mul)
+TEST_ONCE_DYN_WITH_IDX(reduce_mul)
 #endif
 
 // ------------------------------------------ reduce_min ------------------------------------------

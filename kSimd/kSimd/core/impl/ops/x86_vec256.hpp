@@ -84,6 +84,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     using Mask = typename detail::mask_type<Tag, void>::type;
 #pragma endregion
 
+#pragma region--- impl ---
+#pragma endregion
+
 #pragma region--- any types ---
 #pragma region--- any types/load ---
     template<typename Tag>
@@ -1277,13 +1280,30 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_256<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
-        alignas(32) int32_t tmp[8];
-        store(t, tmp, v);
-        int32_t s = 0;
-        for (size_t i = 0; i < 8; ++i) s += tmp[i];
-        return s;
+        // [1, 2, 3, 4]
+        __m128i low = _mm256_castsi256_si128(v);
+
+        // [5, 6, 7, 8]
+        __m128i high = _mm256_extracti128_si256(v, 0b1);
+
+        // [15, 26, 37, 48]
+        __m128i sum = _mm_add_epi32(low, high);
+
+        // [37, 48, 37, 48]
+        __m128i shuffle1 = _mm_shuffle_epi32(sum, _MM_SHUFFLE(3, 2, 3, 2));
+
+        // [1357, 2468, ...]
+        sum = _mm_add_epi32(sum, shuffle1);
+
+        // [2468, ...]
+        __m128i shuffle2 = _mm_shuffle_epi32(sum, _MM_SHUFFLE(1, 1, 1, 1));
+
+        // [12345678, ...]
+        sum = _mm_add_epi32(sum, shuffle2);
+
+        return _mm_cvtsi128_si32(sum);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1331,13 +1351,29 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_256<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
-        alignas(32) int32_t tmp[8];
-        store(t, tmp, v);
-        int32_t p = 1;
-        for (size_t i = 0; i < 8; ++i) p *= tmp[i];
-        return p;
+        // [1, 2, 3, 4]
+        __m128i low = _mm256_castsi256_si128(v);
+        // [5, 6, 7, 8]
+        __m128i high = _mm256_extracti128_si256(v, 0b1);
+
+        // [15, 26, 37, 48]
+        __m128i mul1 = _mm_mullo_epi32(low, high);
+
+        // [37, 48, ...]
+        __m128i shuffle1 = _mm_shuffle_epi32(mul1, _MM_SHUFFLE(3, 2, 3, 2));
+
+        // [1357, 2468, ...]
+        __m128i mul2 = _mm_mullo_epi32(mul1, shuffle1);
+
+        // [2468, ...]
+        __m128i shuffle2 = _mm_shuffle_epi32(mul2, _MM_SHUFFLE(1, 1, 1, 1));
+
+        // [12345678, ...]
+        __m128i res = _mm_mullo_epi32(mul2, shuffle2);
+
+        return _mm_cvtsi128_si32(res);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1393,13 +1429,29 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_256<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
-        alignas(32) int32_t tmp[8];
-        store(t, tmp, v);
-        int32_t m = tmp[0];
-        for (size_t i = 1; i < 8; ++i) m = ksimd::min(m, tmp[i]);
-        return m;
+        // [1, 2, 3, 4]
+        // [5, 6, 7, 8]
+        __m128i low1 = _mm256_castsi256_si128(v);
+        __m128i high1 = _mm256_extracti128_si256(v, 0b1);
+
+        // [ min(1,5), min(2,6), min(3,7), min(4,8) ]
+        __m128i min1 = _mm_min_epi32(low1, high1);
+
+        // [ min(3,7), min(4,8), min(3,7), min(4,8) ]
+        __m128i shuffle1 = _mm_shuffle_epi32(min1, _MM_SHUFFLE(3, 2, 3, 2));
+
+        // [ min(1,3,5,7), min(2,4,6,8), ... ]
+        __m128i min2 = _mm_min_epi32(min1, shuffle1);
+
+        // [ min(2,4,6,8), min(2,4,6,8), ... ]
+        __m128i shuffle2 = _mm_shuffle_epi32(min2, _MM_SHUFFLE(1, 1, 1, 1));
+
+        // [ min(1,2,3,4,5,6,7,8), ... ]
+        __m128i res = _mm_min_epi32(min2, shuffle2);
+
+        return _mm_cvtsi128_si32(res);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1455,13 +1507,29 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_256<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
-        alignas(32) int32_t tmp[8];
-        store(t, tmp, v);
-        int32_t m = tmp[0];
-        for (size_t i = 1; i < 8; ++i) m = ksimd::max(m, tmp[i]);
-        return m;
+        // [1, 2, 3, 4]
+        // [5, 6, 7, 8]
+        __m128i low1 = _mm256_castsi256_si128(v);
+        __m128i high1 = _mm256_extracti128_si256(v, 0b1);
+
+        // [ max(1,5), max(2,6), max(3,7), max(4,8) ]
+        __m128i max1 = _mm_max_epi32(low1, high1);
+
+        // [ max(3,7), max(4,8), max(3,7), max(4,8) ]
+        __m128i shuffle1 = _mm_shuffle_epi32(max1, _MM_SHUFFLE(3, 2, 3, 2));
+
+        // [ max(1,3,5,7), max(2,4,6,8), ... ]
+        __m128i max2 = _mm_max_epi32(max1, shuffle1);
+
+        // [ max(2,4,6,8), max(2,4,6,8), ... ]
+        __m128i shuffle2 = _mm_shuffle_epi32(max2, _MM_SHUFFLE(1, 1, 1, 1));
+
+        // [ max(1,2,3,4,5,6,7,8), ... ]
+        __m128i res = _mm_max_epi32(max2, shuffle2);
+
+        return _mm_cvtsi128_si32(res);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16

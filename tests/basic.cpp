@@ -175,6 +175,14 @@ TEST(scalar, digits)
 #endif
 }
 
+TEST(scalar, epsilon)
+{
+    // FP16
+    #if KSIMD_SUPPORT_STD_FLOAT16
+    EXPECT_TRUE(bit_equal(ksimd::Epsilon<std::float16_t>, std::numeric_limits<std::float16_t>::epsilon()));
+    #endif
+}
+
 int main(int argc, char **argv)
 {
     printf("Running main() from %s\n", __FILE__);

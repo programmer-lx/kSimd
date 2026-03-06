@@ -110,6 +110,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     using Mask = typename detail::mask_type<Tag, void>::type;
 #pragma endregion
 
+#pragma region--- impl ---
+#pragma endregion
+
 #pragma region--- any types ---
 #pragma region--- any types/load ---
     template<typename Tag>
@@ -240,10 +243,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
-        __m512 iota = _mm512_set_ps(
-            15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
-        __m512 cnt = _mm512_set1_ps(static_cast<float>(count));
-        __mmask16 mask = _mm512_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
+        __mmask16 mask = static_cast<__mmask16>((UINT16_C(1) << count) - UINT16_C(1));
 
         return _mm512_maskz_loadu_ps(mask, mem);
     }
@@ -252,10 +252,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_512<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        __mmask16 m = count == 16 ? static_cast<__mmask16>(0xFFFFu)
-                                  : static_cast<__mmask16>((UINT32_C(1) << count) - UINT32_C(1));
+        __mmask16 m = static_cast<__mmask16>((UINT16_C(1) << count) - UINT16_C(1));
         return _mm512_maskz_loadu_epi32(m, mem);
     }
 
@@ -268,9 +265,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
 
         #else
-        __m256i iota = _mm256_set_epi16(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-        __m256i cnt = _mm256_set1_epi16(static_cast<short>(count));
-        __mmask16 mask = _mm256_cmp_epi16_mask(iota, cnt, _MM_CMPINT_LT);
+        __mmask16 mask = static_cast<__mmask16>((UINT16_C(1) << count) - UINT16_C(1));
 
         __m256i f16 = _mm256_maskz_loadu_epi16(mask, mem);
         return _mm512_cvtph_ps(f16);
@@ -284,10 +279,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_512<Tag>)
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
-        __m512 iota = _mm512_set_ps(
-            15.f, 14.f, 13.f, 12.f, 11.f, 10.f, 9.f, 8.f, 7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
-        __m512 cnt = _mm512_set1_ps(static_cast<float>(count));
-        __mmask16 mask = _mm512_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
+        __mmask16 mask = static_cast<__mmask16>((UINT16_C(1) << count) - UINT16_C(1));
 
         _mm512_mask_storeu_ps(mem, mask, v);
     }
@@ -296,10 +288,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_512<Tag> && is_tag_int32<Tag>)
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        __mmask16 m = count == 16 ? static_cast<__mmask16>(0xFFFFu)
-                                  : static_cast<__mmask16>((UINT32_C(1) << count) - UINT32_C(1));
+        __mmask16 m = static_cast<__mmask16>((UINT16_C(1) << count) - UINT16_C(1));
         _mm512_mask_storeu_epi32(mem, m, v);
     }
 
@@ -312,13 +301,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
 
         #else
-        #endif
-        __m256i iota = _mm256_set_epi16(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-        __m256i cnt = _mm256_set1_epi16(static_cast<short>(count));
-        __mmask16 mask = _mm256_cmp_epi16_mask(iota, cnt, _MM_CMPINT_LT);
+        __mmask16 mask = static_cast<__mmask16>((UINT16_C(1) << count) - UINT16_C(1));
 
         __m256i f16 = _mm512_cvtps_ph(v, _MM_FROUND_TO_NEAREST_INT);
         _mm256_mask_storeu_epi16(mem, mask, f16);
+        #endif
     }
 #endif // FP16
 #pragma endregion // any types/storeu_partial
@@ -1247,13 +1234,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_512<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
-        alignas(64) int32_t tmp[16];
-        store(t, tmp, v);
-        int32_t s = 0;
-        for (size_t i = 0; i < 16; ++i) s += tmp[i];
-        return s;
+        return _mm512_reduce_add_epi32(v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1281,13 +1264,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_512<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
-        alignas(64) int32_t tmp[16];
-        store(t, tmp, v);
-        int32_t p = 1;
-        for (size_t i = 0; i < 16; ++i) p *= tmp[i];
-        return p;
+        return _mm512_reduce_mul_epi32(v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1325,13 +1304,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_512<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
-        alignas(64) int32_t tmp[16];
-        store(t, tmp, v);
-        int32_t m = tmp[0];
-        for (size_t i = 1; i < 16; ++i) m = ksimd::min(m, tmp[i]);
-        return m;
+        return _mm512_reduce_min_epi32(v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1369,13 +1344,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_512<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
-        alignas(64) int32_t tmp[16];
-        store(t, tmp, v);
-        int32_t m = tmp[0];
-        for (size_t i = 1; i < 16; ++i) m = ksimd::max(m, tmp[i]);
-        return m;
+        return _mm512_reduce_max_epi32(v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16

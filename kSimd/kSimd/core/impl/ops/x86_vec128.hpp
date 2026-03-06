@@ -385,9 +385,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
-        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
-        __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
+        __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
         return _mm_maskz_loadu_ps(mask, mem);
 
         // avx
@@ -416,11 +414,30 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
+        return _mm_maskz_loadu_epi32(mask, mem);
+
+        // avx
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        __m128i iota = _mm_set_epi32(3, 2, 1, 0);
+        __m128i cnt = _mm_set1_epi32(static_cast<int32_t>(count));
+        __m128i mask = _mm_cmplt_epi32(iota, cnt);
+        return _mm_maskload_epi32(mem, mask);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
-        alignas(16) int32_t tmp[4] = {};
-        std::memcpy(tmp, mem, sizeof(int32_t) * count);
-        return _mm_load_si128(reinterpret_cast<const __m128i*>(tmp));
+
+        __m128i res = _mm_setzero_si128();
+        if (count == 0) [[unlikely]]
+            return res;
+
+        std::memcpy(&res, mem, sizeof(int32_t) * count);
+        return res;
+        #endif
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -462,9 +479,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         // avx512
         #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
-        __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
-        __m128 cnt = _mm_set1_ps(static_cast<float>(count));
-        __mmask8 mask = _mm_cmp_ps_mask(iota, cnt, _CMP_LT_OQ);
+        __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
         _mm_mask_storeu_ps(mem, mask, v);
 
         // avx
@@ -472,7 +487,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
         __m128 cnt = _mm_set1_ps(static_cast<float>(count));
         __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
-        return _mm_maskstore_ps(reinterpret_cast<float*>(mem), _mm_castps_si128(mask), v);
+        _mm_maskstore_ps(reinterpret_cast<float*>(mem), _mm_castps_si128(mask), v);
 
         // sse
         #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
@@ -489,11 +504,27 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
+        // avx512
+        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
+        _mm_mask_storeu_epi32(mem, mask, v);
+
+        // avx
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        __m128i iota = _mm_set_epi32(3, 2, 1, 0);
+        __m128i cnt = _mm_set1_epi32(static_cast<int32_t>(count));
+        __m128i mask = _mm_cmplt_epi32(iota, cnt);
+        _mm_maskstore_epi32(mem, mask, v);
+
+        // sse
+        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
-        alignas(16) int32_t tmp[4];
-        _mm_store_si128(reinterpret_cast<__m128i*>(tmp), v);
-        std::memcpy(mem, tmp, sizeof(int32_t) * count);
+        if (count == 0) [[unlikely]]
+            return;
+
+        std::memcpy(mem, &v, sizeof(int32_t) * count);
+        #endif
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1855,11 +1886,21 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return tmp[0] + tmp[1] + tmp[2] + tmp[3];
+        // [2, 1, 4, 3]
+        __m128i shuffle1 = _mm_shuffle_epi32(v, _MM_SHUFFLE(2, 3, 0, 1));
+
+        // [12, 12, 34, 34]
+        __m128i sum1 = _mm_add_epi32(v, shuffle1);
+
+        // [34, ...]
+        __m128i shuffle2 = _mm_shuffle_epi32(sum1, _MM_SHUFFLE(3, 3, 3, 3));
+
+        // [1234, ...]
+        __m128i sum2 = _mm_add_epi32(sum1, shuffle2);
+
+        return _mm_cvtsi128_si32(sum2);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1901,11 +1942,21 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return tmp[0] * tmp[1] * tmp[2] * tmp[3];
+        // [2, 1, 4, 3]
+        __m128i shuffle1 = _mm_shuffle_epi32(v, _MM_SHUFFLE(2, 3, 0, 1));
+
+        // [12, 12, 34, 34]
+        __m128i mul1 = _mm_mullo_epi32(v, shuffle1);
+
+        // [34, ...]
+        __m128i shuffle2 = _mm_shuffle_epi32(mul1, _MM_SHUFFLE(3, 3, 3, 3));
+
+        // [1234, ...]
+        __m128i mul2 = _mm_mullo_epi32(mul1, shuffle2);
+
+        return _mm_cvtsi128_si32(mul2);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1964,11 +2015,21 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return ksimd::min(ksimd::min(tmp[0], tmp[1]), ksimd::min(tmp[2], tmp[3]));
+        // [2, 1, 4, 3]
+        __m128i shuffle1 = _mm_shuffle_epi32(v, _MM_SHUFFLE(2, 3, 0, 1));
+
+        // [ min(1,2), min(1,2), min(3,4), min(3,4) ]
+        __m128i min1 = _mm_min_epi32(v, shuffle1);
+
+        // [ min(3,4), ... ]
+        __m128i shuffle2 = _mm_shuffle_epi32(min1, _MM_SHUFFLE(3, 3, 3, 3));
+
+        // [ min(1,2,3,4), ... ]
+        __m128i res = _mm_min_epi32(min1, shuffle2);
+
+        return _mm_cvtsi128_si32(res);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -2027,11 +2088,21 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
-        alignas(16) int32_t tmp[4];
-        store(t, tmp, v);
-        return ksimd::max(ksimd::max(tmp[0], tmp[1]), ksimd::max(tmp[2], tmp[3]));
+        // [2, 1, 4, 3]
+        __m128i shuffle1 = _mm_shuffle_epi32(v, _MM_SHUFFLE(2, 3, 0, 1));
+
+        // [ max(1,2), max(1,2), max(3,4), max(3,4) ]
+        __m128i max1 = _mm_max_epi32(v, shuffle1);
+
+        // [ max(3,4), ... ]
+        __m128i shuffle2 = _mm_shuffle_epi32(max1, _MM_SHUFFLE(3, 3, 3, 3));
+
+        // [ max(1,2,3,4), ... ]
+        __m128i res = _mm_max_epi32(max1, shuffle2);
+
+        return _mm_cvtsi128_si32(res);
     }
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>

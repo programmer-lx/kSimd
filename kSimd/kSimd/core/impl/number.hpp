@@ -162,6 +162,19 @@ namespace ksimd
         }
 
         template<is_scalar_type S>
+        consteval S epsilon()
+        {
+            if constexpr (is_scalar_type_float_16bits<S>)
+            {
+                return std::bit_cast<S>(uint16_t(0b0'00101'0000000000));
+            }
+            else
+            {
+                return std::numeric_limits<S>::epsilon();
+            }
+        }
+
+        template<is_scalar_type S>
         consteval int digits()
         {
             if constexpr (is_scalar_type_float_16bits<S>)
@@ -242,6 +255,9 @@ namespace ksimd
 
     template<is_scalar_type S>
     KSIMD_HEADER_GLOBAL_CONSTEXPR S Min = detail::min_val<S>();
+
+    template<is_scalar_type S>
+    KSIMD_HEADER_GLOBAL_CONSTEXPR S Epsilon = detail::epsilon<S>();
 
     template<is_scalar_floating_point F>
     KSIMD_HEADER_GLOBAL_CONSTEXPR F Inf = detail::inf<F>();
