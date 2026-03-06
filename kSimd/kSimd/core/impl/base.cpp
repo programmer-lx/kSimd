@@ -30,88 +30,91 @@
 
 namespace
 {
-    template<typename T, typename E>
-    constexpr bool bit_is_open(T value, E bit) noexcept
+    template<typename T>
+    constexpr bool bit_is_open(T value, T bit) noexcept
     {
-        static_assert(std::is_unsigned_v<T>, "T must be unsigned.");
-
-        return ( value & (T(1) << static_cast<T>(bit)) ) != 0;
+        return (value & bit) != 0;
     }
 
     #if KSIMD_ARCH_X86_ANY
-    enum class CpuFeatureIndex_EAX1_ECX0 : uint32_t
+    namespace EAX1_ECX0_ECX
     {
         // see https://en.wikipedia.org/wiki/CPUID
 
-        // ECX
-        SSE3        = 0 , // EAX 1 ECX 0, ECX  0
-        SSSE3       = 9 , // EAX 1 ECX 0, ECX  9
-        FMA3        = 12, // EAX 1 ECX 0, ECX 12
-        SSE4_1      = 19, // EAX 1 ECX 0, ECX 19
-        SSE4_2      = 20, // EAX 1 ECX 0, ECX 20
-        POPCNT      = 23, // EAX 1 ECX 0, ECX 23
-        AES_NI      = 25, // EAX 1 ECX 0, ECX 25
-        XSAVE       = 26, // EAX 1 ECX 0, ECX 26
-        OS_XSAVE    = 27, // EAX 1 ECX 0, ECX 27
-        AVX         = 28, // EAX 1 ECX 0, ECX 28
-        F16C        = 29, // EAX 1 ECX 0, ECX 29
-
-        // EDX
-        FXSR        = 24, // EAX 1 ECX 0, EDX 24
-        SSE         = 25, // EAX 1 ECX 0, EDX 25
-        SSE2        = 26, // EAX 1 ECX 0, EDX 26
-    };
-
-    enum class CpuFeatureIndex_EAX7_ECX0 : uint32_t
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE3                 = (1 <<  0); // EAX 1 ECX 0, ECX  0
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSSE3                = (1 <<  9); // EAX 1 ECX 0, ECX  9
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t FMA3                 = (1 << 12); // EAX 1 ECX 0, ECX 12
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE4_1               = (1 << 19); // EAX 1 ECX 0, ECX 19
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE4_2               = (1 << 20); // EAX 1 ECX 0, ECX 20
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t POPCNT               = (1 << 23); // EAX 1 ECX 0, ECX 23
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AES_NI               = (1 << 25); // EAX 1 ECX 0, ECX 25
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t XSAVE                = (1 << 26); // EAX 1 ECX 0, ECX 26
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t OS_XSAVE             = (1 << 27); // EAX 1 ECX 0, ECX 27
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX                  = (1 << 28); // EAX 1 ECX 0, ECX 28
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t F16C                 = (1 << 29); // EAX 1 ECX 0, ECX 29
+    }
+    
+    namespace EAX1_ECX0_EDX
     {
-        // EBX
-        AVX2                = 5 , // EAX 7 ECX 0, EBX  5
-        AVX512_F            = 16, // EAX 7 ECX 0, EBX 16
-        AVX512_DQ           = 17, // EAX 7 ECX 0, EBX 17
-        AVX512_IFMA         = 21, // EAX 7 ECX 0, EBX 21
-        AVX512_CD           = 28, // EAX 7 ECX 0, EBX 28
-        SHA                 = 29, // EAX 7 ECX 0, EBX 29
-        AVX512_BW           = 30, // EAX 7 ECX 0, EBX 30
-        AVX512_VL           = 31, // EAX 7 ECX 0, EBX 31
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t FXSR                 = (1 << 24); // EAX 1 ECX 0, EDX 24
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE                  = (1 << 25); // EAX 1 ECX 0, EDX 25
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE2                 = (1 << 26); // EAX 1 ECX 0, EDX 26
+    }
 
-        // ECX
-        AVX512_VBMI         = 1 , // EAX 7 ECX 0, ECX  1
-        AVX512_VBMI2        = 6 , // EAX 7 ECX 0, ECX  6
-        AVX512_VNNI         = 11, // EAX 7 ECX 0, ECX 11
-        AVX512_BITALG       = 12, // EAX 7 ECX 0, ECX 12
-        AVX512_VPOPCNTDQ    = 14, // EAX 7 ECX 0, ECX 14
-
-        // EDX
-        AVX512_VP2INTERSECT = 8 , // EAX 7 ECX 0, EDX  8
-        AVX512_FP16         = 23, // EAX 7 ECX 0, EDX 23
-    };
-
-    enum class CpuFeatureIndex_EAX7_ECX1 : uint32_t
+    namespace EAX7_ECX0_EBX
     {
-        // EAX
-        SHA512          = 0 , // EAX 7 ECX 1, EAX  0
-        SM3             = 1 , // EAX 7 ECX 1, EAX  1
-        SM4             = 2 , // EAX 7 ECX 1, EAX  2
-        AVX_VNNI        = 4 , // EAX 7 ECX 1, EAX  4
-        AVX512_BF16     = 5 , // EAX 7 ECX 1, EAX  5
-        AVX_IFMA        = 23, // EAX 7 ECX 1, EAX 23
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX2                 = (1 <<  5); // EAX 7 ECX 0, EBX  5
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_F             = (1 << 16); // EAX 7 ECX 0, EBX 16
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_DQ            = (1 << 17); // EAX 7 ECX 0, EBX 17
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_IFMA          = (1 << 21); // EAX 7 ECX 0, EBX 21
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_CD            = (1 << 28); // EAX 7 ECX 0, EBX 28
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SHA                  = (1 << 29); // EAX 7 ECX 0, EBX 29
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BW            = (1 << 30); // EAX 7 ECX 0, EBX 30
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VL            = (1 << 31); // EAX 7 ECX 0, EBX 31
+    }
+    
+    namespace EAX7_ECX0_ECX
+    {
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VBMI          = (1 <<  1); // EAX 7 ECX 0, ECX  1
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VBMI2         = (1 <<  6); // EAX 7 ECX 0, ECX  6
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VNNI          = (1 << 11); // EAX 7 ECX 0, ECX 11
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BITALG        = (1 << 12); // EAX 7 ECX 0, ECX 12
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VPOPCNTDQ     = (1 << 14); // EAX 7 ECX 0, ECX 14
+    }
+    
+    namespace EAX7_ECX0_EDX
+    {
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VP2INTERSECT  = (1 <<  8); // EAX 7 ECX 0, EDX  8
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_FP16          = (1 << 23); // EAX 7 ECX 0, EDX 23
+    }
 
-        // EDX
-        AVX_VNNI_INT8   = 4 , // EAX 7 ECX 1, EDX  4
-        AVX_NE_CONVERT  = 5 , // EAX 7 ECX 1, EDX  5
-        AVX_VNNI_INT16  = 10, // EAX 7 ECX 1, EDX 10
-    };
+    namespace EAX7_ECX1_EAX
+    {
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SHA512               = (1 <<  0); // EAX 7 ECX 1, EAX  0
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SM3                  = (1 <<  1); // EAX 7 ECX 1, EAX  1
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SM4                  = (1 <<  2); // EAX 7 ECX 1, EAX  2
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI             = (1 <<  4); // EAX 7 ECX 1, EAX  4
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BF16          = (1 <<  5); // EAX 7 ECX 1, EAX  5
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_IFMA             = (1 << 23); // EAX 7 ECX 1, EAX 23
+    }
+    
+    namespace EAX7_ECX1_EDX
+    {
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI_INT8        = (1 <<  4); // EAX 7 ECX 1, EDX  4
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_NE_CONVERT       = (1 <<  5); // EAX 7 ECX 1, EDX  5
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI_INT16       = (1 << 10); // EAX 7 ECX 1, EDX 10
+    }
 
-    enum class CpuXSaveStateIndex : uint64_t
+    namespace XSAVE
     {
         // see https://en.wikipedia.org/wiki/CPUID XSAVE State-components
 
-        XMM             = 1 , // XMM0-XMM15 and MXCSR
-        YMM             = 2 , // YMM0-YMM15
-        K0_K7           = 5 , // opmask registers k0-k7
-        ZMM_LOW_256     = 6 , // ZMM0-ZMM15
-        ZMM_HIGH_256    = 7 , // ZMM16-ZMM31
-    };
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t XMM                  = (1 << 1); // XMM0-XMM15 and MXCSR
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t YMM                  = (1 << 2); // YMM0-YMM15
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t K0_K7                = (1 << 5); // opmask registers k0-k7
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t ZMM_LOW_256          = (1 << 6); // ZMM0-ZMM15
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t ZMM_HIGH_256         = (1 << 7); // ZMM16-ZMM31
+    }
 
     // leaf: EAX, sub_leaf: ECX
     void cpuid(const uint32_t leaf, const uint32_t sub_leaf, uint32_t* abcd)
@@ -214,19 +217,19 @@ namespace ksimd
                 result.logical_cores = (ebx >> 16) & 0xff; // EBX[23:16]
 
                 // ------------------------- FXSR -------------------------
-                result.fxsr = bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::FXSR);
+                result.fxsr = bit_is_open(edx, EAX1_ECX0_EDX::FXSR);
 
                 // ------------------------- SSE family -------------------------
-                result.sse = result.fxsr && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE);
-                result.sse2 = result.sse && bit_is_open(edx, CpuFeatureIndex_EAX1_ECX0::SSE2);
-                result.sse3 = result.sse2 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE3);
-                result.ssse3 = result.sse3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSSE3);
-                result.sse4_1 = result.ssse3 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_1);
-                result.sse4_2 = result.sse4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::SSE4_2);
+                result.sse = result.fxsr && bit_is_open(edx, EAX1_ECX0_EDX::SSE);
+                result.sse2 = result.sse && bit_is_open(edx, EAX1_ECX0_EDX::SSE2);
+                result.sse3 = result.sse2 && bit_is_open(ecx, EAX1_ECX0_ECX::SSE3);
+                result.ssse3 = result.sse3 && bit_is_open(ecx, EAX1_ECX0_ECX::SSSE3);
+                result.sse4_1 = result.ssse3 && bit_is_open(ecx, EAX1_ECX0_ECX::SSE4_1);
+                result.sse4_2 = result.sse4_1 && bit_is_open(ecx, EAX1_ECX0_ECX::SSE4_2);
 
                 // ------------------------- XSAVE -------------------------
-                result.xsave = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::XSAVE);
-                result.os_xsave = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::OS_XSAVE);
+                result.xsave = bit_is_open(ecx, EAX1_ECX0_ECX::XSAVE);
+                result.os_xsave = bit_is_open(ecx, EAX1_ECX0_ECX::OS_XSAVE);
                 // 只有在 xsave 和 os_xsave 为 true 的时候，才能进行 xgetbv 检查，AVX指令集才可用
                 if (result.xsave && result.os_xsave)
                 {
@@ -234,16 +237,16 @@ namespace ksimd
                 }
 
                 // ------------------------- AVX family -------------------------
-                const bool os_support_avx = bit_is_open(xcr0, CpuXSaveStateIndex::XMM) &&
-                                            bit_is_open(xcr0, CpuXSaveStateIndex::YMM);
+                const bool os_support_avx = bit_is_open(xcr0, XSAVE::XMM) &&
+                                            bit_is_open(xcr0, XSAVE::YMM);
 
-                result.avx = result.sse4_1 && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AVX) && os_support_avx;
-                result.f16c = result.avx && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::F16C);
-                result.fma3 = result.avx && bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::FMA3);
+                result.avx = result.sse4_1 && bit_is_open(ecx, EAX1_ECX0_ECX::AVX) && os_support_avx;
+                result.f16c = result.avx && bit_is_open(ecx, EAX1_ECX0_ECX::F16C);
+                result.fma3 = result.avx && bit_is_open(ecx, EAX1_ECX0_ECX::FMA3);
 
                 // other
-                result.aes_ni = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::AES_NI);
-                result.popcnt = bit_is_open(ecx, CpuFeatureIndex_EAX1_ECX0::POPCNT);
+                result.aes_ni = bit_is_open(ecx, EAX1_ECX0_ECX::AES_NI);
+                result.popcnt = bit_is_open(ecx, EAX1_ECX0_ECX::POPCNT);
             }
 
             // ------------------ EAX 4 ------------------
@@ -269,40 +272,40 @@ namespace ksimd
                     const uint32_t ecx = abcd[2];
                     const uint32_t edx = abcd[3];
 
-                    result.avx2 = result.avx && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX2);
+                    result.avx2 = result.avx && bit_is_open(ebx, EAX7_ECX0_EBX::AVX2);
 
 
                     // ------------------------- AVX-512 family -------------------------
-                    const bool os_support_avx_512 = bit_is_open(xcr0, CpuXSaveStateIndex::XMM) &&
-                                                    bit_is_open(xcr0, CpuXSaveStateIndex::YMM) &&
-                                                    bit_is_open(xcr0, CpuXSaveStateIndex::K0_K7) &&
-                                                    bit_is_open(xcr0, CpuXSaveStateIndex::ZMM_LOW_256) &&
-                                                    bit_is_open(xcr0, CpuXSaveStateIndex::ZMM_HIGH_256);
+                    const bool os_support_avx_512 = bit_is_open(xcr0, XSAVE::XMM) &&
+                                                    bit_is_open(xcr0, XSAVE::YMM) &&
+                                                    bit_is_open(xcr0, XSAVE::K0_K7) &&
+                                                    bit_is_open(xcr0, XSAVE::ZMM_LOW_256) &&
+                                                    bit_is_open(xcr0, XSAVE::ZMM_HIGH_256);
 
                     // ebx
                     result.avx512_f = result.avx2 &&
                                       result.fma3 &&
                                       result.f16c &&
-                                      bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_F) &&
+                                      bit_is_open(ebx, EAX7_ECX0_EBX::AVX512_F) &&
                                       os_support_avx_512;
-                    result.avx512_bw = result.avx512_f && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_BW);
-                    result.avx512_cd = result.avx512_f && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_CD);
-                    result.avx512_dq = result.avx512_f && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_DQ);
-                    result.avx512_ifma = result.avx512_f && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_IFMA);
-                    result.avx512_vl = result.avx512_f && bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::AVX512_VL);
+                    result.avx512_bw = result.avx512_f && bit_is_open(ebx, EAX7_ECX0_EBX::AVX512_BW);
+                    result.avx512_cd = result.avx512_f && bit_is_open(ebx, EAX7_ECX0_EBX::AVX512_CD);
+                    result.avx512_dq = result.avx512_f && bit_is_open(ebx, EAX7_ECX0_EBX::AVX512_DQ);
+                    result.avx512_ifma = result.avx512_f && bit_is_open(ebx, EAX7_ECX0_EBX::AVX512_IFMA);
+                    result.avx512_vl = result.avx512_f && bit_is_open(ebx, EAX7_ECX0_EBX::AVX512_VL);
 
-                    result.sha = bit_is_open(ebx, CpuFeatureIndex_EAX7_ECX0::SHA);
+                    result.sha = bit_is_open(ebx, EAX7_ECX0_EBX::SHA);
 
                     // ecx
-                    result.avx512_vpopcntdq = result.avx512_f && bit_is_open(ecx, CpuFeatureIndex_EAX7_ECX0::AVX512_VPOPCNTDQ);
-                    result.avx512_bitalg = result.avx512_f && bit_is_open(ecx, CpuFeatureIndex_EAX7_ECX0::AVX512_BITALG);
-                    result.avx512_vbmi = result.avx512_f && bit_is_open(ecx, CpuFeatureIndex_EAX7_ECX0::AVX512_VBMI);
-                    result.avx512_vbmi2 = result.avx512_f && bit_is_open(ecx, CpuFeatureIndex_EAX7_ECX0::AVX512_VBMI2);
-                    result.avx512_vnni = result.avx512_f && bit_is_open(ecx, CpuFeatureIndex_EAX7_ECX0::AVX512_VNNI);
+                    result.avx512_vpopcntdq = result.avx512_f && bit_is_open(ecx, EAX7_ECX0_ECX::AVX512_VPOPCNTDQ);
+                    result.avx512_bitalg = result.avx512_f && bit_is_open(ecx, EAX7_ECX0_ECX::AVX512_BITALG);
+                    result.avx512_vbmi = result.avx512_f && bit_is_open(ecx, EAX7_ECX0_ECX::AVX512_VBMI);
+                    result.avx512_vbmi2 = result.avx512_f && bit_is_open(ecx, EAX7_ECX0_ECX::AVX512_VBMI2);
+                    result.avx512_vnni = result.avx512_f && bit_is_open(ecx, EAX7_ECX0_ECX::AVX512_VNNI);
 
                     // edx
-                    result.avx512_vp2intersect = result.avx512_f && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX0::AVX512_VP2INTERSECT);
-                    result.avx512_fp16 = result.avx512_f && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX0::AVX512_FP16);
+                    result.avx512_vp2intersect = result.avx512_f && bit_is_open(edx, EAX7_ECX0_EDX::AVX512_VP2INTERSECT);
+                    result.avx512_fp16 = result.avx512_f && bit_is_open(edx, EAX7_ECX0_EDX::AVX512_FP16);
                 }
 
                 // EAX 7 ECX 1
@@ -313,19 +316,19 @@ namespace ksimd
                     const uint32_t edx = abcd[3];
 
                     // eax
-                    result.avx_vnni = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::AVX_VNNI);
-                    result.avx_ifma = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::AVX_IFMA);
+                    result.avx_vnni = result.avx2 && bit_is_open(eax, EAX7_ECX1_EAX::AVX_VNNI);
+                    result.avx_ifma = result.avx2 && bit_is_open(eax, EAX7_ECX1_EAX::AVX_IFMA);
 
-                    result.avx512_bf16 = result.avx512_f && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::AVX512_BF16);
+                    result.avx512_bf16 = result.avx512_f && bit_is_open(eax, EAX7_ECX1_EAX::AVX512_BF16);
 
-                    result.sha512 = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::SHA512);
-                    result.sm3 = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::SM3);
-                    result.sm4 = result.avx2 && bit_is_open(eax, CpuFeatureIndex_EAX7_ECX1::SM4);
+                    result.sha512 = result.avx2 && bit_is_open(eax, EAX7_ECX1_EAX::SHA512);
+                    result.sm3 = result.avx2 && bit_is_open(eax, EAX7_ECX1_EAX::SM3);
+                    result.sm4 = result.avx2 && bit_is_open(eax, EAX7_ECX1_EAX::SM4);
 
                     // edx
-                    result.avx_vnni_int8 = result.avx2 && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX1::AVX_VNNI_INT8);
-                    result.avx_ne_convert = result.avx2 && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX1::AVX_NE_CONVERT);
-                    result.avx_vnni_int16 = result.avx2 && bit_is_open(edx, CpuFeatureIndex_EAX7_ECX1::AVX_VNNI_INT16);
+                    result.avx_vnni_int8 = result.avx2 && bit_is_open(edx, EAX7_ECX1_EDX::AVX_VNNI_INT8);
+                    result.avx_ne_convert = result.avx2 && bit_is_open(edx, EAX7_ECX1_EDX::AVX_NE_CONVERT);
+                    result.avx_vnni_int16 = result.avx2 && bit_is_open(edx, EAX7_ECX1_EDX::AVX_VNNI_INT16);
                 }
             }
 
