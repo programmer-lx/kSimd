@@ -224,15 +224,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
         {
-            auto element_min = [&](size_t i)
-            {
-                if constexpr (option == FloatMinMaxOption::CheckNaN && is_scalar_floating_point<tag_scalar_t<Tag>>)
-                    return (ksimd::is_NaN(lhs.v[i]) || ksimd::is_NaN(rhs.v[i])) ? QNaN<tag_scalar_t<Tag>>
-                                                                                : ksimd::min(lhs.v[i], rhs.v[i]);
-                else
-                    return ksimd::min(lhs.v[i], rhs.v[i]);
-            };
-            return { element_min(I)... };
+            return { ksimd::min<option>(lhs.v[I], rhs.v[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 
@@ -241,15 +233,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
         {
-            auto element_max = [&](size_t i)
-            {
-                if constexpr (option == FloatMinMaxOption::CheckNaN && is_scalar_floating_point<tag_scalar_t<Tag>>)
-                    return (ksimd::is_NaN(lhs.v[i]) || ksimd::is_NaN(rhs.v[i])) ? QNaN<tag_scalar_t<Tag>>
-                                                                                : ksimd::max(lhs.v[i], rhs.v[i]);
-                else
-                    return ksimd::max(lhs.v[i], rhs.v[i]);
-            };
-            return { element_max(I)... };
+            return { ksimd::max<option>(lhs.v[I], rhs.v[I])... };
         }(std::make_index_sequence<lanes(Tag{})>{});
     }
 

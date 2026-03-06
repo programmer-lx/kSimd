@@ -184,6 +184,12 @@ namespace ksimd
         Round       // 四舍五入
     };
 
+    enum class FloatMinMaxOption
+    {
+        Native,     // 按照原生硬件指令的行为
+        CheckNaN    // 检查NaN的传播 (如果传入的值有一个NaN，则会返回NaN)
+    };
+
     template<is_scalar_type S>
     using same_bits_uint_t = typename detail::uint_from_bytes<sizeof(S)>::type;
 
@@ -255,18 +261,6 @@ namespace ksimd
         return std::bit_cast<same_bits_uint_t<S>>(n);
     }
 
-    template<is_scalar_type S>
-    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S min(S a, S b) noexcept
-    {
-        return a < b ? a : b;
-    }
-
-    template<is_scalar_type S>
-    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S max(S a, S b) noexcept
-    {
-        return a > b ? a : b;
-    }
-
     template<is_scalar_signed_integer S>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S abs(S x) noexcept
     {
@@ -286,6 +280,8 @@ namespace ksimd
     template<RoundingMode mode, is_scalar_floating_point F>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN F round(const F val) noexcept
     {
+        // 如果标准库不支持FP16，那么就先提升到FP32
+        #if !KSIMD_SUPPORT_STD_FLOAT16
         if constexpr (is_scalar_type_float_16bits<F>)
         {
             if constexpr (mode == RoundingMode::Up)
@@ -300,6 +296,7 @@ namespace ksimd
                 return (F)std::round((float)val);
         }
         else
+        #endif
         {
             if constexpr (mode == RoundingMode::Up)
                 return std::ceil(val);
@@ -347,6 +344,28 @@ namespace ksimd
         return (f == Inf<F>) || (f == -Inf<F>);
     }
 
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type S>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S min(S a, S b) noexcept
+    {
+        const S result = a < b ? a : b;
+
+        if constexpr (option == FloatMinMaxOption::CheckNaN && is_scalar_floating_point<S>)
+            return (ksimd::is_NaN(a) || ksimd::is_NaN(b)) ? QNaN<S> : result;
+        else
+            return result;
+    }
+
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_scalar_type S>
+    KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr S max(S a, S b) noexcept
+    {
+        const S result = a > b ? a : b;
+
+        if constexpr (option == FloatMinMaxOption::CheckNaN && is_scalar_floating_point<S>)
+            return (ksimd::is_NaN(a) || ksimd::is_NaN(b)) ? QNaN<S> : result;
+        else
+            return result;
+    }
+
     // 符号位是否为1
     template<is_scalar_type S>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN constexpr bool sign_bit(const S x) noexcept
@@ -359,11 +378,14 @@ namespace ksimd
     template<is_scalar_floating_point F>
     KSIMD_FORCE_INLINE KSIMD_FLATTEN F sqrt(const F f) noexcept
     {
+        // 如果标准库不支持FP16，那么就先提升到FP32
+        #if !KSIMD_SUPPORT_STD_FLOAT16
         if constexpr (is_scalar_type_float_16bits<F>)
         {
             return static_cast<F>(std::sqrt(static_cast<float>(f)));
         }
         else
+        #endif
         {
             return std::sqrt(f);
         }

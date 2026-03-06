@@ -104,12 +104,6 @@ using MaskBitset = typename detail::mask_bitset_type<Tag, void>::type;
 
 namespace ksimd
 {
-    enum class FloatMinMaxOption
-    {
-        Native,     // 按照原生硬件指令的行为
-        CheckNaN    // 检查NaN的传播 (如果传入的值有一个NaN，则会返回NaN)
-    };
-
     template<is_scalar_type S, size_t _bytes>
     struct Tag_base
     {
