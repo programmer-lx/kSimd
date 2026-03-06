@@ -178,7 +178,7 @@
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
 // 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
 
-// MSVC:  V2 = AVX
+// MSVC : V2 = AVX
 // other: V2 = SSE4.1
 #if defined(__SSE4_1__) || defined(__AVX__)
     #define KSIMD_BASELINE_X86_V2 1
@@ -186,20 +186,21 @@
     #define KSIMD_BASELINE_X86_V2 0
 #endif
 
-// MSVC: skip
+// MSVC : V3 = always false (no __F16C__ macro)
 // other: V3 = V2 + AVX2 + FMA3 + F16C
 // https://learn.microsoft.com/en-us/cpp/build/reference/arch-x64?view=msvc-170
 // MSVC: /arch:AVX2 代表开启FMA3指令集
 #if KSIMD_BASELINE_X86_V2 && \
-defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
+    defined(__AVX2__) && defined(__FMA__) && defined(__F16C__)
     #define KSIMD_BASELINE_X86_V3 1
 #else
     #define KSIMD_BASELINE_X86_V3 0
 #endif
 
-// MSVC & other: V4 = V3 + AVX512-F + AVX512-DQ + AVX512-BW + AVX512-VL
-#if KSIMD_BASELINE_X86_V3 && \
-defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && defined(__AVX512VL__)
+// MSVC : V4 = V2 + AVX512-F + AVX512-DQ + AVX512-BW + AVX512-VL
+// other: V4 = V3 + AVX512-F + AVX512-DQ + AVX512-BW + AVX512-VL
+#if ( KSIMD_BASELINE_X86_V3 || (KSIMD_BASELINE_X86_V2 && KSIMD_COMPILER_MSVC) ) && \
+    defined(__AVX512F__) && defined(__AVX512DQ__) && defined(__AVX512BW__) && defined(__AVX512VL__)
     #define KSIMD_BASELINE_X86_V4 1
 #else
     #define KSIMD_BASELINE_X86_V4 0
