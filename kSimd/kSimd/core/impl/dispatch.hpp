@@ -39,7 +39,10 @@
 #define KSIMD_DYN_DISPATCH_LEVEL_NEON_END           54
 
 // arm SVE
-#define KSIMD_DYN_DISPATCH_LEVEL_SVE                61
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE_START          61
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE                62
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16      63
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE_END            64
 
 
 // --------------------------------- FUNC_ATTR ---------------------------------
@@ -107,6 +110,9 @@
 // neon
 #define KSIMD_DYN_INSTRUCTION_NEON      KSIMD_NEON
 
+// sve
+#define KSIMD_DYN_INSTRUCTION_SVE       KSIMD_SVE
+
 // avx512 v4 fallback
 #if KSIMD_INSTRUCTION_FEATURE_X86_V4 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #undef KSIMD_DYN_INSTRUCTION_FALLBACK
@@ -123,6 +129,12 @@
 #if KSIMD_INSTRUCTION_FEATURE_X86_V2 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
     #undef KSIMD_DYN_INSTRUCTION_FALLBACK
     #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_X86_V2
+#endif
+
+// sve fallback
+#if KSIMD_INSTRUCTION_FEATURE_SVE == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_SVE
 #endif
 
 // neon fallback
@@ -181,6 +193,14 @@
     #define KSIMD_DETAIL_X86_V4_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
 #endif
 
+// SVE
+#if KSIMD_INSTRUCTION_FEATURE_SVE
+    #define KSIMD_DETAIL_SVE_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SVE, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_SVE_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
 // NEON
 #if KSIMD_INSTRUCTION_FEATURE_NEON
     #define KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, ...) \
@@ -199,6 +219,9 @@
     \
     /* ------------------------------------- sse family ------------------------------------- */ \
     KSIMD_DETAIL_X86_V2_FUNC_IMPL(func_name, __VA_ARGS__) /* V2 */ \
+    \
+    /* ------------------------------------- arm sve ------------------------------------- */ \
+    KSIMD_DETAIL_SVE_FUNC_IMPL(func_name, __VA_ARGS__) /* SVE */ \
     \
     /* ------------------------------------- arm neon ------------------------------------- */ \
     KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, __VA_ARGS__) /* NEON */ \
@@ -221,13 +244,10 @@ namespace ksimd
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V3 = vec_size::Vec256;
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V2 = vec_size::Vec128;
 
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SVE = vec_size::Scalable;
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_NEON = vec_size::Vec128;
 
             KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SCALAR = vec_size::Scalar128;
-
-            // 不定长向量类型
-            // TODO
-            // KSIMD_HEADER_GLOBAL_CONSTEXPR KSIMD_DYN_INSTRUCTION_SVE = vec_size::Scalable;
         }
 
         // 这个枚举的值就是函数指针表的索引
@@ -246,6 +266,10 @@ namespace ksimd
 
         #if KSIMD_INSTRUCTION_FEATURE_X86_V2
             KSIMD_DYN_INSTRUCTION_X86_V2,
+        #endif
+
+        #if KSIMD_INSTRUCTION_FEATURE_SVE
+            KSIMD_DYN_INSTRUCTION_SVE,
         #endif
 
         #if KSIMD_INSTRUCTION_FEATURE_NEON
@@ -286,6 +310,13 @@ namespace ksimd
                 if (supports.sse4_1)
                 {
                     return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V2);
+                }
+                #endif
+
+                #if KSIMD_INSTRUCTION_FEATURE_SVE
+                if (supports.sve)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SVE);
                 }
                 #endif
 

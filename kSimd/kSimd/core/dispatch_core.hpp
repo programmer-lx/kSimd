@@ -40,6 +40,12 @@ Please include your dispatch header "<kSimd/core/dispatch_this_file.hpp>" before
     #include "impl/ops/arm_neon.hpp"
 #endif
 
+// arm SVE
+#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SVE_START && \
+    KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_SVE_END
+    #include "impl/ops/arm_sve.hpp"
+#endif
+
 
 // Scalar
 #if KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SCALAR

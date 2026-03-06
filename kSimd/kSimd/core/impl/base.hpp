@@ -174,6 +174,7 @@
 // - KSIMD_DISABLE_X86_V3       : 取消 AVX, AVX2, FMA3, F16C 的分发
 // - KSIMD_DISABLE_X86_V2       : 取消 SSE, SSE2, SSE3, SSSE3, SSE4.1 的分发
 // - KSIMD_DISABLE_NEON         : 取消 NEON 的分发
+// - KSIMD_DISABLE_SVE          : 取消 SVE 的分发
 
 // KSIMD_DISABLE_XXX 系列宏，用户定制分发上限
 // 而下面由编译器定义的宏，比如__AVX2__，用来定义分发表的下限
@@ -210,6 +211,12 @@
     #define KSIMD_BASELINE_NEON 1
 #else
     #define KSIMD_BASELINE_NEON 0
+#endif
+
+#if KSIMD_ARCH_ARM_64 && defined(__ARM_FEATURE_SVE)
+    #define KSIMD_BASELINE_SVE 1
+#else
+    #define KSIMD_BASELINE_SVE 0
 #endif
 
 // macro for debug baseline instruction
@@ -280,8 +287,24 @@
 #endif // x86 instructions
 
 // --------- arm指令集 ---------
+#define KSIMD_INSTRUCTION_FEATURE_SVE 0
 #define KSIMD_INSTRUCTION_FEATURE_NEON 0
 #if KSIMD_ARCH_ARM_ANY
+    // SVE
+    #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_SVE) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
+        #undef KSIMD_INSTRUCTION_FEATURE_SVE
+        #define KSIMD_INSTRUCTION_FEATURE_SVE 1
+
+        // sve fallback
+        #if KSIMD_BASELINE_SVE && !defined(KSIMD_IS_TESTING)
+            #undef KSIMD_INSTRUCTION_FEATURE_SVE
+            #define KSIMD_INSTRUCTION_FEATURE_SVE KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+            #define KSIMD_DETAIL_INST_FEATURE_FALLBACK 1 // mark as fallback instruction
+
+            KSIMD_PRAGMA_MESSAGE_BASELINE("instruction baseline: SVE")
+        #endif
+    #endif
+
     // NEON
     #if defined(KSIMD_IS_TESTING) || (!defined(KSIMD_DISABLE_NEON) && !KSIMD_DETAIL_INST_FEATURE_FALLBACK)
         #undef KSIMD_INSTRUCTION_FEATURE_NEON
