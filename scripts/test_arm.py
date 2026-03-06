@@ -20,7 +20,7 @@ def main():
     parser = argparse.ArgumentParser(description="arm NEON & SVE-128 Testing (Ubuntu) with QEMU")
     parser.add_argument("--test_mode", choices=["min", "max"], default="min")
     parser.add_argument("--sve_bits", type=int, choices=[128, 256, 512], default=128)
-    parser.add_argument("--compiler", choices=["gcc", "clang"], default="clang")
+    parser.add_argument("--compiler", choices=["gcc", "clang"], default="gcc")
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent.resolve()

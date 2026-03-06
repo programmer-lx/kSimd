@@ -119,7 +119,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        svst1_f32(svptrue_b32(), reinterpret_cast<float*>(mem), v);
+        svst1_f32(svptrue_b32(), reinterpret_cast<float32_t*>(mem), v);
     }
 
     template<typename Tag>
@@ -172,7 +172,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        svst1_f32(svptrue_b32(), reinterpret_cast<float*>(mem), v);
+        svst1_f32(svptrue_b32(), reinterpret_cast<float32_t*>(mem), v);
     }
 
     template<typename Tag>
@@ -199,7 +199,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         count = count > lanes(t) ? lanes(t) : count;
         svbool_t pg = svwhilelt_b32(static_cast<uint64_t>(0), static_cast<uint64_t>(count));
-        return svld1_f32(pg, mem);
+        return svld1_f32(pg, reinterpret_cast<float32_t const*>(mem));
     }
 
     template<typename Tag>
@@ -207,7 +207,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
         svbool_t pg = svwhilelt_b32(static_cast<uint64_t>(0), static_cast<uint64_t>(count));
-        return svld1_s32(pg, mem);
+        return svld1_s32(pg, reinterpret_cast<int32_t const*>(mem));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -231,7 +231,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         count = count > lanes(t) ? lanes(t) : count;
         svbool_t pg = svwhilelt_b32(static_cast<uint64_t>(0), static_cast<uint64_t>(count));
-        svst1_f32(pg, mem, v);
+        svst1_f32(pg, reinterpret_cast<float32_t*>(mem), v);
     }
 
     template<typename Tag>
