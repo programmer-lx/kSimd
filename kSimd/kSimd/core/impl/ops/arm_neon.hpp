@@ -38,7 +38,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct batch_type;
 
         // fake fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16
+        #if (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) && (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
         template<typename Tag>
         struct batch_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_16bits<Tag>>>
         {
@@ -72,7 +72,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct mask_type;
 
         // fake fp16
-        #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16
+        #if (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) && (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
         template<typename Tag>
         struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_16bits<Tag>>>
         {
@@ -110,7 +110,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct mask_bitset_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_scalar_16<Tag>>>
         {
             // fake fp16
-            #if KSIMD_DYN_DISPATCH_LEVEL < KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16
+            #if (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) && (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
             // 其他 16bit 类型使用 u16 ，只有FP16特殊处理
             using type = std::conditional_t<is_tag_float_16bits<Tag>, uint32_t, uint16_t>;
             #else
