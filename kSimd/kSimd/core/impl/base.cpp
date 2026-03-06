@@ -27,6 +27,7 @@
 
 #include <cstddef>
 #include <cstring> // std::memcpy
+#include <cstdint>
 
 namespace
 {
@@ -41,79 +42,79 @@ namespace
     {
         // see https://en.wikipedia.org/wiki/CPUID
 
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE3                 = (1 <<  0); // EAX 1 ECX 0, ECX  0
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSSE3                = (1 <<  9); // EAX 1 ECX 0, ECX  9
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t FMA3                 = (1 << 12); // EAX 1 ECX 0, ECX 12
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE4_1               = (1 << 19); // EAX 1 ECX 0, ECX 19
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE4_2               = (1 << 20); // EAX 1 ECX 0, ECX 20
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t POPCNT               = (1 << 23); // EAX 1 ECX 0, ECX 23
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AES_NI               = (1 << 25); // EAX 1 ECX 0, ECX 25
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t XSAVE                = (1 << 26); // EAX 1 ECX 0, ECX 26
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t OS_XSAVE             = (1 << 27); // EAX 1 ECX 0, ECX 27
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX                  = (1 << 28); // EAX 1 ECX 0, ECX 28
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t F16C                 = (1 << 29); // EAX 1 ECX 0, ECX 29
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE3                 = (UINT32_C(1) <<  0); // EAX 1 ECX 0, ECX  0
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSSE3                = (UINT32_C(1) <<  9); // EAX 1 ECX 0, ECX  9
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t FMA3                 = (UINT32_C(1) << 12); // EAX 1 ECX 0, ECX 12
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE4_1               = (UINT32_C(1) << 19); // EAX 1 ECX 0, ECX 19
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE4_2               = (UINT32_C(1) << 20); // EAX 1 ECX 0, ECX 20
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t POPCNT               = (UINT32_C(1) << 23); // EAX 1 ECX 0, ECX 23
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AES_NI               = (UINT32_C(1) << 25); // EAX 1 ECX 0, ECX 25
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t XSAVE                = (UINT32_C(1) << 26); // EAX 1 ECX 0, ECX 26
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t OS_XSAVE             = (UINT32_C(1) << 27); // EAX 1 ECX 0, ECX 27
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX                  = (UINT32_C(1) << 28); // EAX 1 ECX 0, ECX 28
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t F16C                 = (UINT32_C(1) << 29); // EAX 1 ECX 0, ECX 29
     }
     
     namespace EAX1_ECX0_EDX
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t FXSR                 = (1 << 24); // EAX 1 ECX 0, EDX 24
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE                  = (1 << 25); // EAX 1 ECX 0, EDX 25
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE2                 = (1 << 26); // EAX 1 ECX 0, EDX 26
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t FXSR                 = (UINT32_C(1) << 24); // EAX 1 ECX 0, EDX 24
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE                  = (UINT32_C(1) << 25); // EAX 1 ECX 0, EDX 25
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SSE2                 = (UINT32_C(1) << 26); // EAX 1 ECX 0, EDX 26
     }
 
     namespace EAX7_ECX0_EBX
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX2                 = (1 <<  5); // EAX 7 ECX 0, EBX  5
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_F             = (1 << 16); // EAX 7 ECX 0, EBX 16
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_DQ            = (1 << 17); // EAX 7 ECX 0, EBX 17
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_IFMA          = (1 << 21); // EAX 7 ECX 0, EBX 21
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_CD            = (1 << 28); // EAX 7 ECX 0, EBX 28
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SHA                  = (1 << 29); // EAX 7 ECX 0, EBX 29
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BW            = (1 << 30); // EAX 7 ECX 0, EBX 30
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VL            = (1 << 31); // EAX 7 ECX 0, EBX 31
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX2                 = (UINT32_C(1) <<  5); // EAX 7 ECX 0, EBX  5
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_F             = (UINT32_C(1) << 16); // EAX 7 ECX 0, EBX 16
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_DQ            = (UINT32_C(1) << 17); // EAX 7 ECX 0, EBX 17
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_IFMA          = (UINT32_C(1) << 21); // EAX 7 ECX 0, EBX 21
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_CD            = (UINT32_C(1) << 28); // EAX 7 ECX 0, EBX 28
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SHA                  = (UINT32_C(1) << 29); // EAX 7 ECX 0, EBX 29
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BW            = (UINT32_C(1) << 30); // EAX 7 ECX 0, EBX 30
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VL            = (UINT32_C(1) << 31); // EAX 7 ECX 0, EBX 31
     }
     
     namespace EAX7_ECX0_ECX
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VBMI          = (1 <<  1); // EAX 7 ECX 0, ECX  1
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VBMI2         = (1 <<  6); // EAX 7 ECX 0, ECX  6
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VNNI          = (1 << 11); // EAX 7 ECX 0, ECX 11
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BITALG        = (1 << 12); // EAX 7 ECX 0, ECX 12
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VPOPCNTDQ     = (1 << 14); // EAX 7 ECX 0, ECX 14
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VBMI          = (UINT32_C(1) <<  1); // EAX 7 ECX 0, ECX  1
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VBMI2         = (UINT32_C(1) <<  6); // EAX 7 ECX 0, ECX  6
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VNNI          = (UINT32_C(1) << 11); // EAX 7 ECX 0, ECX 11
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BITALG        = (UINT32_C(1) << 12); // EAX 7 ECX 0, ECX 12
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VPOPCNTDQ     = (UINT32_C(1) << 14); // EAX 7 ECX 0, ECX 14
     }
     
     namespace EAX7_ECX0_EDX
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VP2INTERSECT  = (1 <<  8); // EAX 7 ECX 0, EDX  8
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_FP16          = (1 << 23); // EAX 7 ECX 0, EDX 23
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_VP2INTERSECT  = (UINT32_C(1) <<  8); // EAX 7 ECX 0, EDX  8
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_FP16          = (UINT32_C(1) << 23); // EAX 7 ECX 0, EDX 23
     }
 
     namespace EAX7_ECX1_EAX
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SHA512               = (1 <<  0); // EAX 7 ECX 1, EAX  0
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SM3                  = (1 <<  1); // EAX 7 ECX 1, EAX  1
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SM4                  = (1 <<  2); // EAX 7 ECX 1, EAX  2
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI             = (1 <<  4); // EAX 7 ECX 1, EAX  4
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BF16          = (1 <<  5); // EAX 7 ECX 1, EAX  5
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_IFMA             = (1 << 23); // EAX 7 ECX 1, EAX 23
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SHA512               = (UINT32_C(1) <<  0); // EAX 7 ECX 1, EAX  0
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SM3                  = (UINT32_C(1) <<  1); // EAX 7 ECX 1, EAX  1
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t SM4                  = (UINT32_C(1) <<  2); // EAX 7 ECX 1, EAX  2
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI             = (UINT32_C(1) <<  4); // EAX 7 ECX 1, EAX  4
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX512_BF16          = (UINT32_C(1) <<  5); // EAX 7 ECX 1, EAX  5
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_IFMA             = (UINT32_C(1) << 23); // EAX 7 ECX 1, EAX 23
     }
     
     namespace EAX7_ECX1_EDX
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI_INT8        = (1 <<  4); // EAX 7 ECX 1, EDX  4
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_NE_CONVERT       = (1 <<  5); // EAX 7 ECX 1, EDX  5
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI_INT16       = (1 << 10); // EAX 7 ECX 1, EDX 10
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI_INT8        = (UINT32_C(1) <<  4); // EAX 7 ECX 1, EDX  4
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_NE_CONVERT       = (UINT32_C(1) <<  5); // EAX 7 ECX 1, EDX  5
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint32_t AVX_VNNI_INT16       = (UINT32_C(1) << 10); // EAX 7 ECX 1, EDX 10
     }
 
     namespace XSAVE
     {
         // see https://en.wikipedia.org/wiki/CPUID XSAVE State-components
 
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t XMM                  = (1 << 1); // XMM0-XMM15 and MXCSR
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t YMM                  = (1 << 2); // YMM0-YMM15
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t K0_K7                = (1 << 5); // opmask registers k0-k7
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t ZMM_LOW_256          = (1 << 6); // ZMM0-ZMM15
-        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t ZMM_HIGH_256         = (1 << 7); // ZMM16-ZMM31
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t XMM                  = (UINT64_C(1) << 1); // XMM0-XMM15 and MXCSR
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t YMM                  = (UINT64_C(1) << 2); // YMM0-YMM15
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t K0_K7                = (UINT64_C(1) << 5); // opmask registers k0-k7
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t ZMM_LOW_256          = (UINT64_C(1) << 6); // ZMM0-ZMM15
+        KSIMD_HEADER_GLOBAL_CONSTEXPR uint64_t ZMM_HIGH_256         = (UINT64_C(1) << 7); // ZMM16-ZMM31
     }
 
     // leaf: EAX, sub_leaf: ECX
@@ -349,7 +350,7 @@ namespace ksimd
 
             if (max_leaf >= 1)
             {
-                result.hyper_threads = (eax1_ecx0_edx & (1 << 28)) && (result.physical_cores < result.logical_cores);
+                result.hyper_threads = (eax1_ecx0_edx & (UINT32_C(1) << 28)) && (result.physical_cores < result.logical_cores);
             }
 
             return result;
