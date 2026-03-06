@@ -25,8 +25,8 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         std::string str = KSIMD_STR(KSIMD_DYN_INSTRUCTION);
         bool result =
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SVE) && index == 0) ||
-            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 1);
+            // (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SVE) && index == 0) ||
+            (str == KSIMD_STR(KSIMD_DYN_INSTRUCTION_SCALAR) && index == 0);
         if (!result)
         {
             throw std::runtime_error("we should disable neon.");
@@ -39,7 +39,7 @@ KSIMD_DYN_DISPATCH_FUNC(kernel_disable_neon);
 void kernel_disable_neon()
 {
     volatile size_t table_size = std::size(KSIMD_DETAIL_PFN_TABLE_FULL_NAME(kernel_disable_neon));
-    if (table_size != 2)
+    if (table_size != 1)
     {
         throw std::runtime_error("we should disable NEON");
     }

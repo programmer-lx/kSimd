@@ -12,6 +12,8 @@
 using TYPE_T = std::float32_t;
 // constexpr size_t ALIGNMENT = 64;
 
+#define KSIMD_TEST_FP 1
+#define KSIMD_TEST_FP32 1
 #include "../signed.inl"
 
 #else

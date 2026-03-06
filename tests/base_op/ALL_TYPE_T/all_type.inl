@@ -623,7 +623,7 @@ TEST_ONCE_DYN(mul)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void reduce_add() noexcept
+    void reduce_add(size_t index) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
@@ -642,17 +642,17 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             // Inf in sum
             data[0] = ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_add(t, ns::load(t, data.data()))));
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_add(t, ns::load(t, data.data())))) << "idx: " << index;
 
             // NaN in sum
             data[0] = ksimd::QNaN<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_add(t, ns::load(t, data.data()))));
+            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_add(t, ns::load(t, data.data())))) << "idx: " << index;
         }
         #endif
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(reduce_add)
+TEST_ONCE_DYN_WITH_IDX(reduce_add)
 #endif
 
 // ------------------------------------------ reduce_mul ------------------------------------------
@@ -708,17 +708,17 @@ namespace KSIMD_DYN_INSTRUCTION
             // Infinity 传播: inf * 2 = inf
             for (size_t i = 0; i < Lanes; ++i) data[i] = TYPE_T(2);
             data[Lanes / 2] = ksimd::Inf<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_inf(ns::reduce_mul(t, ns::load(t, data.data()))));
+            EXPECT_TRUE(ksimd::is_inf(ns::reduce_mul(t, ns::load(t, data.data())))) << "idx: " << index;
 
             // NaN 传播: NaN * 1 = NaN
             data[Lanes / 2] = ksimd::QNaN<TYPE_T>;
-            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data()))));
+            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data())))) << "idx: " << index;
             
             // 0 * inf = NaN
             data[0] = TYPE_T(0);
             data[1] = ksimd::Inf<TYPE_T>;
             // 注意：某些架构优化可能导致结果不同，但 IEEE754 标准下应为 NaN
-            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data()))));
+            EXPECT_TRUE(ksimd::is_NaN(ns::reduce_mul(t, ns::load(t, data.data())))) << "idx: " << index;
         }
         #endif
     }
@@ -731,7 +731,7 @@ TEST_ONCE_DYN_WITH_IDX(reduce_mul)
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void reduce_min() noexcept
+    void reduce_min(size_t) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
         
@@ -806,14 +806,14 @@ namespace KSIMD_DYN_INSTRUCTION
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(reduce_min)
+TEST_ONCE_DYN_WITH_IDX(reduce_min)
 #endif
 
 // ------------------------------------------ reduce_max ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void reduce_max() noexcept
+    void reduce_max(size_t) noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
@@ -882,7 +882,7 @@ namespace KSIMD_DYN_INSTRUCTION
     }
 }
 #if KSIMD_ONCE
-TEST_ONCE_DYN(reduce_max)
+TEST_ONCE_DYN_WITH_IDX(reduce_max)
 #endif
 
 // ------------------------------------------ mask_test ------------------------------------------

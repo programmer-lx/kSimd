@@ -45,9 +45,9 @@ def main():
             print("Error: invalid compiler.")
             sys.exit(1)
 
-    build_options = [("Debug", "od")]
+    build_options = [("Release", "o2")]
     if args.test_mode == "max":
-        build_options += [("Release", "o2"), ("Release", "gl")]
+        build_options += [("Debug", "od"), ("Release", "gl")]
 
     
     sve_bit_width = args.sve_bits; # SVE bit-width

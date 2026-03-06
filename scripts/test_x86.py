@@ -81,9 +81,9 @@ def main():
                 sys.exit(1)
 
     # 编译选项矩阵
-    build_options = [("Debug", "od")]
+    build_options = [("Release", "o2")]
     if args.test_mode == "max":
-        build_options += [("Release", "o2"), ("Release", "gl")]
+        build_options += [("Debug", "od"), ("Release", "gl")]
 
     for name, c_comp, cxx_comp, subdir in configs:
         for build_cfg, test_opt in build_options:

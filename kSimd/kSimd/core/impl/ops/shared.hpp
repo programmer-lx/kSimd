@@ -18,6 +18,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
         template<is_scalar_type S>
         struct Tag512 : Tag_base<S , vec_size::Vec512> {};
+
+        template<is_scalar_type S>
+        struct TagScalable : Tag_base<S , vec_size::Scalable> {};
     }
 
     // tags

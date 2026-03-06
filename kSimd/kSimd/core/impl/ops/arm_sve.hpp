@@ -42,7 +42,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma region--- types ---
     namespace detail
     {
-        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t SVE_MAX_LANES_F32 = 64; // 2048 / 32
+        KSIMD_HEADER_GLOBAL_CONSTEXPR size_t SVE_MAX_LANES_SCALAR32 = 64; // 2048 / 32
 
         template<typename Tag, typename Enable>
         struct batch_type;
@@ -91,14 +91,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
-        return svld1_f32(svptrue_b32(), reinterpret_cast<const float*>(mem));
+        return svld1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), reinterpret_cast<const float*>(mem));
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
-        return svld1_s32(svptrue_b32(), mem);
+        return svld1_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), mem);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -106,10 +106,10 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag t, const tag_scalar_t<Tag>* mem) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
         const size_t l = lanes(t);
         for (size_t i = 0; i < l; ++i) tmp[i] = static_cast<float>(mem[i]);
-        return svld1_f32(svptrue_b32(), tmp.data());
+        return svld1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data());
     }
 #endif
 #pragma endregion // any types/load
@@ -119,14 +119,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        svst1_f32(svptrue_b32(), reinterpret_cast<float32_t*>(mem), v);
+        svst1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), reinterpret_cast<float32_t*>(mem), v);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        svst1_s32(svptrue_b32(), mem, v);
+        svst1_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), mem, v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -134,8 +134,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(void) store(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-        svst1_f32(svptrue_b32(), tmp.data(), v);
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
+        svst1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data(), v);
         const size_t l = lanes(t);
         for (size_t i = 0; i < l; ++i) mem[i] = static_cast<tag_scalar_t<Tag>>(tmp[i]);
     }
@@ -147,14 +147,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
-        return svld1_f32(svptrue_b32(), reinterpret_cast<const float*>(mem));
+        return svld1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), reinterpret_cast<const float*>(mem));
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
-        return svld1_s32(svptrue_b32(), mem);
+        return svld1_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), mem);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -172,14 +172,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        svst1_f32(svptrue_b32(), reinterpret_cast<float32_t*>(mem), v);
+        svst1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), reinterpret_cast<float32_t*>(mem), v);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
-        svst1_s32(svptrue_b32(), mem, v);
+        svst1_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), mem, v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -215,11 +215,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag t, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
         const size_t l = lanes(t);
         count = count > l ? l : count;
         for (size_t i = 0; i < count; ++i) tmp[i] = static_cast<float>(mem[i]);
-        return svld1_f32(svptrue_b32(), tmp.data());
+        return svld1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data());
     }
 #endif
 #pragma endregion // any types/loadu_partial
@@ -247,8 +247,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(void) storeu_partial(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-        svst1_f32(svptrue_b32(), tmp.data(), v);
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
+        svst1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data(), v);
         const size_t l = lanes(t);
         count = count > l ? l : count;
         for (size_t i = 0; i < count; ++i) mem[i] = static_cast<tag_scalar_t<Tag>>(tmp[i]);
@@ -327,10 +327,10 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag t) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
         const size_t l = lanes(t);
         for (size_t i = 0; i < l; ++i) tmp[i] = static_cast<float>(i);
-        return svld1_f32(svptrue_b32(), tmp.data());
+        return svld1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data());
     }
 
     template<typename Tag>
@@ -342,10 +342,10 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag t) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
         const size_t l = lanes(t);
         for (size_t i = 0; i < l; ++i) tmp[i] = static_cast<float>(i);
-        return svld1_f32(svptrue_b32(), tmp.data());
+        return svld1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data());
     }
 #endif
 #pragma endregion // any types/sequence
@@ -355,14 +355,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag t, tag_scalar_t<Tag> base) noexcept
     {
-        return svadd_f32_x(svptrue_b32(), sequence(t), svdup_n_f32(static_cast<float>(base)));
+        return svadd_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), sequence(t), svdup_n_f32(static_cast<float>(base)));
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
     {
-        return svadd_n_s32_x(svptrue_b32(), svindex_s32(0, 1), base);
+        return svadd_n_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svindex_s32(0, 1), base);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -370,7 +370,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sequence(Tag t, tag_scalar_t<Tag> base) noexcept
     {
-        return svadd_f32_x(svptrue_b32(), sequence(t), svdup_n_f32(static_cast<float>(base)));
+        return svadd_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), sequence(t), svdup_n_f32(static_cast<float>(base)));
     }
 #endif
 #pragma endregion // any types/sequence
@@ -383,7 +383,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         svfloat32_t idx = sequence(t);
         svfloat32_t s = svdup_n_f32(static_cast<float>(stride));
         svfloat32_t b = svdup_n_f32(static_cast<float>(base));
-        return svmla_f32_x(svptrue_b32(), b, idx, s);
+        return svmla_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), b, idx, s);
     }
 
     template<typename Tag>
@@ -401,7 +401,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         svfloat32_t idx = sequence(t);
         svfloat32_t s = svdup_n_f32(static_cast<float>(stride));
         svfloat32_t b = svdup_n_f32(static_cast<float>(base));
-        return svmla_f32_x(svptrue_b32(), b, idx, s);
+        return svmla_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), b, idx, s);
     }
 #endif
 #pragma endregion // any types/sequence
@@ -411,14 +411,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svadd_f32_x(svptrue_b32(), lhs, rhs);
+        return svadd_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svadd_s32_x(svptrue_b32(), lhs, rhs);
+        return svadd_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -426,7 +426,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svadd_f32_x(svptrue_b32(), lhs, rhs);
+        return svadd_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/add
@@ -436,14 +436,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svsub_f32_x(svptrue_b32(), lhs, rhs);
+        return svsub_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svsub_s32_x(svptrue_b32(), lhs, rhs);
+        return svsub_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -451,7 +451,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svsub_f32_x(svptrue_b32(), lhs, rhs);
+        return svsub_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/sub
@@ -461,14 +461,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svmul_f32_x(svptrue_b32(), lhs, rhs);
+        return svmul_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svmul_s32_x(svptrue_b32(), lhs, rhs);
+        return svmul_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -476,7 +476,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svmul_f32_x(svptrue_b32(), lhs, rhs);
+        return svmul_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/mul
@@ -486,7 +486,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
     {
-        return svmla_f32_x(svptrue_b32(), c, a, b);
+        return svmla_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), c, a, b);
     }
 
     template<typename Tag>
@@ -501,7 +501,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
     {
-        return svmla_f32_x(svptrue_b32(), c, a, b);
+        return svmla_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), c, a, b);
     }
 #endif
 #pragma endregion // any types/mul_add
@@ -511,7 +511,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) min(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svfloat32_t m = svmin_f32_x(svptrue_b32(), lhs, rhs);
+        svfloat32_t m = svmin_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             svbool_t nan_m = any_NaN(t, lhs, rhs);
@@ -525,7 +525,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svmin_s32_x(svptrue_b32(), lhs, rhs);
+        return svmin_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -533,7 +533,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) min(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svfloat32_t m = svmin_f32_x(svptrue_b32(), lhs, rhs);
+        svfloat32_t m = svmin_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             svbool_t nan_m = any_NaN(t, lhs, rhs);
@@ -550,7 +550,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) max(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svfloat32_t m = svmax_f32_x(svptrue_b32(), lhs, rhs);
+        svfloat32_t m = svmax_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             svbool_t nan_m = any_NaN(t, lhs, rhs);
@@ -564,7 +564,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svmax_s32_x(svptrue_b32(), lhs, rhs);
+        return svmax_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -572,7 +572,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) max(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svfloat32_t m = svmax_f32_x(svptrue_b32(), lhs, rhs);
+        svfloat32_t m = svmax_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             svbool_t nan_m = any_NaN(t, lhs, rhs);
@@ -591,7 +591,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         svuint32_t x = svreinterpret_u32_f32(v);
         svuint32_t all1 = svdup_n_u32(UINT32_MAX);
-        return svreinterpret_f32_u32(sveor_u32_x(svptrue_b32(), x, all1));
+        return svreinterpret_f32_u32(sveor_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), x, all1));
     }
 
     template<typename Tag>
@@ -600,7 +600,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     {
         svuint32_t x = svreinterpret_u32_s32(v);
         svuint32_t all1 = svdup_n_u32(UINT32_MAX);
-        return svreinterpret_s32_u32(sveor_u32_x(svptrue_b32(), x, all1));
+        return svreinterpret_s32_u32(sveor_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), x, all1));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -616,14 +616,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return svreinterpret_f32_u32(
-            svand_u32_x(svptrue_b32(), svreinterpret_u32_f32(lhs), svreinterpret_u32_f32(rhs)));
+            svand_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svreinterpret_u32_f32(lhs), svreinterpret_u32_f32(rhs)));
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svreinterpret_s32_u32(svand_u32_x(svptrue_b32(), svreinterpret_u32_s32(lhs), svreinterpret_u32_s32(rhs)));
+        return svreinterpret_s32_u32(svand_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svreinterpret_u32_s32(lhs), svreinterpret_u32_s32(rhs)));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -641,8 +641,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         svuint32_t l = svreinterpret_u32_f32(lhs);
         svuint32_t r = svreinterpret_u32_f32(rhs);
         svuint32_t all1 = svdup_n_u32(UINT32_MAX);
-        svuint32_t n = sveor_u32_x(svptrue_b32(), l, all1);
-        return svreinterpret_f32_u32(svand_u32_x(svptrue_b32(), n, r));
+        svuint32_t n = sveor_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l, all1);
+        return svreinterpret_f32_u32(svand_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), n, r));
     }
 
     template<typename Tag>
@@ -652,8 +652,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         svuint32_t l = svreinterpret_u32_s32(lhs);
         svuint32_t r = svreinterpret_u32_s32(rhs);
         svuint32_t all1 = svdup_n_u32(UINT32_MAX);
-        svuint32_t n = sveor_u32_x(svptrue_b32(), l, all1);
-        return svreinterpret_s32_u32(svand_u32_x(svptrue_b32(), n, r));
+        svuint32_t n = sveor_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l, all1);
+        return svreinterpret_s32_u32(svand_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), n, r));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -669,14 +669,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return svreinterpret_f32_u32(
-            svorr_u32_x(svptrue_b32(), svreinterpret_u32_f32(lhs), svreinterpret_u32_f32(rhs)));
+            svorr_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svreinterpret_u32_f32(lhs), svreinterpret_u32_f32(rhs)));
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svreinterpret_s32_u32(svorr_u32_x(svptrue_b32(), svreinterpret_u32_s32(lhs), svreinterpret_u32_s32(rhs)));
+        return svreinterpret_s32_u32(svorr_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svreinterpret_u32_s32(lhs), svreinterpret_u32_s32(rhs)));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -692,14 +692,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return svreinterpret_f32_u32(
-            sveor_u32_x(svptrue_b32(), svreinterpret_u32_f32(lhs), svreinterpret_u32_f32(rhs)));
+            sveor_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svreinterpret_u32_f32(lhs), svreinterpret_u32_f32(rhs)));
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svreinterpret_s32_u32(sveor_u32_x(svptrue_b32(), svreinterpret_u32_s32(lhs), svreinterpret_u32_s32(rhs)));
+        return svreinterpret_s32_u32(sveor_u32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svreinterpret_u32_s32(lhs), svreinterpret_u32_s32(rhs)));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -714,19 +714,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpeq_f32(svptrue_b32(), lhs, rhs);
+        return svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpeq_s32(svptrue_b32(), lhs, rhs); }
+    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpeq_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpeq_f32(svptrue_b32(), lhs, rhs);
+        return svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/equal
@@ -736,19 +736,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpne_f32(svptrue_b32(), lhs, rhs);
+        return svcmpne_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpne_s32(svptrue_b32(), lhs, rhs); }
+    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpne_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpne_f32(svptrue_b32(), lhs, rhs);
+        return svcmpne_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/not_equal
@@ -756,21 +756,24 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma region--- any types/greater ---
     template<typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    KSIMD_API(Mask<Tag>) greater(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpgt_f32(svptrue_b32(), lhs, rhs);
+        return svcmpgt_f32(svwhilelt_b32(0, (int32_t)lanes(t)), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpgt_s32(svptrue_b32(), lhs, rhs); }
+    KSIMD_API(Mask<Tag>) greater(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return svcmpgt_s32(svwhilelt_b32(0, (int32_t)lanes(t)), lhs, rhs);
+    }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpgt_f32(svptrue_b32(), lhs, rhs);
+        return greater(detail::TagScalable<float>{}, lhs, rhs);
     }
 #endif
 #pragma endregion // any types/greater
@@ -780,19 +783,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpge_f32(svptrue_b32(), lhs, rhs);
+        return svcmpge_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpge_s32(svptrue_b32(), lhs, rhs); }
+    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmpge_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmpge_f32(svptrue_b32(), lhs, rhs);
+        return svcmpge_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/greater_equal
@@ -802,19 +805,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmplt_f32(svptrue_b32(), lhs, rhs);
+        return svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmplt_s32(svptrue_b32(), lhs, rhs); }
+    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmplt_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmplt_f32(svptrue_b32(), lhs, rhs);
+        return svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/less
@@ -824,19 +827,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmple_f32(svptrue_b32(), lhs, rhs);
+        return svcmple_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmple_s32(svptrue_b32(), lhs, rhs); }
+    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return svcmple_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svcmple_f32(svptrue_b32(), lhs, rhs);
+        return svcmple_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/less_equal
@@ -846,14 +849,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svand_z(svptrue_b32(), lhs, rhs);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        svbool_t pg = svptrue_b32();
+        svbool_t pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         return svand_b_z(pg, lhs, rhs);
     }
 
@@ -862,7 +865,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svand_z(svptrue_b32(), lhs, rhs);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/mask_and
@@ -872,14 +875,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svorr_z(svptrue_b32(), lhs, rhs);
+        return svorr_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        svbool_t pg = svptrue_b32();
+        svbool_t pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         return svorr_b_z(pg, lhs, rhs);
     }
 
@@ -888,7 +891,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svorr_z(svptrue_b32(), lhs, rhs);
+        return svorr_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/mask_or
@@ -898,14 +901,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return sveor_z(svptrue_b32(), lhs, rhs);
+        return sveor_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        svbool_t pg = svptrue_b32();
+        svbool_t pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         return sveor_b_z(pg, lhs, rhs);
     }
 
@@ -914,7 +917,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return sveor_z(svptrue_b32(), lhs, rhs);
+        return sveor_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // any types/mask_xor
@@ -924,14 +927,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> m) noexcept
     {
-        return svnot_z(svptrue_b32(), m);
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), m);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
     {
-        svbool_t pg = svptrue_b32();
+        svbool_t pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         return svnot_b_z(pg, mask);
     }
 
@@ -940,7 +943,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> m) noexcept
     {
-        return svnot_z(svptrue_b32(), m);
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), m);
     }
 #endif
 #pragma endregion // any types/mask_not
@@ -950,14 +953,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svand_z(svptrue_b32(), svnot_z(svptrue_b32(), lhs), rhs);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs), rhs);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svbic_b_z(svptrue_b32(), rhs, lhs);
+        return svbic_b_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, lhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -965,25 +968,17 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
-        return svand_z(svptrue_b32(), svnot_z(svptrue_b32(), lhs), rhs);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs), rhs);
     }
 #endif
 #pragma endregion // any types/mask_and_not
 
 #pragma region--- any types/mask_all ---
     template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
+        requires(is_tag_scalar_32<Tag> && is_tag_scalable_full<Tag>)
+    KSIMD_API(bool) mask_all(Tag t, Mask<Tag> mask) noexcept
     {
-        svbool_t pg = svptrue_b32();
-        return !svptest_any(pg, svnot_b_z(pg, mask));
-    }
-
-    template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
-    {
-        svbool_t pg = svptrue_b32();
+        svbool_t pg = svwhilelt_b32(0, static_cast<int32_t>(lanes(t)));
         return !svptest_any(pg, svnot_b_z(pg, mask));
     }
 
@@ -992,27 +987,18 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
     {
-        svbool_t pg = svptrue_b32();
-        return !svptest_any(pg, svnot_b_z(pg, mask));
+        return mask_all(detail::TagScalable<float>{}, mask);
     }
 #endif
 #pragma endregion // any types/mask_all
 
 #pragma region--- any types/mask_any ---
     template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
+        requires(is_tag_scalar_32<Tag> && is_tag_scalable_full<Tag>)
+    KSIMD_API(bool) mask_any(Tag t, Mask<Tag> mask) noexcept
     {
-        svbool_t pg = svptrue_b32();
-        return svptest_any(pg, mask);
-    }
-
-    template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
-    {
-        svbool_t pg = svptrue_b32();
-        return svptest_any(pg, mask);
+        svbool_t pg = svwhilelt_b32(0, static_cast<int32_t>(lanes(t)));
+        return svptest_any(pg, svnot_b_z(pg, mask));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1020,26 +1006,17 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
     {
-        svbool_t pg = svptrue_b32();
-        return svptest_any(pg, mask);
+        return mask_any(detail::TagScalable<float>{}, mask);
     }
 #endif
 #pragma endregion // any types/mask_any
 
 #pragma region--- any types/mask_none ---
     template<typename Tag>
-        requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
+        requires(is_tag_scalar_32<Tag> && is_tag_scalable_full<Tag>)
+    KSIMD_API(bool) mask_none(Tag t, Mask<Tag> mask) noexcept
     {
-        auto pg = svptrue_b32();
-        return !svptest_any(pg, mask);
-    }
-
-    template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
-    {
-        auto pg = svptrue_b32();
+        svbool_t pg = svwhilelt_b32(0, static_cast<int32_t>(lanes(t)));
         return !svptest_any(pg, mask);
     }
 
@@ -1048,7 +1025,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
     {
-        auto pg = svptrue_b32();
+        auto pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         return !svptest_any(pg, mask);
     }
 #endif
@@ -1084,19 +1061,22 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
-        return svaddv_f32(svptrue_b32(), v);
+        return svaddv_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept { return svaddv_s32(svptrue_b32(), v); }
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
+    {
+        return static_cast<tag_scalar_t<Tag>>(svaddv_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v));
+    }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
-        float s = svaddv_f32(svptrue_b32(), v);
+        float s = svaddv_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
         return static_cast<tag_scalar_t<Tag>>(s);
     }
 #endif
@@ -1107,8 +1087,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-        svst1_f32(svptrue_b32(), tmp.data(), v);
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
+        svst1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data(), v);
         float r = 1.0f;
         const size_t l = lanes(t);
         for (size_t i = 0; i < l; ++i) r *= tmp[i];
@@ -1119,7 +1099,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
     {
-        std::array<int32_t, detail::SVE_MAX_LANES_F32> tmp{};
+        std::array<int32_t, detail::SVE_MAX_LANES_SCALAR32> tmp{};
         store(t, tmp.data(), v);
         const size_t l = lanes(t);
         int32_t r = 1;
@@ -1132,8 +1112,8 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-        svst1_f32(svptrue_b32(), tmp.data(), v);
+        std::array<float, detail::SVE_MAX_LANES_SCALAR32> tmp{};
+        svst1_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), tmp.data(), v);
         float r = 1.0f;
         const size_t l = lanes(t);
         for (size_t i = 0; i < l; ++i) r *= tmp[i];
@@ -1145,43 +1125,33 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma region--- any types/reduce_min ---
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
+        svbool_t pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
-            std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-            svst1_f32(svptrue_b32(), tmp.data(), v);
-            const size_t l = lanes(t);
-            for (size_t i = 0; i < l; ++i)
+            svbool_t nan_mask = svcmpuo_f32(pg, v, v);
+            if (svptest_any(pg, nan_mask))
             {
-                if (tmp[i] != tmp[i]) return QNaN<tag_scalar_t<Tag>>;
+                return QNaN<tag_scalar_t<Tag>>;
             }
         }
-        return svminv_f32(svptrue_b32(), v);
+        return svminv_f32(pg, v);
     }
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept { return svminv_s32(svptrue_b32(), v); }
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
+    {
+        return svminv_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+    }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-        svst1_f32(svptrue_b32(), tmp.data(), v);
-        const size_t l = lanes(t);
-        if constexpr (option == FloatMinMaxOption::CheckNaN)
-        {
-            for (size_t i = 0; i < l; ++i)
-            {
-                if (tmp[i] != tmp[i]) return static_cast<tag_scalar_t<Tag>>(QNaN<float>);
-            }
-        }
-        float m = tmp[0];
-        for (size_t i = 1; i < l; ++i) m = m < tmp[i] ? m : tmp[i];
-        return static_cast<tag_scalar_t<Tag>>(m);
+        return static_cast<tag_scalar_t<Tag>>(reduce_min<option>(detail::TagScalable<float>{}, v));
     }
 #endif
 #pragma endregion // any types/reduce_min
@@ -1191,41 +1161,31 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
     {
+        svbool_t pg = svwhilelt_b32(0, (int32_t)lanes(Tag{}));
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
-            std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-            svst1_f32(svptrue_b32(), tmp.data(), v);
-            const size_t l = lanes(t);
-            for (size_t i = 0; i < l; ++i)
+            svbool_t nan_mask = svcmpuo_f32(pg, v, v);
+            if (svptest_any(pg, nan_mask))
             {
-                if (tmp[i] != tmp[i]) return QNaN<tag_scalar_t<Tag>>;
+                return QNaN<tag_scalar_t<Tag>>;
             }
         }
-        return svmaxv_f32(svptrue_b32(), v);
+        return svmaxv_f32(pg, v);
     }
 
     template<FloatMinMaxOption = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept { return svmaxv_s32(svptrue_b32(), v); }
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
+    {
+        return svmaxv_s32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+    }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
-        std::array<float, detail::SVE_MAX_LANES_F32> tmp{};
-        svst1_f32(svptrue_b32(), tmp.data(), v);
-        const size_t l = lanes(t);
-        if constexpr (option == FloatMinMaxOption::CheckNaN)
-        {
-            for (size_t i = 0; i < l; ++i)
-            {
-                if (tmp[i] != tmp[i]) return static_cast<tag_scalar_t<Tag>>(QNaN<float>);
-            }
-        }
-        float m = tmp[0];
-        for (size_t i = 1; i < l; ++i) m = m > tmp[i] ? m : tmp[i];
-        return static_cast<tag_scalar_t<Tag>>(m);
+        return static_cast<tag_scalar_t<Tag>>(reduce_max<option>(detail::TagScalable<float>{}, v));
     }
 #endif
 #pragma endregion // any types/reduce_max
@@ -1238,14 +1198,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
-        return svabs_f32_x(svptrue_b32(), v);
+        return svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
-        return svabs_s32_x(svptrue_b32(), v);
+        return svabs_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1253,7 +1213,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
-        return svabs_f32_x(svptrue_b32(), v);
+        return svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 #endif
 #pragma endregion // signed/abs
@@ -1263,14 +1223,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
     {
-        return svneg_f32_x(svptrue_b32(), v);
+        return svneg_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
     template<typename Tag>
         requires(is_tag_scalable_full<Tag> && is_tag_int32<Tag>)
     KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
     {
-        return svneg_s32_x(svptrue_b32(), v);
+        return svneg_s32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1278,7 +1238,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
     {
-        return svneg_f32_x(svptrue_b32(), v);
+        return svneg_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 #endif
 #pragma endregion // signed/neg
@@ -1290,7 +1250,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svdiv_f32_x(svptrue_b32(), lhs, rhs);
+        return svdiv_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1298,7 +1258,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svdiv_f32_x(svptrue_b32(), lhs, rhs);
+        return svdiv_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs);
     }
 #endif
 #pragma endregion // floating point/div
@@ -1308,7 +1268,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
     {
-        return svsqrt_f32_x(svptrue_b32(), v);
+        return svsqrt_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1316,7 +1276,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
     {
-        return svsqrt_f32_x(svptrue_b32(), v);
+        return svsqrt_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 #endif
 #pragma endregion // floating point/sqrt
@@ -1326,11 +1286,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
     {
-        if constexpr (mode == RoundingMode::Up)          return svrintp_f32_x(svptrue_b32(), v);
-        else if constexpr (mode == RoundingMode::Down)   return svrintm_f32_x(svptrue_b32(), v);
-        else if constexpr (mode == RoundingMode::Nearest)return svrintn_f32_x(svptrue_b32(), v);
-        else if constexpr (mode == RoundingMode::ToZero) return svrintz_f32_x(svptrue_b32(), v);
-        else                                              return svrinta_f32_x(svptrue_b32(), v);
+        if constexpr (mode == RoundingMode::Up)          return svrintp_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else if constexpr (mode == RoundingMode::Down)   return svrintm_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else if constexpr (mode == RoundingMode::Nearest)return svrintn_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else if constexpr (mode == RoundingMode::ToZero) return svrintz_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else                                              return svrinta_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1338,11 +1298,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
     {
-        if constexpr (mode == RoundingMode::Up)          return svrintp_f32_x(svptrue_b32(), v);
-        else if constexpr (mode == RoundingMode::Down)   return svrintm_f32_x(svptrue_b32(), v);
-        else if constexpr (mode == RoundingMode::Nearest)return svrintn_f32_x(svptrue_b32(), v);
-        else if constexpr (mode == RoundingMode::ToZero) return svrintz_f32_x(svptrue_b32(), v);
-        else                                              return svrinta_f32_x(svptrue_b32(), v);
+        if constexpr (mode == RoundingMode::Up)          return svrintp_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else if constexpr (mode == RoundingMode::Down)   return svrintm_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else if constexpr (mode == RoundingMode::Nearest)return svrintn_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else if constexpr (mode == RoundingMode::ToZero) return svrintz_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
+        else                                              return svrinta_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), v);
     }
 #endif
 #pragma endregion // floating point/round
@@ -1352,7 +1312,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmpgt_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmpgt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1360,7 +1320,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmpgt_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmpgt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 #endif
 #pragma endregion // floating point/not_greater
@@ -1370,7 +1330,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmpge_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmpge_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1378,7 +1338,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmpge_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmpge_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 #endif
 #pragma endregion // floating point/not_greater_equal
@@ -1388,7 +1348,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmplt_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1396,7 +1356,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmplt_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 #endif
 #pragma endregion // floating point/not_less
@@ -1406,7 +1366,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmple_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmple_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1414,7 +1374,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svnot_z(svptrue_b32(), svcmple_f32(svptrue_b32(), lhs, rhs));
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svcmple_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, rhs));
     }
 #endif
 #pragma endregion // floating point/not_less_equal
@@ -1424,9 +1384,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svbool_t l_ok = svcmpeq_f32(svptrue_b32(), lhs, lhs);
-        svbool_t r_ok = svcmpeq_f32(svptrue_b32(), rhs, rhs);
-        return svnot_z(svptrue_b32(), svand_z(svptrue_b32(), l_ok, r_ok));
+        svbool_t l_ok = svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, lhs);
+        svbool_t r_ok = svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, rhs);
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l_ok, r_ok));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1434,9 +1394,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svbool_t l_ok = svcmpeq_f32(svptrue_b32(), lhs, lhs);
-        svbool_t r_ok = svcmpeq_f32(svptrue_b32(), rhs, rhs);
-        return svnot_z(svptrue_b32(), svand_z(svptrue_b32(), l_ok, r_ok));
+        svbool_t l_ok = svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, lhs);
+        svbool_t r_ok = svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, rhs);
+        return svnot_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l_ok, r_ok));
     }
 #endif
 #pragma endregion // floating point/any_NaN
@@ -1446,9 +1406,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svbool_t l_nan = svcmpne_f32(svptrue_b32(), lhs, lhs);
-        svbool_t r_nan = svcmpne_f32(svptrue_b32(), rhs, rhs);
-        return svand_z(svptrue_b32(), l_nan, r_nan);
+        svbool_t l_nan = svcmpne_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, lhs);
+        svbool_t r_nan = svcmpne_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, rhs);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l_nan, r_nan);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1456,9 +1416,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        svbool_t l_nan = svcmpne_f32(svptrue_b32(), lhs, lhs);
-        svbool_t r_nan = svcmpne_f32(svptrue_b32(), rhs, rhs);
-        return svand_z(svptrue_b32(), l_nan, r_nan);
+        svbool_t l_nan = svcmpne_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, lhs);
+        svbool_t r_nan = svcmpne_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, rhs);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l_nan, r_nan);
     }
 #endif
 #pragma endregion // floating point/all_NaN
@@ -1468,9 +1428,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svand_z(svptrue_b32(),
-            svcmpeq_f32(svptrue_b32(), lhs, lhs),
-            svcmpeq_f32(svptrue_b32(), rhs, rhs));
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})),
+            svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, lhs),
+            svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, rhs));
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1478,9 +1438,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_16bits<Tag> && is_tag_scalable_full<Tag>)
     KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
-        return svand_z(svptrue_b32(),
-            svcmpeq_f32(svptrue_b32(), lhs, lhs),
-            svcmpeq_f32(svptrue_b32(), rhs, rhs));
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})),
+            svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs, lhs),
+            svcmpeq_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs, rhs));
     }
 #endif
 #pragma endregion // floating point/not_NaN
@@ -1491,9 +1451,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         svfloat32_t inf_v = svdup_n_f32(Inf<tag_scalar_t<Tag>>);
-        svbool_t l = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), lhs), inf_v);
-        svbool_t r = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), rhs), inf_v);
-        return svorr_z(svptrue_b32(), l, r);
+        svbool_t l = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs), inf_v);
+        svbool_t r = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs), inf_v);
+        return svorr_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l, r);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1502,9 +1462,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         svfloat32_t inf_v = svdup_n_f32(Inf<float>);
-        svbool_t l = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), lhs), inf_v);
-        svbool_t r = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), rhs), inf_v);
-        return svorr_z(svptrue_b32(), l, r);
+        svbool_t l = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs), inf_v);
+        svbool_t r = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs), inf_v);
+        return svorr_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l, r);
     }
 #endif
 #pragma endregion // floating point/any_finite
@@ -1515,9 +1475,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         svfloat32_t inf_v = svdup_n_f32(Inf<tag_scalar_t<Tag>>);
-        svbool_t l = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), lhs), inf_v);
-        svbool_t r = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), rhs), inf_v);
-        return svand_z(svptrue_b32(), l, r);
+        svbool_t l = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs), inf_v);
+        svbool_t r = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs), inf_v);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l, r);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1526,9 +1486,9 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         svfloat32_t inf_v = svdup_n_f32(Inf<float>);
-        svbool_t l = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), lhs), inf_v);
-        svbool_t r = svcmplt_f32(svptrue_b32(), svabs_f32_x(svptrue_b32(), rhs), inf_v);
-        return svand_z(svptrue_b32(), l, r);
+        svbool_t l = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), lhs), inf_v);
+        svbool_t r = svcmplt_f32(svwhilelt_b32(0, (int32_t)lanes(Tag{})), svabs_f32_x(svwhilelt_b32(0, (int32_t)lanes(Tag{})), rhs), inf_v);
+        return svand_z(svwhilelt_b32(0, (int32_t)lanes(Tag{})), l, r);
     }
 #endif
 #pragma endregion // floating point/all_finite
