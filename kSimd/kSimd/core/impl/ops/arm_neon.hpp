@@ -13,6 +13,9 @@
 
 #define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
 
+#define KSIMD_LEVEL_FULL_FP16 \
+    ((KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16))
+
 namespace ksimd::KSIMD_DYN_INSTRUCTION
 {
 #pragma region--- constants ---
@@ -20,7 +23,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     constexpr size_t lanes(Tag) noexcept
     {
         // fake fp16 (promote to f32 x 4)
-        #if (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) && (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if !KSIMD_LEVEL_FULL_FP16
         if constexpr (is_tag_float_16bits<Tag>)
         {
             return vec_size::Vec128 / sizeof(float);
@@ -38,7 +41,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct batch_type;
 
         // fake fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) && (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if !KSIMD_LEVEL_FULL_FP16
         template<typename Tag>
         struct batch_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_16bits<Tag>>>
         {
@@ -79,7 +82,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct mask_type;
 
         // fake fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) && (KSIMD_DYN_DISPATCH_LEVEL != KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if !KSIMD_LEVEL_FULL_FP16
         template<typename Tag>
         struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_float_16bits<Tag>>>
         {
@@ -146,7 +149,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         float16x4_t f16 = vld1_f16(reinterpret_cast<const float16_t*>(mem));
@@ -177,7 +180,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         float16x4_t f16 = vcvt_f16_f32(v);
@@ -268,7 +271,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) loadu_partial(Tag t, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         constexpr size_t L = lanes(t);
@@ -315,7 +318,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(void) storeu_partial(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         constexpr size_t L = lanes(t);
@@ -348,7 +351,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return undefined(detail::Tag128<float>{});
@@ -375,7 +378,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) zero(Tag) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return zero(detail::Tag128<float>{});
@@ -402,7 +405,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return set(detail::Tag128<float>{}, static_cast<float>(x));
@@ -434,7 +437,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return sequence(detail::Tag128<float>{});
@@ -466,7 +469,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) sequence(Tag t, tag_scalar_t<Tag> base) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return sequence(detail::Tag128<float>{}, static_cast<float>(base));
@@ -499,7 +502,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) sequence(Tag t, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return sequence(detail::Tag128<float>{}, static_cast<float>(base), static_cast<float>(stride));
@@ -526,7 +529,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return add(detail::Tag128<float>{}, lhs, rhs);
@@ -553,7 +556,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return sub(detail::Tag128<float>{}, lhs, rhs);
@@ -580,7 +583,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mul(detail::Tag128<float>{}, lhs, rhs);
@@ -608,7 +611,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mul_add(detail::Tag128<float>{}, a, b, c);
@@ -645,7 +648,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return min<option>(detail::Tag128<float>{}, lhs, rhs);
@@ -682,7 +685,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return max<option>(detail::Tag128<float>{}, lhs, rhs);
@@ -807,7 +810,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return equal(detail::Tag128<float>{}, lhs, rhs);
@@ -834,7 +837,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return not_equal(detail::Tag128<float>{}, lhs, rhs);
@@ -861,7 +864,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return greater(detail::Tag128<float>{}, lhs, rhs);
@@ -888,7 +891,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return greater_equal(detail::Tag128<float>{}, lhs, rhs);
@@ -915,7 +918,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return less(detail::Tag128<float>{}, lhs, rhs);
@@ -942,7 +945,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return less_equal(detail::Tag128<float>{}, lhs, rhs);
@@ -969,7 +972,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_and(detail::Tag128<float>{}, lhs, rhs);
@@ -996,7 +999,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_or(detail::Tag128<float>{}, lhs, rhs);
@@ -1023,7 +1026,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_xor(detail::Tag128<float>{}, lhs, rhs);
@@ -1050,7 +1053,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_not(detail::Tag128<float>{}, mask);
@@ -1077,7 +1080,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_and_not(detail::Tag128<float>{}, lhs, rhs);
@@ -1107,7 +1110,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_all(detail::Tag128<float>{}, mask);
@@ -1137,7 +1140,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_any(detail::Tag128<float>{}, mask);
@@ -1167,7 +1170,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return mask_none(detail::Tag128<float>{}, mask);
@@ -1197,7 +1200,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return if_then_else(detail::Tag128<float>{}, _if, _then, _else);
@@ -1228,7 +1231,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return static_cast<tag_scalar_t<Tag>>(reduce_add(detail::Tag128<float>{}, v));
@@ -1263,7 +1266,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return static_cast<tag_scalar_t<Tag>>(reduce_mul(detail::Tag128<float>{}, v));
@@ -1299,7 +1302,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return static_cast<tag_scalar_t<Tag>>(reduce_min<option>(detail::Tag128<float>{}, v));
@@ -1332,7 +1335,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return static_cast<tag_scalar_t<Tag>>(reduce_max<option>(detail::Tag128<float>{}, v));
@@ -1364,7 +1367,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return abs(detail::Tag128<float>{}, v);
@@ -1394,7 +1397,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return neg(detail::Tag128<float>{}, v);
@@ -1419,7 +1422,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return div(detail::Tag128<float>{}, lhs, rhs);
@@ -1442,7 +1445,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return sqrt(detail::Tag128<float>{}, v);
@@ -1484,7 +1487,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return round<mode>(detail::Tag128<float>{}, v);
@@ -1507,7 +1510,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return not_greater(detail::Tag128<float>{}, lhs, rhs);
@@ -1530,7 +1533,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return not_greater_equal(detail::Tag128<float>{}, lhs, rhs);
@@ -1553,7 +1556,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return not_less(detail::Tag128<float>{}, lhs, rhs);
@@ -1576,7 +1579,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return not_less_equal(detail::Tag128<float>{}, lhs, rhs);
@@ -1601,7 +1604,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return any_NaN(detail::Tag128<float>{}, lhs, rhs);
@@ -1626,7 +1629,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return all_NaN(detail::Tag128<float>{}, lhs, rhs);
@@ -1649,7 +1652,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return not_NaN(detail::Tag128<float>{}, lhs, rhs);
@@ -1677,7 +1680,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return any_finite(detail::Tag128<float>{}, lhs, rhs);
@@ -1704,7 +1707,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // full fp16
-        #if (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16) || (KSIMD_DYN_DISPATCH_LEVEL == KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16)
+        #if KSIMD_LEVEL_FULL_FP16
 
         #else
         return all_finite(detail::Tag128<float>{}, lhs, rhs);
@@ -1731,4 +1734,5 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 #pragma endregion
 } // namespace ksimd::KSIMD_DYN_INSTRUCTION
 
+#undef KSIMD_LEVEL_FULL_FP16
 #undef KSIMD_API
