@@ -257,12 +257,16 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
+    KSIMD_API(Batch<Tag>) loadu_partial(Tag t, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
-        count = count > 4 ? 4 : count;
-        int32_t tmp[4] = {};
-        std::memcpy(tmp, mem, sizeof(int32_t) * count);
-        return vld1q_s32(tmp);
+        constexpr size_t L = lanes(t);
+        count = count > L ? L : count;
+        int32x4_t res = vdupq_n_s32(0);
+        if (count == 0) [[unlikely]]
+            return res;
+
+        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
+        return res;
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -304,12 +308,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
+    KSIMD_API(void) storeu_partial(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
-        count = count > 4 ? 4 : count;
-        int32_t tmp[4];
-        vst1q_s32(tmp, v);
-        std::memcpy(mem, tmp, sizeof(int32_t) * count);
+        constexpr size_t L = lanes(t);
+        count = count > L ? L : count;
+        if (count == 0) [[unlikely]]
+            return;
+
+        std::memcpy(mem, &v, sizeof(tag_scalar_t<Tag>) * count);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -1214,11 +1220,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         requires(is_tag_float_32bits<Tag> && is_tag_128<Tag>)
     KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
     {
-        // [a, b, c, d] -> [a+c, b+d] -> [a+b+c+d]
-        float32x2_t low = vget_low_f32(v);
-        float32x2_t high = vget_high_f32(v);
-        float32x2_t sum2 = vadd_f32(low, high);
-        return vget_lane_f32(vpadd_f32(sum2, sum2), 0);
+        return vaddvq_f32(v);
     }
 
     template<typename Tag>
@@ -1253,11 +1255,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
 
     template<typename Tag>
         requires(is_tag_128<Tag> && is_tag_int32<Tag>)
-    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag t, Batch<Tag> v) noexcept
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
     {
-        int32_t tmp[4];
-        store(t, tmp, v);
-        return tmp[0] * tmp[1] * tmp[2] * tmp[3];
+        int32x2_t low = vget_low_s32(v);
+        int32x2_t high = vget_high_s32(v);
+        int32x2_t prod = vmul_s32(low, high);
+        return vget_lane_s32(prod, 0) * vget_lane_s32(prod, 1);
     }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
