@@ -1,10 +1,25 @@
-- 修改前：如果涉及核心架构变动，请先在对话框说明思路，得到确认后再修改文件。
-- 注释：所有复杂的模板元编程必须附带详细的 Doxygen 注释。
+## Modification Policy
 
-- 原则：
-    - 不要删除现有的逻辑，除非有充分的理由。
-    - 不要修改现有的逻辑，除非有充分的理由。
-    - 不要添加新的逻辑，除非有充分的理由。
+**Before making modifications:**
+If the change involves core architecture adjustments, first explain the proposed approach in the chat and wait for confirmation before modifying any files.
 
-- C++ 标准：使用 C++20 特性，特别是 Concepts 和 Requires 子句。
-- 参考：严格模仿 @kSimd/kSimd/core/impl/ops 目录下的现有模式。
+## Documentation
+
+**Comments:**
+All complex template metaprogramming code must include detailed **Doxygen** documentation.
+
+## Principles
+
+* Do **not delete existing logic** unless there is a well-justified reason.
+* Do **not modify existing logic** unless there is a well-justified reason.
+* Do **not introduce new logic** unless there is a well-justified reason.
+
+## C++ Standard
+
+Use **C++20** features, especially **Concepts** and **`requires` clauses**.
+
+## Reference Implementation
+
+Strictly follow the existing patterns in:
+
+`@kSimd/kSimd/core/impl/ops`
