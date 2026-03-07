@@ -43,7 +43,7 @@ namespace KSIMD_DYN_INSTRUCTION
         {
             // 补码特例：abs(INT_MIN) 在溢出后仍为 INT_MIN
             ns::store(t, test.data(), ns::abs(t, ns::set(t, ksimd::Min<TYPE_T>)));
-            EXPECT_TRUE(array_equal(test.data(), Lanes, ksimd::Min<TYPE_T>));
+            EXPECT_TRUE(array_bit_equal(test.data(), Lanes, ksimd::Min<TYPE_T>));
         }
         #endif
     }
