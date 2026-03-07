@@ -89,7 +89,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         struct mask_type;
 
 // avx512
-#if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+#if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         // 8bits
         template<typename Tag>
         struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag> && is_tag_scalar_8<Tag>>>
@@ -118,7 +118,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             using type = __mmask8;
         };
 // sse
-#elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+#elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         // mask 跟 batch 一样
         template<typename Tag>
         struct mask_type<Tag, std::enable_if_t<is_tag_128<Tag>>>
@@ -262,7 +262,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_cvtph_ps(f16);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         __m128i f16 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(mem));
         return detail::mm_f16_to_f32(f16);
         #endif
@@ -302,7 +302,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         __m128i f16 = detail::mm_f32_to_f16(v);
         _mm_storel_epi64(reinterpret_cast<__m128i*>(mem), f16);
         #endif
@@ -384,19 +384,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
         return _mm_maskz_loadu_ps(mask, mem);
 
         // avx
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
         __m128 cnt = _mm_set1_ps(static_cast<float>(count));
         __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
         return _mm_maskload_ps(reinterpret_cast<const float*>(mem), _mm_castps_si128(mask));
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
 
@@ -415,19 +415,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
         return _mm_maskz_loadu_epi32(mask, mem);
 
         // avx
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         __m128i iota = _mm_set_epi32(3, 2, 1, 0);
         __m128i cnt = _mm_set1_epi32(static_cast<int32_t>(count));
         __m128i mask = _mm_cmplt_epi32(iota, cnt);
         return _mm_maskload_epi32(mem, mask);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
 
@@ -453,7 +453,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         return _mm_maskz_loadu_epi16(mask, mem);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
 
@@ -478,19 +478,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
         _mm_mask_storeu_ps(mem, mask, v);
 
         // avx
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
         __m128 cnt = _mm_set1_ps(static_cast<float>(count));
         __m128 mask = _mm_cmp_ps(iota, cnt, _CMP_LT_OQ);
         _mm_maskstore_ps(reinterpret_cast<float*>(mem), _mm_castps_si128(mask), v);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
         if (count == 0) [[unlikely]]
@@ -505,19 +505,19 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         __mmask8 mask = static_cast<__mmask8>((UINT8_C(1) << count) - UINT8_C(1));
         _mm_mask_storeu_epi32(mem, mask, v);
 
         // avx
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         __m128i iota = _mm_set_epi32(3, 2, 1, 0);
         __m128i cnt = _mm_set1_epi32(static_cast<int32_t>(count));
         __m128i mask = _mm_cmplt_epi32(iota, cnt);
         _mm_maskstore_epi32(mem, mask, v);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
         if (count == 0) [[unlikely]]
@@ -540,7 +540,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         _mm_mask_storeu_epi16(mem, mask, v);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         constexpr size_t L = lanes(Tag{});
         count = count > L ? L : count;
         if (count == 0) [[unlikely]]
@@ -742,11 +742,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128 iota = _mm_set_ps(3.f, 2.f, 1.f, 0.f);
 
         // avx v3 v4
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         return _mm_fmadd_ps(stride_v, iota, base_v);
 
         // sse family
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_add_ps(_mm_mul_ps(stride_v, iota), base_v);
         #endif
     }
@@ -891,11 +891,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
     {
         // avx v3 v4
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
         return _mm_fmadd_ps(a, b, c);
 
         // sse family
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_add_ps(_mm_mul_ps(a, b), c);
         #endif
     }
@@ -933,14 +933,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             // avx512
-            #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+            #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
             __mmask8 has_nan = _mm_cmp_ps_mask(lhs, rhs, _CMP_UNORD_Q);
             __m128 min_v = _mm_min_ps(lhs, rhs);
             __m128 nan_v = _mm_set1_ps(QNaN<float>);
             return _mm_mask_blend_ps(has_nan, min_v, nan_v);
 
             // sse
-            #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+            #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
             __m128 has_nan = _mm_cmpunord_ps(lhs, rhs);
             __m128 min_v = _mm_min_ps(lhs, rhs);
             __m128 nan_v = _mm_set1_ps(QNaN<float>);
@@ -985,14 +985,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             // avx512
-            #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+            #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
             __mmask8 has_nan = _mm_cmp_ps_mask(lhs, rhs, _CMP_UNORD_Q);
             __m128 max_v = _mm_max_ps(lhs, rhs);
             __m128 nan_v = _mm_set1_ps(QNaN<float>);
             return _mm_mask_blend_ps(has_nan, max_v, nan_v);
 
             // sse
-            #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+            #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
             __m128 has_nan = _mm_cmpunord_ps(lhs, rhs);
             __m128 max_v = _mm_max_ps(lhs, rhs);
             __m128 nan_v = _mm_set1_ps(QNaN<float>);
@@ -1156,11 +1156,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_EQ_OQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpeq_ps(lhs, rhs);
         #endif
     }
@@ -1170,11 +1170,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmpeq_epi32_mask(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpeq_epi32(lhs, rhs);
         #endif
     }
@@ -1203,11 +1203,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_NEQ_UQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpneq_ps(lhs, rhs);
         #endif
     }
@@ -1217,11 +1217,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmpneq_epi32_mask(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_xor_si128(_mm_cmpeq_epi32(lhs, rhs), _mm_set1_epi32(-1));
         #endif
     }
@@ -1249,11 +1249,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_GT_OQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpgt_ps(lhs, rhs);
         #endif
     }
@@ -1263,11 +1263,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmpgt_epi32_mask(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpgt_epi32(lhs, rhs);
         #endif
     }
@@ -1295,11 +1295,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_GE_OQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpge_ps(lhs, rhs);
         #endif
     }
@@ -1309,11 +1309,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmpge_epi32_mask(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_or_si128(_mm_cmpgt_epi32(lhs, rhs), _mm_cmpeq_epi32(lhs, rhs));
         #endif
     }
@@ -1341,11 +1341,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_LT_OQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmplt_ps(lhs, rhs);
         #endif
     }
@@ -1355,11 +1355,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmplt_epi32_mask(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmplt_epi32(lhs, rhs);
         #endif
     }
@@ -1387,11 +1387,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_LE_OQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmple_ps(lhs, rhs);
         #endif
     }
@@ -1401,11 +1401,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmple_epi32_mask(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_or_si128(_mm_cmplt_epi32(lhs, rhs), _mm_cmpeq_epi32(lhs, rhs));
         #endif
     }
@@ -1433,11 +1433,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kand_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_and_ps(lhs, rhs);
         #endif
     }
@@ -1447,11 +1447,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kand_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_and_si128(lhs, rhs);
         #endif
     }
@@ -1479,11 +1479,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kor_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_or_ps(lhs, rhs);
         #endif
     }
@@ -1493,11 +1493,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kor_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_or_si128(lhs, rhs);
         #endif
     }
@@ -1525,11 +1525,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kxor_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_xor_ps(lhs, rhs);
         #endif
     }
@@ -1539,11 +1539,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kxor_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_xor_si128(lhs, rhs);
         #endif
     }
@@ -1571,11 +1571,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _knot_mask8(mask);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         __m128 m = _mm_set1_ps(OneBlock<float>);
         return _mm_xor_ps(mask, m);
         #endif
@@ -1586,11 +1586,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _knot_mask8(mask);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_xor_si128(mask, _mm_set1_epi32(-1));
         #endif
     }
@@ -1618,11 +1618,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kandn_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_andnot_ps(lhs, rhs);
         #endif
     }
@@ -1632,11 +1632,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kandn_mask8(lhs, rhs);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_andnot_si128(lhs, rhs);
         #endif
     }
@@ -1664,12 +1664,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) == lane_mask;
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         int m = _mm_movemask_ps(mask);
         return m == 0b1111; // 4 lanes are true
         #endif
@@ -1680,12 +1680,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) == lane_mask;
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         int m = _mm_movemask_epi8(mask);
         constexpr int test = 0b1000'1000'1000'1000;
         return (m & test) == test;
@@ -1698,7 +1698,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_all(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) == 0b1111;
 
@@ -1718,12 +1718,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) != 0;
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         int m = _mm_movemask_ps(mask);
         return m != 0;
         #endif
@@ -1734,12 +1734,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) != 0;
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         int m = _mm_movemask_epi8(mask);
         return m != 0;
         #endif
@@ -1751,7 +1751,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_any(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) != 0;
 
@@ -1771,12 +1771,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) == 0;
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         int m = _mm_movemask_ps(mask);
         return m == 0;
         #endif
@@ -1787,12 +1787,12 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) == 0;
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         int m = _mm_movemask_epi8(mask);
         return m == 0;
         #endif
@@ -1804,7 +1804,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(bool) mask_none(Tag, Mask<Tag> mask) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         constexpr int lane_mask = 0b1111;
         return (mask & lane_mask) == 0;
 
@@ -1824,11 +1824,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_mask_blend_ps(_if, _else, _then);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_blendv_ps(_else, _then, _if);
         #endif
     }
@@ -1838,11 +1838,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_mask_blend_epi32(_if, _else, _then);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_or_si128(_mm_and_si128(_if, _then), _mm_andnot_si128(_if, _else));
         #endif
     }
@@ -1997,13 +1997,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             // avx512
-            #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+            #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
             __mmask8 nan_check = _mm_cmp_ps_mask(v, v, _CMP_UNORD_Q);
             unsigned char no_nan = _ktestz_mask8_u8(nan_check, nan_check);
             return no_nan ? _mm_cvtss_f32(res) : QNaN<float>;
 
             // sse
-            #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+            #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
             __m128 nan_check = _mm_cmpunord_ps(v, v);
             int32_t has_nan = _mm_movemask_ps(nan_check);
             return has_nan ? QNaN<float> : _mm_cvtss_f32(res);
@@ -2071,13 +2071,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         if constexpr (option == FloatMinMaxOption::CheckNaN)
         {
             // avx512
-            #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+            #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
             __mmask8 nan_check = _mm_cmp_ps_mask(v, v, _CMP_UNORD_Q);
             unsigned char no_nan = _ktestz_mask8_u8(nan_check, nan_check);
             return no_nan ? _mm_cvtss_f32(res) : QNaN<float>;
 
             // sse
-            #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+            #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
             __m128 nan_check = _mm_cmpunord_ps(v, v);
             int32_t has_nan = _mm_movemask_ps(nan_check);
             return has_nan ? QNaN<float> : _mm_cvtss_f32(res);
@@ -2296,11 +2296,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_NGT_UQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpngt_ps(lhs, rhs);
         #endif
     }
@@ -2328,11 +2328,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_NGE_UQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpnge_ps(lhs, rhs);
         #endif
     }
@@ -2360,11 +2360,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_NLT_UQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpnlt_ps(lhs, rhs);
         #endif
     }
@@ -2392,11 +2392,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_NLE_UQ);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpnle_ps(lhs, rhs);
         #endif
     }
@@ -2424,11 +2424,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_UNORD_Q);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpunord_ps(lhs, rhs);
         #endif
     }
@@ -2456,13 +2456,13 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _kand_mask8(
             _mm_cmp_ps_mask(lhs, lhs, _CMP_UNORD_Q),
             _mm_cmp_ps_mask(rhs, rhs, _CMP_UNORD_Q));
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_and_ps(_mm_cmpunord_ps(lhs, lhs), _mm_cmpunord_ps(rhs, rhs));
         #endif
     }
@@ -2490,11 +2490,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         return _mm_cmp_ps_mask(lhs, rhs, _CMP_ORD_Q);
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         return _mm_cmpord_ps(lhs, rhs);
         #endif
     }
@@ -2522,14 +2522,14 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
         __m128 inf_v = _mm_set1_ps(Inf<float>);
         return _kor_mask8(_mm_cmp_ps_mask(_mm_and_ps(lhs, abs_mask), inf_v, _CMP_LT_OQ),
             _mm_cmp_ps_mask(_mm_and_ps(rhs, abs_mask), inf_v, _CMP_LT_OQ));
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
         __m128 inf_v = _mm_set1_ps(Inf<float>);
         return _mm_or_ps(_mm_cmplt_ps(_mm_and_ps(lhs, abs_mask), inf_v),
@@ -2560,7 +2560,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         // avx512
-        #if KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_AVX512_START
+        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
         __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
         __m128 inf_v = _mm_set1_ps(Inf<float>);
 
@@ -2568,7 +2568,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
             _mm_cmp_ps_mask(_mm_and_ps(rhs, abs_mask), inf_v, _CMP_LT_OQ));
 
         // sse
-        #elif KSIMD_DYN_DISPATCH_LEVEL > KSIMD_DYN_DISPATCH_LEVEL_SSE_START
+        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
         __m128 abs_mask = _mm_set1_ps(SignBitClearMask<float>);
         __m128 inf_v = _mm_set1_ps(Inf<float>);
 
