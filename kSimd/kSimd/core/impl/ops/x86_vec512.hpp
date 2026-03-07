@@ -123,7 +123,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return _mm512_load_si512(mem);
@@ -154,7 +154,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         _mm512_store_si512(reinterpret_cast<void*>(mem), v);
@@ -185,7 +185,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return _mm512_loadu_si512(mem);
@@ -216,7 +216,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         _mm512_storeu_si512(reinterpret_cast<void*>(mem), v);
@@ -319,7 +319,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
     {
         return _mm512_setzero_si512();
@@ -349,7 +349,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) zero(Tag) noexcept
     {
         return _mm512_setzero_si512();
@@ -694,8 +694,11 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
-    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept { return _mm512_xor_si512(v, _mm512_set1_epi32(-1)); }
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
+    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
+    {
+        return _mm512_xor_si512(v, _mm512_set1_epi32(-1));
+    }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
     template<typename Tag>
@@ -713,7 +716,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return _mm512_and_si512(lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -732,7 +735,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return _mm512_andnot_si512(lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -751,7 +754,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return _mm512_or_si512(lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16
@@ -770,7 +773,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_512<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_512<Tag>)
     KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept { return _mm512_xor_si512(lhs, rhs); }
 
 #if KSIMD_SUPPORT_NATIVE_FP16

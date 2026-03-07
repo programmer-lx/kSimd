@@ -97,7 +97,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return _mm256_load_si256(reinterpret_cast<const __m256i*>(mem));
@@ -123,7 +123,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         _mm256_store_si256(reinterpret_cast<__m256i*>(mem), v);
@@ -149,7 +149,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) loadu(Tag, const tag_scalar_t<Tag>* mem) noexcept
     {
         return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(mem));
@@ -175,7 +175,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(void) storeu(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
     {
         _mm256_storeu_si256(reinterpret_cast<__m256i*>(mem), v);
@@ -298,7 +298,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
     {
         return _mm256_setzero_si256();
@@ -328,7 +328,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) zero(Tag) noexcept
     {
         return _mm256_setzero_si256();
@@ -687,7 +687,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
     {
         return _mm256_xor_si256(v, _mm256_set1_epi32(-1));
@@ -709,7 +709,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm256_and_si256(lhs, rhs);
@@ -731,7 +731,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm256_andnot_si256(lhs, rhs);
@@ -753,7 +753,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm256_or_si256(lhs, rhs);
@@ -775,7 +775,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
     {
         return _mm256_xor_si256(lhs, rhs);
@@ -977,7 +977,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return _mm256_and_si256(lhs, rhs);
@@ -1007,7 +1007,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return _mm256_or_si256(lhs, rhs);
@@ -1037,7 +1037,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return _mm256_xor_si256(lhs, rhs);
@@ -1098,7 +1098,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
     {
         return _mm256_andnot_si256(lhs, rhs);
@@ -1228,7 +1228,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int32<Tag> && is_tag_256<Tag>)
+        requires(is_tag_integer<Tag> && is_tag_256<Tag>)
     KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
     {
         return _mm256_or_si256(_mm256_and_si256(_if, _then), _mm256_andnot_si256(_if, _else));
