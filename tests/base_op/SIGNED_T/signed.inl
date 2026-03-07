@@ -51,8 +51,6 @@ namespace KSIMD_DYN_INSTRUCTION
     void neg() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        
-        using batch_t = ns::Batch<decltype(t)>;
 
         const size_t Lanes = ns::lanes(t);
         std::vector<TYPE_T, ksimd::AlignedAllocator<TYPE_T>> src(Lanes);
@@ -98,7 +96,7 @@ namespace KSIMD_DYN_INSTRUCTION
             }
 
             // NaN sign flip
-            batch_t v_nan = ns::set(t, ksimd::QNaN<TYPE_T>);
+            ns::Batch<decltype(t)> v_nan = ns::set(t, ksimd::QNaN<TYPE_T>);
             ns::store(t, src.data(), v_nan);
             ns::store(t, dst.data(), ns::neg(t, v_nan));
             for (size_t i = 0; i < Lanes; ++i) {
