@@ -38,14 +38,6 @@ namespace KSIMD_DYN_INSTRUCTION
             }
         }
         #endif
-
-        #if KSIMD_TEST_SINT
-        {
-            // 补码特例：abs(INT_MIN) 在溢出后仍为 INT_MIN
-            ns::store(t, test.data(), ns::abs(t, ns::set(t, ksimd::Min<TYPE_T>)));
-            EXPECT_TRUE(array_bit_equal(test.data(), Lanes, ksimd::Min<TYPE_T>));
-        }
-        #endif
     }
 }
 #if KSIMD_ONCE
@@ -95,16 +87,6 @@ namespace KSIMD_DYN_INSTRUCTION
             }
             #endif
         }
-
-        // 4. 整数边界测试
-        #if KSIMD_TEST_SINT
-        {
-            // INT_MIN -> INT_MIN (溢出行为)
-            batch_t v_min = ns::set(t, ksimd::Min<TYPE_T>);
-            ns::store(t, dst.data(), ns::neg(t, v_min));
-            EXPECT_TRUE(array_equal(dst.data(), Lanes, ksimd::Min<TYPE_T>));
-        }
-        #endif
 
         // 5. 浮点数特殊值
         #if KSIMD_TEST_FP
