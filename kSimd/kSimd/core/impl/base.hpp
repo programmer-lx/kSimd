@@ -183,13 +183,13 @@
     #define KSIMD_BASELINE_X86_V4 0
 #endif
 
-#if KSIMD_ARCH_ARM_64
+#if defined(__ARM_NEON)
     #define KSIMD_BASELINE_NEON 1
 #else
     #define KSIMD_BASELINE_NEON 0
 #endif
 
-#if KSIMD_ARCH_ARM_64 && defined(__ARM_FEATURE_SVE)
+#if defined(__ARM_FEATURE_SVE) && defined(__ARM_NEON)
     #define KSIMD_BASELINE_SVE 1
 #else
     #define KSIMD_BASELINE_SVE 0

@@ -97,7 +97,7 @@
     #error arm 32bit is unsupported, please use arm 64bit
 
 #else
-    #error "Unknown arch, kSimd can only support x86 and arm."
+    #error Unknown arch, kSimd can only support x86-64 and arm-64.
 #endif
 
 
