@@ -5,8 +5,6 @@
 #include <type_traits>
 #include <version>
 
-#include <cstdint>
-
 
 // C++ standard
 #ifndef __cplusplus
@@ -35,28 +33,6 @@
     #define KSIMD_SUPPORT_STD_HEX_FLOAT 0
 #endif
 
-// Native extension floating-point type support (such as x86 _Float16, arm __fp16)
-// _Float16
-#if defined(__FLT16_MAX__)
-    #define KSIMD_SUPPORT_EXTENSION_FLOAT16 1
-#else
-    #define KSIMD_SUPPORT_EXTENSION_FLOAT16 0
-#endif
-
-// _Float32
-#if defined(__FLT32_MAX__)
-    #define KSIMD_SUPPORT_EXTENSION_FLOAT32 1
-#else
-    #define KSIMD_SUPPORT_EXTENSION_FLOAT32 0
-#endif
-
-// _Float64
-#if defined(__FLT64_MAX__)
-    #define KSIMD_SUPPORT_EXTENSION_FLOAT64 1
-#else
-    #define KSIMD_SUPPORT_EXTENSION_FLOAT64 0
-#endif
-
 // C++23 std::floatXXX support
 #ifdef __STDCPP_FLOAT16_T__
     #define KSIMD_SUPPORT_STD_FLOAT16 1
@@ -83,7 +59,7 @@
 #endif
 
 // support native FP16 (such as __fp16, _Float16, std::float16_t)
-#if KSIMD_SUPPORT_EXTENSION_FLOAT16 || KSIMD_SUPPORT_STD_FLOAT16 || KSIMD_ARCH_ARM_ANY /* arm __fp16 type */
+#if KSIMD_SUPPORT_EXTENSION_FLOAT16 || KSIMD_SUPPORT_STD_FLOAT16
     #define KSIMD_SUPPORT_NATIVE_FP16 1
 #else
     #define KSIMD_SUPPORT_NATIVE_FP16 0

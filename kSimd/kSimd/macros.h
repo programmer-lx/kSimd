@@ -101,6 +101,36 @@
 #endif
 
 
+// Native extended floating-point type (such as x86 _Float16, arm __fp16)
+// _Float16
+#if defined(__FLT16_MAX__) || KSIMD_ARCH_ARM_ANY
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT16 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT16 0
+#endif
+
+// _Float32
+#if defined(__FLT32_MAX__)
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT32 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT32 0
+#endif
+
+// _Float64
+#if defined(__FLT64_MAX__)
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT64 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT64 0
+#endif
+
+// _Float128
+#if defined(__FLT128_MAX__)
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT128 1
+#else
+    #define KSIMD_SUPPORT_EXTENSION_FLOAT128 0
+#endif
+
+
 // --- macro utils ---
 #define KSIMD_STR_IMPL(x) #x
 #define KSIMD_STR(x) KSIMD_STR_IMPL(x)
