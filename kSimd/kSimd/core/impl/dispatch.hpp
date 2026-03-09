@@ -1,0 +1,354 @@
+#pragma once
+
+// 该头文件编写函数分发表相关逻辑
+
+#include "base.hpp"
+#include "types.hpp"
+
+// --------------------------------- DISPATCH_LEVEL ---------------------------------
+// 将会在 dispatch_this_file.hpp 文件被多次重定义
+#define KSIMD_DYN_DISPATCH_LEVEL "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+
+// 该宏用于判断分发到了哪一层指令集
+// KSIMD_DYN_DISPATCH_LEVEL values
+
+// scalar
+#define KSIMD_DYN_DISPATCH_LEVEL_SCALAR             1
+
+// SSE family
+#define KSIMD_DYN_DISPATCH_LEVEL_SSE_START          11
+#define KSIMD_DYN_DISPATCH_LEVEL_X86_V1             12
+#define KSIMD_DYN_DISPATCH_LEVEL_X86_V2             13
+#define KSIMD_DYN_DISPATCH_LEVEL_SSE_END            14
+
+// AVX family
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX_START          21
+#define KSIMD_DYN_DISPATCH_LEVEL_X86_V3             22
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX_END            23
+
+// AVX512 family
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX512_START       31
+#define KSIMD_DYN_DISPATCH_LEVEL_X86_V4             32
+#define KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16   33
+#define KSIMD_DYN_DISPATCH_LEVEL_AVX512_END         34
+
+// arm NEON
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON_START         51
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON               52
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON_FULL_FP16     53
+#define KSIMD_DYN_DISPATCH_LEVEL_NEON_END           54
+
+// arm SVE
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE_START          61
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE                62
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE_FULL_FP16      63
+#define KSIMD_DYN_DISPATCH_LEVEL_SVE_END            64
+
+
+// --------------------------------- FUNC_ATTR ---------------------------------
+// 将会在 dispatch_this_file.hpp 文件被多次重定义
+#define KSIMD_DYN_FUNC_ATTR "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+
+/*
+    see https://gcc.gnu.org/onlinedocs/gcc/x86-Function-Attributes.html#x86-Function-Attributes
+    for more intrinsics attributes information.
+*/
+
+// scalar
+#define KSIMD_DYN_FUNC_ATTR_SCALAR
+
+// popcnt
+#define KSIMD_DYN_FUNC_ATTR_POPCNT KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("popcnt")
+
+// sse x64 v2
+#define KSIMD_DYN_FUNC_ATTR_X86_V2 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.2")
+
+// sse4.2
+#define KSIMD_DYN_FUNC_ATTR_SSE4_2 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("sse4.2")
+
+// avx2
+#define KSIMD_DYN_FUNC_ATTR_AVX2 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2")
+
+// x64 v3
+#define KSIMD_DYN_FUNC_ATTR_X86_V3 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx2,fma,f16c")
+
+// avx512-f
+#define KSIMD_DYN_FUNC_ATTR_AVX512_F KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("avx512f")
+
+// x64 v4 (AVX512 F, DQ, VL)
+#define KSIMD_DYN_FUNC_ATTR_X86_V4 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("fma,f16c,avx512f,avx512dq,avx512bw,avx512vl")
+
+// neon
+#define KSIMD_DYN_FUNC_ATTR_NEON
+
+// neon + full fp16
+#define KSIMD_DYN_FUNC_ATTR_NEON_FULL_FP16 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("+fp16")
+
+// sve
+#define KSIMD_DYN_FUNC_ATTR_SVE KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("+sve")
+
+// arm crc32
+#define KSIMD_DYN_FUNC_ATTR_ARM_CRC32 KSIMD_FUNC_ATTR_INTRINSIC_TARGETS("+crc")
+
+
+// --------------------------------- KSIMD_DYN_INSTRUCTION ---------------------------------
+// 将会在 dispatch_this_file.hpp 文件被多次重定义
+#define KSIMD_DYN_INSTRUCTION "we should include our file after include <kSimd/core/dispatch_this_file.hpp>"
+
+// scalar
+#define KSIMD_DYN_INSTRUCTION_SCALAR    KSIMD_SCALAR
+
+// avx512 family
+#define KSIMD_DYN_INSTRUCTION_X86_V4    KSIMD_X86_V4
+
+// avx family
+#define KSIMD_DYN_INSTRUCTION_X86_V3    KSIMD_X86_V3
+
+// sse family (sse3, ssse3, sse4.1, sse4.2)
+#define KSIMD_DYN_INSTRUCTION_X86_V2    KSIMD_X86_V2
+
+// neon
+#define KSIMD_DYN_INSTRUCTION_NEON      KSIMD_NEON
+
+// sve
+#define KSIMD_DYN_INSTRUCTION_SVE       KSIMD_SVE
+
+// avx512 v4 fallback
+#if KSIMD_INSTRUCTION_FEATURE_X86_V4 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_X86_V4
+#endif
+
+// avx v3 fallback
+#if KSIMD_INSTRUCTION_FEATURE_X86_V3 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_X86_V3
+#endif
+
+// sse v2 fallback
+#if KSIMD_INSTRUCTION_FEATURE_X86_V2 == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_X86_V2
+#endif
+
+// sve fallback
+#if KSIMD_INSTRUCTION_FEATURE_SVE == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_SVE
+#endif
+
+// neon fallback
+#if KSIMD_INSTRUCTION_FEATURE_NEON == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_NEON
+#endif
+
+// scalar fallback
+#if KSIMD_INSTRUCTION_FEATURE_SCALAR == KSIMD_INSTRUCTION_FEATURE_FALLBACK_VALUE
+    #undef KSIMD_DYN_INSTRUCTION_FALLBACK
+    #define KSIMD_DYN_INSTRUCTION_FALLBACK KSIMD_DYN_INSTRUCTION_SCALAR
+#endif
+
+// check fallback
+#if !defined(KSIMD_DYN_INSTRUCTION_FALLBACK)
+    #error "We must define a fallback instruction name."
+#endif
+
+
+// instruction充当命名空间, __VA_ARGS__ 是模板实参
+#define KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, instruction, ...) &instruction::func_name __VA_ARGS__,
+
+#define KSIMD_DETAIL_ONE_EMPTY_FUNC
+
+// ---------------------------------------------- Function table ----------------------------------------------
+// Scalar
+#if KSIMD_INSTRUCTION_FEATURE_SCALAR
+    #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SCALAR, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_SCALAR_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// SSE4.1 v2
+#if KSIMD_INSTRUCTION_FEATURE_X86_V2
+    #define KSIMD_DETAIL_X86_V2_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V2, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_X86_V2_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// AVX2_FMA3_F16C V3
+#if KSIMD_INSTRUCTION_FEATURE_X86_V3
+    #define KSIMD_DETAIL_X86_V3_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V3, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_X86_V3_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// AVX512 F DQ VL  V4
+#if KSIMD_INSTRUCTION_FEATURE_X86_V4
+    #define KSIMD_DETAIL_X86_V4_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_X86_V4, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_X86_V4_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// SVE
+#if KSIMD_INSTRUCTION_FEATURE_SVE
+    #define KSIMD_DETAIL_SVE_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_SVE, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_SVE_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// NEON
+#if KSIMD_INSTRUCTION_FEATURE_NEON
+    #define KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, ...) \
+        KSIMD_DETAIL_ONE_FUNC_IMPL(func_name, KSIMD_DYN_INSTRUCTION_NEON, __VA_ARGS__)
+#else
+    #define KSIMD_DETAIL_NEON_FUNC_IMPL(...) KSIMD_DETAIL_ONE_EMPTY_FUNC
+#endif
+
+// function table
+#define KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, ...) \
+    /* ------------------------------------- avx512 family ------------------------------------- */ \
+    KSIMD_DETAIL_X86_V4_FUNC_IMPL(func_name, __VA_ARGS__) /* V4 */ \
+    \
+    /* ------------------------------------- avx family ------------------------------------- */ \
+    KSIMD_DETAIL_X86_V3_FUNC_IMPL(func_name, __VA_ARGS__) /* V3 */ \
+    \
+    /* ------------------------------------- sse family ------------------------------------- */ \
+    KSIMD_DETAIL_X86_V2_FUNC_IMPL(func_name, __VA_ARGS__) /* V2 */ \
+    \
+    /* ------------------------------------- arm sve ------------------------------------- */ \
+    KSIMD_DETAIL_SVE_FUNC_IMPL(func_name, __VA_ARGS__) /* SVE */ \
+    \
+    /* ------------------------------------- arm neon ------------------------------------- */ \
+    KSIMD_DETAIL_NEON_FUNC_IMPL(func_name, __VA_ARGS__) /* NEON */ \
+    \
+    /* ------------------------------------- scalar ------------------------------------- */ \
+    KSIMD_DETAIL_SCALAR_FUNC_IMPL(func_name, __VA_ARGS__) /* scalar */
+
+#if !defined(KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY)
+    #error "have not defined DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY to cache the simd function pointers"
+#endif
+
+namespace ksimd
+{
+    namespace detail
+    {
+        // full lanes simd 类型的字节长度
+        namespace dyn_vec_size
+        {
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V4 = vec_size::Vec512;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V3 = vec_size::Vec256;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_X86_V2 = vec_size::Vec128;
+
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SVE = vec_size::Scalable;
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_NEON = vec_size::Vec128;
+
+            KSIMD_HEADER_GLOBAL_CONSTEXPR size_t KSIMD_DYN_INSTRUCTION_SCALAR = vec_size::Scalar128;
+        }
+
+        // 这个枚举的值就是函数指针表的索引
+        // 越现代的指令集，排得越靠前，索引越小
+        enum class SimdInstructionIndex : int
+        {
+            Invalid = -1,
+
+        #if KSIMD_INSTRUCTION_FEATURE_X86_V4
+            KSIMD_DYN_INSTRUCTION_X86_V4,
+        #endif
+
+        #if KSIMD_INSTRUCTION_FEATURE_X86_V3
+            KSIMD_DYN_INSTRUCTION_X86_V3,
+        #endif
+
+        #if KSIMD_INSTRUCTION_FEATURE_X86_V2
+            KSIMD_DYN_INSTRUCTION_X86_V2,
+        #endif
+
+        #if KSIMD_INSTRUCTION_FEATURE_SVE
+            KSIMD_DYN_INSTRUCTION_SVE,
+        #endif
+
+        #if KSIMD_INSTRUCTION_FEATURE_NEON
+            KSIMD_DYN_INSTRUCTION_NEON,
+        #endif
+
+        #if KSIMD_INSTRUCTION_FEATURE_SCALAR
+            KSIMD_DYN_INSTRUCTION_SCALAR,
+        #endif
+
+            Num
+        };
+        static_assert(static_cast<int>(SimdInstructionIndex::Num) > 0);
+
+        // 必须使用 内部链接 使每份CPP文件拥有一个单独的函数，这样，就能通过宏定义，来单独的控制每份CPP文件需要分发哪些指令集，不分发哪些指令集
+        [[maybe_unused]] static int dyn_func_index() noexcept
+        {
+            static int i = []()
+            {
+                [[maybe_unused]] const ksimd::CpuSupportInfo& supports = ksimd::get_cpu_support_info();
+
+                // 从最高级的指令往下判断
+                #if KSIMD_INSTRUCTION_FEATURE_X86_V4
+                if (supports.avx512_f && supports.avx512_dq && supports.avx512_bw && supports.avx512_vl)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V4);
+                }
+                #endif
+
+                #if KSIMD_INSTRUCTION_FEATURE_X86_V3
+                if (supports.avx2 && supports.fma3 && supports.f16c)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V3);
+                }
+                #endif
+
+                #if KSIMD_INSTRUCTION_FEATURE_X86_V2
+                if (supports.sse4_2)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_X86_V2);
+                }
+                #endif
+
+                #if KSIMD_INSTRUCTION_FEATURE_SVE
+                if (supports.sve)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_SVE);
+                }
+                #endif
+
+                #if KSIMD_INSTRUCTION_FEATURE_NEON
+                if (supports.neon)
+                {
+                    return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_NEON);
+                }
+                #endif
+
+                // 返回实际的 fallback index 即可，某些平台，标量可能不是 fallback
+                return ksimd::detail::underlying(ksimd::detail::SimdInstructionIndex::KSIMD_DYN_INSTRUCTION_FALLBACK);
+            }();
+
+            return i;
+        }
+    }
+}
+
+#define KSIMD_DETAIL_PFN_TABLE_PREFIX KSIMD_PFN_TABLE_
+#define KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) KSIMD_CONCAT(KSIMD_DETAIL_PFN_TABLE_PREFIX, func_name)
+
+// __VA_ARGS__ 是模板的完整实参，比如 <T1, T2>，不要漏掉尖括号
+#define KSIMD_DYN_DISPATCH_FUNC(func_name, ...) \
+    /* 构建静态数组，存储函数指针，不能添加 static, inline 声明，强制整个程序只能有一份函数表 */ \
+    const decltype(&KSIMD_DYN_INSTRUCTION::func_name __VA_ARGS__) KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name)[] = { \
+        KSIMD_DETAIL_DYN_DISPATCH_FUNC_POINTER_STATIC_ARRAY(func_name, __VA_ARGS__) \
+    }
+
+// __VA_ARGS__ 是模板完整实参
+#define KSIMD_DYN_FUNC_POINTER(func_name, ...) \
+    KSIMD_DETAIL_PFN_TABLE_FULL_NAME(func_name) __VA_ARGS__ [ksimd::detail::dyn_func_index()]
+
+// __VA_ARGS__ 是模板完整实参
+#define KSIMD_DYN_CALL(func_name, ...) (KSIMD_DYN_FUNC_POINTER(func_name, __VA_ARGS__))

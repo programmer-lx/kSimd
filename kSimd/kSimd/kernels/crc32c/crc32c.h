@@ -1,0 +1,77 @@
+#pragma once
+
+/*
+#define KSIMD_KERNEL_CRC32C_AS_DLL to use this kernel as DLL.
+
+To compute CRC32C of a buffer:
+1. uint32_t crc = ks_begin_crc32c();                       --- get the initial checksum value.
+2. for (chunk in buffer)                                   --- or you can update crc32c only once.
+   {
+       crc = ks_update_crc32c(crc, &chunk, size of chunk); --- update crc32c checksum.
+   }
+3. crc = ks_end_crc32c(crc);                               --- get the final value.
+*/
+
+#ifdef __cplusplus
+    #include <cstdint>
+    #include <cstddef>
+#else
+    #include <stdint.h>
+    #include <stddef.h>
+#endif
+
+#include "kSimd/kernels/kernel_api.h"
+
+#ifdef KSIMD_KERNEL_CRC32C_AS_DLL
+    /* shared lib */
+    #ifdef KSIMD_KERNEL_CRC32C_EXPORT /* cpp file should define this macro. */
+        #define KSIMD_KERNEL_CRC32C_API KSIMD_DLL_EXPORT
+    #else
+        #define KSIMD_KERNEL_CRC32C_API KSIMD_DLL_IMPORT
+    #endif
+#else
+    /* static lib */
+    #define KSIMD_KERNEL_CRC32C_API
+#endif
+
+KSIMD_KERNEL_BEGIN_EXTERN_C
+
+/* kernel */
+#define ks_begin_crc32c() (UINT32_C(0xffffffff))
+#define ks_end_crc32c(crc) ((crc) ^ UINT32_C(0xffffffff))
+
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+);
+
+
+
+/* for testing */
+#ifdef KSIMD_IS_TESTING
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_soft(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+);
+
+#if KSIMD_ARCH_X86_ANY
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_sse42(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+);
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_arm(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+);
+#endif
+
+#endif
+
+KSIMD_KERNEL_END_EXTERN_C

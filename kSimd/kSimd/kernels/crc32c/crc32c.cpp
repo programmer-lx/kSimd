@@ -1,0 +1,205 @@
+#define KSIMD_KERNEL_CRC32C_EXPORT
+#include "kSimd/kernels/crc32c/crc32c.h"
+
+#include "kSimd/core/impl/base.hpp"
+
+#if KSIMD_ARCH_X86_ANY
+    #include <nmmintrin.h> // SSE4.2 CRC32 intrinsic
+#elif KSIMD_ARCH_ARM_ANY
+    #include <arm_acle.h>
+#else
+    #error unknown arch
+#endif
+
+#include <cstring> // memcpy
+#include <array> // CRC32C table
+
+#include "kSimd/core/impl/dispatch.hpp"
+
+namespace
+{
+    consteval std::array<uint32_t, 256> make_crc32c_table()
+    {
+        constexpr uint32_t POLY = 0x82F63B78; // 反转后的多项式
+        std::array<uint32_t, 256> table{};
+        for (uint32_t i = 0; i < 256; i++)
+        {
+            uint32_t c = i;
+            for (int j = 0; j < 8; j++)
+            {
+                if (c & 1)
+                    c = (c >> 1) ^ POLY;
+                else
+                    c >>= 1;
+            }
+            table[i] = c;
+        }
+        return table;
+    }
+
+    auto crc32c_table = make_crc32c_table();
+
+    uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_soft(
+        uint32_t origin,
+        const void* data,
+        size_t size
+    ) noexcept
+    {
+        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+
+        for (size_t i = 0; i < size; i++)
+        {
+            uint8_t index = (origin ^ bytes[i]) & 0xff;
+            origin = (origin >> 8) ^ crc32c_table[index];
+        }
+
+        return origin;
+    }
+
+#if KSIMD_ARCH_X86_ANY
+    KSIMD_DYN_FUNC_ATTR_SSE4_2 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_sse42(
+        uint32_t origin,
+        const void* data,
+        size_t size
+    ) noexcept
+    {
+        uint32_t crc = origin;
+        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+
+        size_t i = 0;
+
+        #if KSIMD_ARCH_X86_64
+        for (; i + 8 <= size; i += 8)
+        {
+            uint64_t v;
+            std::memcpy(&v, bytes + i, 8); // 避免未对齐 UB
+            crc = static_cast<uint32_t>(_mm_crc32_u64(crc, v));
+        }
+        #endif
+
+        for (; i + 4 <= size; i += 4)
+        {
+            uint32_t v;
+            std::memcpy(&v, bytes + i, 4);
+            crc = _mm_crc32_u32(crc, v);
+        }
+
+        for (; i < size; ++i)
+        {
+            crc = _mm_crc32_u8(crc, bytes[i]);
+        }
+
+        return crc;
+    }
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+    KSIMD_DYN_FUNC_ATTR_ARM_CRC32 uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c_arm(
+        uint32_t origin,
+        const void* data,
+        size_t size
+    ) noexcept
+    {
+        uint32_t crc = origin;
+        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
+
+        size_t i = 0;
+
+        #if KSIMD_ARCH_ARM_64
+        for (; i + 8 <= size; i += 8)
+        {
+            uint64_t v;
+            std::memcpy(&v, bytes + i, 8); // 避免未对齐 UB
+            crc = __crc32cd(crc, v);
+        }
+        #endif
+
+        for (; i + 4 <= size; i += 4)
+        {
+            uint32_t v;
+            std::memcpy(&v, bytes + i, 4);
+            crc = __crc32cw(crc, v);
+        }
+
+        for (; i < size; ++i)
+        {
+            crc = __crc32cb(crc, bytes[i]);
+        }
+
+        return crc;
+    }
+#endif
+
+    auto ks_update_crc32c_fn()
+    {
+        static auto fn = []()
+        {
+            [[maybe_unused]] const auto& support = ksimd::get_cpu_support_info();
+
+            #if KSIMD_ARCH_X86_ANY
+            if (support.sse4_2)
+            {
+                return ks_update_crc32c_sse42;
+            }
+            #endif
+
+            #if KSIMD_ARCH_ARM_ANY
+            if (support.arm_crc32)
+            {
+                return ks_update_crc32c_arm;
+            }
+            #endif
+
+            // fallback
+            return ks_update_crc32c_soft;
+        }();
+
+        return fn;
+    }
+}
+
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_update_crc32c(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+)
+{
+    return ks_update_crc32c_fn()(origin, data, static_cast<size_t>(size));
+}
+
+
+
+// for testing
+#ifdef KSIMD_IS_TESTING
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_soft(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+)
+{
+    return ks_update_crc32c_soft(origin, data, static_cast<size_t>(size));
+}
+
+#if KSIMD_ARCH_X86_ANY
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_sse42(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+)
+{
+    return ks_update_crc32c_sse42(origin, data, static_cast<size_t>(size));
+}
+#endif
+
+#if KSIMD_ARCH_ARM_ANY
+KSIMD_KERNEL_CRC32C_API uint32_t KSIMD_KERNEL_CALL_CONV ks_test_update_crc32c_arm(
+    uint32_t origin,
+    const void* data,
+    ks_bytesize_t size
+)
+{
+    return ks_update_crc32c_arm(origin, data, static_cast<size_t>(size));
+}
+#endif
+
+#endif

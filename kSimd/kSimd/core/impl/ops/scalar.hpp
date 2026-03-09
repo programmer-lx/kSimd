@@ -1,0 +1,687 @@
+// do not use include guard
+
+#include <cmath>
+#include <cstring>
+#include <cstddef>
+
+#include <utility>
+
+#include "shared.hpp"
+#include "kSimd/IDE/IDE_hint.hpp"
+
+#define KSIMD_API(...) KSIMD_DYN_FUNC_ATTR KSIMD_FORCE_INLINE KSIMD_FLATTEN __VA_ARGS__ KSIMD_CALL_CONV
+
+namespace ksimd::KSIMD_DYN_INSTRUCTION
+{
+
+#pragma region--- constants ---
+    template<is_tag_scalar128 Tag>
+    constexpr size_t lanes(Tag) noexcept
+    {
+        return vec_size::Scalar128 / sizeof(tag_scalar_t<Tag>);
+    }
+#pragma endregion
+
+#pragma region--- types ---
+    namespace detail
+    {
+        template<typename Tag>
+        struct scalar_simd_batch
+        {
+            tag_scalar_t<Tag> v[lanes(Tag{})];
+        };
+
+        template<typename Tag, typename Enable>
+        struct batch_type;
+
+        template<typename Tag>
+        struct batch_type<Tag, std::enable_if_t<is_tag_scalar128<Tag>>>
+        {
+            using type = scalar_simd_batch<Tag>;
+        };
+
+        template<typename Tag>
+        struct scalar_simd_mask
+        {
+            same_bits_uint_t<tag_scalar_t<Tag>> m[lanes(Tag{})];
+        };
+
+        template<typename Tag, typename Enable>
+        struct mask_type;
+
+        template<typename Tag>
+        struct mask_type<Tag, std::enable_if_t<is_tag_scalar128<Tag>>>
+        {
+            using type = scalar_simd_mask<Tag>;
+        };
+    }
+
+    // public user types
+    template<is_tag Tag>
+    using Batch = typename detail::batch_type<Tag, void>::type;
+
+    template<is_tag Tag>
+    using Mask = typename detail::mask_type<Tag, void>::type;
+#pragma endregion
+
+#pragma region--- any type ---
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) load(Tag, const tag_scalar_t<Tag>* mem) noexcept
+    {
+        Batch<Tag> res{};
+        std::memcpy(res.v, mem, sizeof(tag_scalar_t<Tag>) * lanes(Tag{}));
+        return res;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(void) store(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    {
+        std::memcpy(mem, v.v, sizeof(tag_scalar_t<Tag>) * lanes(Tag{}));
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) loadu(Tag t, const tag_scalar_t<Tag>* mem) noexcept
+    {
+        return load(t, mem);
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(void) storeu(Tag t, tag_scalar_t<Tag>* mem, Batch<Tag> v) noexcept
+    {
+        store(t, mem, v);
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
+    {
+        Batch<Tag> res = { static_cast<tag_scalar_t<Tag>>(0) };
+        std::memcpy(res.v, mem, sizeof(tag_scalar_t<Tag>) * ksimd::min(count, lanes(Tag{})));
+        return res;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
+    {
+        std::memcpy(mem, v.v, sizeof(tag_scalar_t<Tag>) * ksimd::min(count, lanes(Tag{})));
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) undefined(Tag) noexcept
+    {
+        return {};
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) zero(Tag) noexcept
+    {
+        Batch<Tag> res;
+        std::memset(res.v, 0x00, sizeof(tag_scalar_t<Tag>) * lanes(Tag{}));
+        return res;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) set(Tag, tag_scalar_t<Tag> x) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { ((void)I, x)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(I)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(base + I)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) sequence(Tag, tag_scalar_t<Tag> base, tag_scalar_t<Tag> stride) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(base + static_cast<tag_scalar_t<Tag>>(I) * stride)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) add(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(lhs.v[I] + rhs.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) sub(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(lhs.v[I] - rhs.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) mul(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(lhs.v[I] * rhs.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) mul_add(Tag, Batch<Tag> a, Batch<Tag> b, Batch<Tag> c) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(a.v[I] * b.v[I] + c.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag Tag>
+    KSIMD_API(Batch<Tag>) min(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { ksimd::min<option>(lhs.v[I], rhs.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, is_tag Tag>
+    KSIMD_API(Batch<Tag>) max(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { ksimd::max<option>(lhs.v[I], rhs.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_not(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { std::bit_cast<tag_scalar_t<Tag>>((same_bits_uint_t<tag_scalar_t<Tag>>)(~ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(v.v[I])))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { std::bit_cast<tag_scalar_t<Tag>>((same_bits_uint_t<tag_scalar_t<Tag>>)(ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(lhs.v[I]) &
+                                                      ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(rhs.v[I])))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_and_not(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { std::bit_cast<tag_scalar_t<Tag>>((same_bits_uint_t<tag_scalar_t<Tag>>)((~ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(lhs.v[I])) &
+                                                      ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(rhs.v[I])))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_or(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { std::bit_cast<tag_scalar_t<Tag>>((same_bits_uint_t<tag_scalar_t<Tag>>)(ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(lhs.v[I]) |
+                                                      ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(rhs.v[I])))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_xor(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { std::bit_cast<tag_scalar_t<Tag>>((same_bits_uint_t<tag_scalar_t<Tag>>)(ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(lhs.v[I]) ^
+                                                      ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(rhs.v[I])))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) bit_if_then_else(Tag, Batch<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { std::bit_cast<tag_scalar_t<Tag>>((same_bits_uint_t<tag_scalar_t<Tag>>)((ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(_if.v[I]) &
+                                                       ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(_then.v[I])) |
+                                                      ((~ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(_if.v[I])) &
+                                                       ksimd::bitcast_to_uint<tag_scalar_t<Tag>>(_else.v[I]))))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((lhs.v[I] == rhs.v[I]) ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                                             : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) not_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((lhs.v[I] != rhs.v[I]) ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                                             : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) greater(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((lhs.v[I] > rhs.v[I]) ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                                            : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) greater_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((lhs.v[I] >= rhs.v[I]) ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                                             : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) less(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((lhs.v[I] < rhs.v[I]) ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                                            : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) less_equal(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((lhs.v[I] <= rhs.v[I]) ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                                             : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { static_cast<same_bits_uint_t<tag_scalar_t<Tag>>>(lhs.m[I] & rhs.m[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_or(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { static_cast<same_bits_uint_t<tag_scalar_t<Tag>>>(lhs.m[I] | rhs.m[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_xor(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { static_cast<same_bits_uint_t<tag_scalar_t<Tag>>>(lhs.m[I] ^ rhs.m[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_not(Tag, Mask<Tag> mask) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { static_cast<same_bits_uint_t<tag_scalar_t<Tag>>>(~mask.m[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) mask_and_not(Tag, Mask<Tag> lhs, Mask<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { static_cast<same_bits_uint_t<tag_scalar_t<Tag>>>(~lhs.m[I] & rhs.m[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(bool) mask_all(Tag t, Mask<Tag> mask) noexcept
+    {
+        constexpr size_t len = lanes(t);
+        for (size_t i = 0; i < len; ++i)
+        {
+            if (bitcast_to_uint(mask.m[i]) == 0)
+                return false;
+        }
+        return true;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(bool) mask_any(Tag t, Mask<Tag> mask) noexcept
+    {
+        constexpr size_t len = lanes(t);
+        for (size_t i = 0; i < len; ++i)
+        {
+            if (bitcast_to_uint(mask.m[i]) != 0)
+                return true;
+        }
+        return false;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(bool) mask_none(Tag t, Mask<Tag> mask) noexcept
+    {
+        constexpr size_t len = lanes(t);
+        for (size_t i = 0; i < len; ++i)
+        {
+            if (bitcast_to_uint(mask.m[i]) != 0)
+                return false;
+        }
+        return true;
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) if_then_else(Tag, Mask<Tag> _if, Batch<Tag> _then, Batch<Tag> _else) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            auto select = [&](size_t i)
+            {
+                using uint_t = same_bits_uint_t<tag_scalar_t<Tag>>;
+                uint_t cond = _if.m[i];
+                uint_t t = bitcast_to_uint(_then.v[i]);
+                uint_t e = bitcast_to_uint(_else.v[i]);
+                return std::bit_cast<tag_scalar_t<Tag>>(
+                    static_cast<uint_t>(uint_t(cond & t) | uint_t((~cond) & e))
+                );
+            };
+            return { select(I)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_add(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> tag_scalar_t<Tag>
+        {
+            return (v.v[I] + ...);
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_mul(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> tag_scalar_t<Tag>
+        {
+            return (v.v[I] * ...);
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_min(Tag, Batch<Tag> v) noexcept
+    {
+        tag_scalar_t<Tag> res = v.v[0];
+        for (size_t i = 1; i < lanes(Tag{}); ++i)
+        {
+            if constexpr (option == FloatMinMaxOption::CheckNaN && is_scalar_floating_point<tag_scalar_t<Tag>>)
+                res = (ksimd::is_NaN(res) || ksimd::is_NaN(v.v[i])) ? QNaN<tag_scalar_t<Tag>> : ksimd::min(res, v.v[i]);
+            else
+                res = ksimd::min(res, v.v[i]);
+        }
+        return res;
+    }
+
+    template<FloatMinMaxOption option = FloatMinMaxOption::Native, typename Tag>
+        requires (is_tag_scalar128<Tag>)
+    KSIMD_API(tag_scalar_t<Tag>) reduce_max(Tag, Batch<Tag> v) noexcept
+    {
+        tag_scalar_t<Tag> res = v.v[0];
+        for (size_t i = 1; i < lanes(Tag{}); ++i)
+        {
+            if constexpr (option == FloatMinMaxOption::CheckNaN && is_scalar_floating_point<tag_scalar_t<Tag>>)
+                res = (ksimd::is_NaN(res) || ksimd::is_NaN(v.v[i])) ? QNaN<tag_scalar_t<Tag>> : ksimd::max(res, v.v[i]);
+            else
+                res = ksimd::max(res, v.v[i]);
+        }
+        return res;
+    }
+#pragma endregion
+
+#pragma region--- signed ---
+    template<typename Tag>
+        requires (is_tag_signed<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) abs(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { ksimd::abs(v.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_signed<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) neg(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(-v.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+#pragma endregion
+
+#pragma region--- floating point ---
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) div(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { static_cast<tag_scalar_t<Tag>>(lhs.v[I] / rhs.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) sqrt(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { ksimd::sqrt(v.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<RoundingMode mode, typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) round(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { ksimd::round<mode>(v.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return mask_not(t, greater(t, lhs, rhs));
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) not_greater_equal(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return mask_not(t, greater_equal(t, lhs, rhs));
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) not_less(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return mask_not(t, less(t, lhs, rhs));
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) not_less_equal(Tag t, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return mask_not(t, less_equal(t, lhs, rhs));
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) any_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((ksimd::is_NaN(lhs.v[I]) || ksimd::is_NaN(rhs.v[I]))
+                              ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                              : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) all_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((ksimd::is_NaN(lhs.v[I]) && ksimd::is_NaN(rhs.v[I]))
+                              ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                              : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) not_NaN(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((!ksimd::is_NaN(lhs.v[I]) && !ksimd::is_NaN(rhs.v[I]))
+                              ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                              : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) any_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((ksimd::is_finite(lhs.v[I]) || ksimd::is_finite(rhs.v[I]))
+                              ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                              : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_floating_point<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Mask<Tag>) all_finite(Tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Mask<Tag>
+        {
+            return { ((ksimd::is_finite(lhs.v[I]) && ksimd::is_finite(rhs.v[I]))
+                              ? OneBlock<same_bits_uint_t<tag_scalar_t<Tag>>>
+                              : ZeroBlock<same_bits_uint_t<tag_scalar_t<Tag>>>)... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+#pragma endregion
+
+#pragma region--- float32 only ---
+    template<typename Tag>
+        requires (is_tag_float_32bits<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) rcp(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { (static_cast<tag_scalar_t<Tag>>(1.0f) / v.v[I])... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+
+    template<typename Tag>
+        requires (is_tag_float_32bits<Tag> && is_tag_scalar128<Tag>)
+    KSIMD_API(Batch<Tag>) rsqrt(Tag, Batch<Tag> v) noexcept
+    {
+        return [&]<size_t... I>(std::index_sequence<I...>) -> Batch<Tag>
+        {
+            return { (ksimd::rsqrt(v.v[I]))... };
+        }(std::make_index_sequence<lanes(Tag{})>{});
+    }
+#pragma endregion
+
+} // namespace ksimd::KSIMD_DYN_INSTRUCTION
+
+#undef KSIMD_API

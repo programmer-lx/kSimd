@@ -1,0 +1,12 @@
+#include <cfloat>
+#include <cstddef>
+#include <limits>
+#include <cstdint>
+
+#define TAG_T ns::FullTag<TYPE_T>
+
+using TYPE_T = uint8_t;
+// constexpr size_t ALIGNMENT = 64;
+
+#define KSIMD_TEST_INTEGER_8 1
+#include "../all_type.inl"

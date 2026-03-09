@@ -1,0 +1,12 @@
+cmake-build-*/
+.idea/
+build*/
+.vscode/
+doc_autogen/
+
+# asm
+tests_asm/*.s
+tests_asm/*.asm
+
+# object files
+*.o
