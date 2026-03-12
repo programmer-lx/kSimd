@@ -163,57 +163,156 @@ TEST_ONCE_DYN(sqrt)
 
 #endif
 
-// ------------------------------------------ float_not_comparison ------------------------------------------
+// ------------------------------------------ not_greater_equal ------------------------------------------
 namespace KSIMD_DYN_INSTRUCTION
 {
     KSIMD_DYN_FUNC_ATTR
-    void float_not_comparison() noexcept
+    void not_greater_equal() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
-        
 
-        auto v_nan = ns::set(t, ksimd::QNaN<FLOAT_T>);
-        auto v_val = ns::set(t, FLOAT_T(2.0));
-
-        // =========================================================================
-        // Greater vs Not Greater
-        // =========================================================================
-        auto res = ns::mask_none(t, ns::greater(t, v_nan, v_val));
+        // 1 !>= 2 (True)
+        auto res = ns::mask_all(t, ns::not_greater_equal(t, ns::set(t, FLOAT_T(1)), ns::set(t, FLOAT_T(2))));
         EXPECT_TRUE(res);
 
-        res = ns::mask_all(t, ns::not_greater(t, v_nan, v_val));
+        // 2 !>= 2 (False)
+        res = ns::mask_none(t, ns::not_greater_equal(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(2))));
         EXPECT_TRUE(res);
 
-        // =========================================================================
-        // Greater Equal vs Not Greater Equal
-        // =========================================================================
-        res = ns::mask_none(t, ns::greater_equal(t, v_nan, v_val));
+        // 2 !>= 1 (False)
+        res = ns::mask_none(t, ns::not_greater_equal(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(1))));
         EXPECT_TRUE(res);
 
-        res = ns::mask_all(t, ns::not_greater_equal(t, v_nan, v_val));
-        EXPECT_TRUE(res);
+        #if KSIMD_TEST_FP
+        {
+            // -Inf !>= 1 (True)
+            res = ns::mask_all(t, ns::not_greater_equal(t, ns::set(t, -ksimd::Inf<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+            EXPECT_TRUE(res);
 
-        // =========================================================================
-        // Less Equal vs Not Less Equal
-        // =========================================================================
-        res = ns::mask_none(t, ns::less(t, v_nan, v_val));
-        EXPECT_TRUE(res);
-
-        res = ns::mask_all(t, ns::not_less(t, v_nan, v_val));
-        EXPECT_TRUE(res);
-
-        // =========================================================================
-        // Less Equal vs Not Less Equal
-        // =========================================================================
-        res = ns::mask_none(t, ns::less_equal(t, v_nan, v_val));
-        EXPECT_TRUE(res);
-
-        res = ns::mask_all(t, ns::not_less_equal(t, v_nan, v_val));
-        EXPECT_TRUE(res);
+            // NaN !>= 任何数 (True)
+            res = ns::mask_all(t, ns::not_greater_equal(t, ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, ksimd::Inf<FLOAT_T>)));
+            EXPECT_TRUE(res);
+        }
+        #endif
     }
 }
+
 #if KSIMD_ONCE
-TEST_ONCE_DYN(float_not_comparison)
+TEST_ONCE_DYN(not_greater_equal)
+#endif
+
+// ------------------------------------------ not_greater ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void not_greater() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
+
+        // 1 !> 2 (True)
+        auto res = ns::mask_all(t, ns::not_greater(t, ns::set(t, FLOAT_T(1)), ns::set(t, FLOAT_T(2))));
+        EXPECT_TRUE(res);
+
+        // 2 !> 2 (True)
+        res = ns::mask_all(t, ns::not_greater(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(2))));
+        EXPECT_TRUE(res);
+
+        // 2 !> 1 (False)
+        res = ns::mask_none(t, ns::not_greater(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(res);
+
+        #if KSIMD_TEST_FP
+        {
+            // 1e30 !> Inf (True)
+            res = ns::mask_all(t, ns::not_greater(t, ns::set(t, ksimd::Max<FLOAT_T> - 2), ns::set(t, ksimd::Inf<FLOAT_T>)));
+            EXPECT_TRUE(res);
+
+            // NaN !> 任何数 (True)
+            res = ns::mask_all(t, ns::not_greater(t, ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(0))));
+            EXPECT_TRUE(res);
+        }
+        #endif
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(not_greater)
+#endif
+
+// ------------------------------------------ not_less ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void not_less() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
+
+        // 2 !< 1 (True)
+        auto res = ns::mask_all(t, ns::not_less(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(res);
+
+        // 2 !< 2 (True)
+        res = ns::mask_all(t, ns::not_less(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(2))));
+        EXPECT_TRUE(res);
+
+        // 1 !< 2 (False)
+        res = ns::mask_none(t, ns::not_less(t, ns::set(t, FLOAT_T(1)), ns::set(t, FLOAT_T(2))));
+        EXPECT_TRUE(res);
+
+        #if KSIMD_TEST_FP
+        {
+            // Inf !< 1 (True)
+            res = ns::mask_all(t, ns::not_less(t, ns::set(t, ksimd::Inf<FLOAT_T>), ns::set(t, FLOAT_T(1))));
+            EXPECT_TRUE(res);
+
+            // NaN !< 任何数 (True)
+            res = ns::mask_all(t, ns::not_less(t, ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, ksimd::Inf<FLOAT_T>)));
+            EXPECT_TRUE(res);
+        }
+        #endif
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(not_less)
+#endif
+
+// ------------------------------------------ not_less_equal ------------------------------------------
+namespace KSIMD_DYN_INSTRUCTION
+{
+    KSIMD_DYN_FUNC_ATTR
+    void not_less_equal() noexcept
+    {
+        namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
+
+        // 2 !<= 1 (True)
+        auto res = ns::mask_all(t, ns::not_less_equal(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(1))));
+        EXPECT_TRUE(res);
+
+        // 2 !<= 2 (False)
+        res = ns::mask_none(t, ns::not_less_equal(t, ns::set(t, FLOAT_T(2)), ns::set(t, FLOAT_T(2))));
+        EXPECT_TRUE(res);
+
+        // 1 !<= 2 (False)
+        res = ns::mask_none(t, ns::not_less_equal(t, ns::set(t, FLOAT_T(1)), ns::set(t, FLOAT_T(2))));
+        EXPECT_TRUE(res);
+
+        #if KSIMD_TEST_FP
+        {
+            // 1 !<= -Inf (True)
+            res = ns::mask_all(t, ns::not_less_equal(t, ns::set(t, FLOAT_T(1)), ns::set(t, -ksimd::Inf<FLOAT_T>)));
+            EXPECT_TRUE(res);
+
+            // NaN !<= 任何数 (True)
+            res = ns::mask_all(t, ns::not_less_equal(t, ns::set(t, ksimd::QNaN<FLOAT_T>), ns::set(t, FLOAT_T(0))));
+            EXPECT_TRUE(res);
+        }
+        #endif
+    }
+}
+
+#if KSIMD_ONCE
+TEST_ONCE_DYN(not_less_equal)
 #endif
 
 // ------------------------------------------ nan_finite_checks ------------------------------------------

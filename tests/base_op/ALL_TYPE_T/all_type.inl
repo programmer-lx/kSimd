@@ -1149,11 +1149,16 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
-        // 2 > 1 (True), 1 > 2 (False)
+        // 2 > 1 (True)
         auto res = ns::mask_all(t, ns::greater(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(1))));
         EXPECT_TRUE(res);
 
+        // 1 > 2 (False)
         res = ns::mask_none(t, ns::greater(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
+
+        // 2 > 2 (False)
+        res = ns::mask_none(t, ns::greater(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(2))));
         EXPECT_TRUE(res);
 
         #if KSIMD_TEST_FP
@@ -1178,9 +1183,33 @@ namespace KSIMD_DYN_INSTRUCTION
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
 
-        // 2 >= 2 (True)
-        auto res = ns::mask_all(t, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(2))));
+        // 2 >= 1 (True)
+        auto res = ns::mask_all(t, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(1))));
         EXPECT_TRUE(res);
+
+        // 2 >= 2 (True)
+        res = ns::mask_all(t, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
+
+        // 2 >= 3 (False)
+        res = ns::mask_none(t, ns::greater_equal(t, ns::set(t, TYPE_T(2)), ns::set(t, TYPE_T(3))));
+        EXPECT_TRUE(res);
+
+        #if KSIMD_TEST_FP
+        {
+            // Inf >= 1e30 (True)
+            res = ns::mask_all(t, ns::greater_equal(t, ns::set(t, ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Max<TYPE_T> - 2)));
+            EXPECT_TRUE(res);
+
+            // 1 >= -Inf (True)
+            res = ns::mask_all(t, ns::greater_equal(t, ns::set(t, TYPE_T(1)), ns::set(t, -ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
+
+            // NaN >= 任何数 (False)
+            res = ns::mask_none(t, ns::greater_equal(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
+        }
+        #endif
     }
 }
 #if KSIMD_ONCE
@@ -1195,8 +1224,17 @@ namespace KSIMD_DYN_INSTRUCTION
     void less() noexcept
     {
         namespace ns = ksimd::KSIMD_DYN_INSTRUCTION; TAG_T t;
+
         // 1 < 2 (True)
         auto res = ns::mask_all(t, ns::less(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(2))));
+        EXPECT_TRUE(res);
+
+        // 1 < 1 (False)
+        res = ns::mask_none(t, ns::less(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(1))));
+        EXPECT_TRUE(res);
+
+        // 1 < 0 (False)
+        res = ns::mask_none(t, ns::less(t, ns::set(t, TYPE_T(1)), ns::set(t, TYPE_T(0))));
         EXPECT_TRUE(res);
 
         #if KSIMD_TEST_FP
@@ -1223,6 +1261,29 @@ namespace KSIMD_DYN_INSTRUCTION
         // 5 <= 5 (True)
         auto res = ns::mask_all(t, ns::less_equal(t, ns::set(t, TYPE_T(5)), ns::set(t, TYPE_T(5))));
         EXPECT_TRUE(res);
+
+        // 5 <= 6 (True)
+        res = ns::mask_all(t, ns::less_equal(t, ns::set(t, TYPE_T(5)), ns::set(t, TYPE_T(6))));
+        EXPECT_TRUE(res);
+
+        // 5 <= 4 (False)
+        res = ns::mask_none(t, ns::less_equal(t, ns::set(t, TYPE_T(5)), ns::set(t, TYPE_T(4))));
+        EXPECT_TRUE(res);
+
+        #if KSIMD_TEST_FP
+        {
+            // -Inf <= Inf (True)
+            res = ns::mask_all(t, ns::less_equal(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
+
+            // NaN 相关比较应为 False
+            res = ns::mask_none(t, ns::less_equal(t, ns::set(t, -ksimd::Inf<TYPE_T>), ns::set(t, ksimd::QNaN<TYPE_T>)));
+            EXPECT_TRUE(res);
+
+            res = ns::mask_none(t, ns::less_equal(t, ns::set(t, ksimd::QNaN<TYPE_T>), ns::set(t, -ksimd::Inf<TYPE_T>)));
+            EXPECT_TRUE(res);
+        }
+        #endif
     }
 }
 #if KSIMD_ONCE
