@@ -111,9 +111,22 @@ namespace KSIMD_DYN_INSTRUCTION
         // 2. 带 base: [base, base + 1, ...]
         TYPE_T base = TYPE_T(10);
         ns::store(t, arr.data(), ns::sequence(t, base));
-        for (size_t i = 0; i < Lanes; ++i) {
+        for (size_t i = 0; i < Lanes; ++i)
+        {
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(base + static_cast<TYPE_T>(i)));
         }
+
+        #if KSIMD_TEST_SIGNED
+        // 负数base
+        {
+            TYPE_T base_2 = TYPE_T(-60);
+            ns::store(t, arr.data(), ns::sequence(t, base_2));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_EQ(arr[i], static_cast<TYPE_T>(base_2 + static_cast<TYPE_T>(i)));
+            }
+        }
+        #endif
 
         // 3. 带 base 和 stride: [base, base + stride, ...]
         TYPE_T b_v = TYPE_T(5), stride = TYPE_T(2);
@@ -121,6 +134,19 @@ namespace KSIMD_DYN_INSTRUCTION
         for (size_t i = 0; i < Lanes; ++i) {
             EXPECT_EQ(arr[i], static_cast<TYPE_T>(b_v + static_cast<TYPE_T>(i) * stride));
         }
+
+        #if KSIMD_TEST_SIGNED
+        // 负数base，负数stride
+        {
+            TYPE_T base_2 = TYPE_T(-1);
+            TYPE_T stride_2 = TYPE_T(-1);
+            ns::store(t, arr.data(), ns::sequence(t, base_2, stride_2));
+            for (size_t i = 0; i < Lanes; ++i)
+            {
+                EXPECT_EQ(arr[i], static_cast<TYPE_T>(base_2 + static_cast<TYPE_T>(i) * stride_2));
+            }
+        }
+        #endif
 
         #if KSIMD_TEST_FP
         {

@@ -10,14 +10,16 @@
 
 #if KSIMD_IDE
 
+    #include "kSimd/core/impl/ops/op.hpp"
+
     // 可以自己取消注释，定义这些宏，方便开发测试
-    // #undef KSIMD_DYN_INSTRUCTION
-    // #define KSIMD_DYN_INSTRUCTION KSIMD_IDE_NS
+    #undef KSIMD_DYN_INSTRUCTION
+    #define KSIMD_DYN_INSTRUCTION KSIMD_IDE_NS
 
-    // #undef KSIMD_DYN_FUNC_ATTR
-    // #define KSIMD_DYN_FUNC_ATTR
+    #undef KSIMD_DYN_FUNC_ATTR
+    #define KSIMD_DYN_FUNC_ATTR
 
-    // #undef KSIMD_DYN_DISPATCH_LEVEL
-    // #define KSIMD_DYN_DISPATCH_LEVEL KSIMD_DYN_DISPATCH_LEVEL_X86_V4_FULL_FP16
+    #undef KSIMD_DYN_DISPATCH_LEVEL
+    #define KSIMD_DYN_DISPATCH_LEVEL KSIMD_DYN_DISPATCH_LEVEL_X86_V4
 
 #endif

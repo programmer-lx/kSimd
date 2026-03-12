@@ -1,8 +1,10 @@
 cmake-build-*/
 .idea/
+.vs/
 build*/
 .vscode/
 doc_autogen/
+CMakeSettings.json
 
 # asm
 tests_asm/*.s

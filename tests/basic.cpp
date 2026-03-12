@@ -18,6 +18,11 @@
 #pragma message("dispatch intrinsic: \"" KSIMD_STR("" KSIMD_DYN_FUNC_ATTR) "\"")
 
 
+#if KSIMD_IDE
+    #error can not defined KSIMD_IDE macro.
+#endif
+
+
 #if KSIMD_COMPILER_MSVC
     #pragma message("compiler: msvc")
 #endif

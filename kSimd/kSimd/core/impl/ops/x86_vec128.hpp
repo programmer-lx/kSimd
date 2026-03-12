@@ -582,7 +582,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int64<Tag> && is_tag_128<Tag>)
+        requires((is_tag_int64<Tag> || is_tag_uint64<Tag>) && is_tag_128<Tag>)
     KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
     {
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
@@ -599,30 +599,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         __m128i res = _mm_setzero_si128();
         if (count == 0) [[unlikely]]
             return res;
-        std::memcpy(&res, mem, sizeof(int64_t) * count);
-        return res;
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_uint64<Tag> && is_tag_128<Tag>)
-    KSIMD_API(Batch<Tag>) loadu_partial(Tag, const tag_scalar_t<Tag>* mem, size_t count) noexcept
-    {
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
-        auto mask = detail::mm_first_n_mask<Tag>(count);
-        return _mm_maskz_loadu_epi64(mask, mem);
-        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
-        __m128i iota = _mm_set_epi64x(1, 0);
-        __m128i cnt = _mm_set1_epi64x(static_cast<int64_t>(count));
-        __m128i mask = _mm_cmpgt_epi64(cnt, iota);
-        return _mm_maskload_epi64(reinterpret_cast<const long long*>(mem), mask);
-        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        __m128i res = _mm_setzero_si128();
-        if (count == 0) [[unlikely]]
-            return res;
-        std::memcpy(&res, mem, sizeof(uint64_t) * count);
+        std::memcpy(&res, mem, sizeof(tag_scalar_t<Tag>) * count);
         return res;
         #endif
     }
@@ -774,7 +751,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
     }
 
     template<typename Tag>
-        requires(is_tag_int64<Tag> && is_tag_128<Tag>)
+        requires((is_tag_int64<Tag> || is_tag_uint64<Tag>) && is_tag_128<Tag>)
     KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
     {
         #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
@@ -790,28 +767,7 @@ namespace ksimd::KSIMD_DYN_INSTRUCTION
         count = count > L ? L : count;
         if (count == 0) [[unlikely]]
             return;
-        std::memcpy(mem, &v, sizeof(int64_t) * count);
-        #endif
-    }
-
-    template<typename Tag>
-        requires(is_tag_uint64<Tag> && is_tag_128<Tag>)
-    KSIMD_API(void) storeu_partial(Tag, tag_scalar_t<Tag>* mem, Batch<Tag> v, size_t count) noexcept
-    {
-        #if KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V4
-        auto mask = detail::mm_first_n_mask<Tag>(count);
-        _mm_mask_storeu_epi64(mem, mask, v);
-        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V3
-        __m128i iota = _mm_set_epi64x(1, 0);
-        __m128i cnt = _mm_set1_epi64x(static_cast<int64_t>(count));
-        __m128i mask = _mm_cmpgt_epi64(cnt, iota);
-        _mm_maskstore_epi64(reinterpret_cast<long long*>(mem), mask, v);
-        #elif KSIMD_DYN_DISPATCH_LEVEL >= KSIMD_DYN_DISPATCH_LEVEL_X86_V1
-        constexpr size_t L = lanes(Tag{});
-        count = count > L ? L : count;
-        if (count == 0) [[unlikely]]
-            return;
-        std::memcpy(mem, &v, sizeof(uint64_t) * count);
+        std::memcpy(mem, &v, sizeof(tag_scalar_t<Tag>) * count);
         #endif
     }
 
