@@ -115,35 +115,35 @@
 **参数**：`tag: Tag`，`v: Batch<Tag>`  
 **返回类型**：`Batch<Tag>`  
 **返回语义**：逐 lane 按位取反。  
-**备注**：`float16` 分支在该文件中为删除声明。
+**备注**：`float16` 分支不可用。
 
 ## 20) `bit_and`
 **签名**：`template<typename Tag> Batch<Tag> bit_and(Tag tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept`  
 **参数**：`tag: Tag`，`lhs: Batch<Tag>`，`rhs: Batch<Tag>`  
 **返回类型**：`Batch<Tag>`  
 **返回语义**：逐 lane 按位与。  
-**备注**：`float16` 分支在该文件中为删除声明。
+**备注**：`float16` 分支不可用。
 
 ## 21) `bit_and_not`
 **签名**：`template<typename Tag> Batch<Tag> bit_and_not(Tag tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept`  
 **参数**：`tag: Tag`，`lhs: Batch<Tag>`，`rhs: Batch<Tag>`  
 **返回类型**：`Batch<Tag>`  
 **返回语义**：逐 lane `~lhs & rhs`。  
-**备注**：`float16` 分支在该文件中为删除声明。
+**备注**：`float16` 分支不可用。
 
 ## 22) `bit_or`
 **签名**：`template<typename Tag> Batch<Tag> bit_or(Tag tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept`  
 **参数**：`tag: Tag`，`lhs: Batch<Tag>`，`rhs: Batch<Tag>`  
 **返回类型**：`Batch<Tag>`  
 **返回语义**：逐 lane 按位或。  
-**备注**：`float16` 分支在该文件中为删除声明。
+**备注**：`float16` 分支不可用。
 
 ## 23) `bit_xor`
 **签名**：`template<typename Tag> Batch<Tag> bit_xor(Tag tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept`  
 **参数**：`tag: Tag`，`lhs: Batch<Tag>`，`rhs: Batch<Tag>`  
 **返回类型**：`Batch<Tag>`  
 **返回语义**：逐 lane 按位异或。  
-**备注**：`float16` 分支在该文件中为删除声明。
+**备注**：`float16` 分支不可用。
 
 ## 24) `equal`
 **签名**：`template<typename Tag> Mask<Tag> equal(Tag tag, Batch<Tag> lhs, Batch<Tag> rhs) noexcept`  
